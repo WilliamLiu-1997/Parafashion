@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Parafashion</title>
+  <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
+  <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<style>
+  * {
+    font-family: "Comic Sans MS", fantasy;
+  }
+
+  body {
+    font-family: Monospace;
+    background-color: #000;
+    color: #fff;
+    margin: 0px;
+    overflow: hidden;
+  }
+
+  #info {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    user-select: none;
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  div.panel_box {
+    position: absolute;
+    top: 10%;
+    width: 20%;
+    min-width: 240px;
+    height: 80%;
+    z-index: 2;
+    text-align: center;
+
+  }
+
+  .btn:active.focus,
+  .btn:active:focus,
+  .btn:focus {
+    outline: 0px auto -webkit-focus-ring-color;
+    outline-offset: 2px;
+  }
+
+  #my-gui-container {
+    position: absolute;
+    top: 10%;
+    right: 0px;
+    z-index: 2;
+  }
+</style>
+
+<body>
+  <div id="container"></div>
+  <div id="my-gui-container"></div>
+  <div id="panel_box" class="panel_box">
+
+    <div class="btn-group" style="width: 100%;">
+      <button id="hide-patches" type="button" class="btn btn-default" data-toggle="collapse"
+        data-target="#panel-patches" style="
+          background-color: rgba(182, 182, 182, 0.5);
+          color: #fff;
+          padding: 2px;
+          width:90%;
+        " onclick="hidePatches()">
+        Hide Patches
+      </button>
+      <button id="scale-patches" type="button" class="btn btn-default" style="
+          background-color: rgba(182, 182, 182, 0.5);
+          color: #fff;
+          padding: 2px;
+          width:10%;
+        " onclick="scalePatches()">
+        >
+      </button>
+    </div>
+    <div id="panel-patches" class="panel-collapse collapse in" style="background-color: rgba(0, 0, 0, 0.5)">
+      <div id="container_patch">
+      </div>
+    </div>
+  </div>
+  <div id="info">
+    <p>
+      Parafashion<br />
+      left button to rotate the scene, scroll to zoom in/out, middle button to pan, right button to draw
+    </p>
+  </div>
+  <script>
+    function hidePatches() {
+      $("#panel-patches").on("show.bs.collapse", function () {
+        $("#hide-patches").text("Hide Patches");
+        $("#scale-patches").css({"color":"#fff"});
+      });
+      $("#panel-patches").on("hide.bs.collapse", function () {
+        $("#hide-patches").text("Show Patches");
+        $("#scale-patches").css({"color":"#888"});
+        if($("#scale-patches").text()=="<"){
+         $(".panel_box").animate({ width: '20%' },300,scale_icon()); 
+        }
+      });
+    }
+    function scalePatches() {
+      if ($("#hide-patches").text() != "Show Patches"&&$("#scale-patches").text()!="<") {
+         $(".panel_box").animate({ width: '80%' },300,scale_icon()); 
+        }
+      else if ($("#hide-patches").text() != "Show Patches"&&$("#scale-patches").text()=="<") {
+         $(".panel_box").animate({ width: '20%' },300,scale_icon()); 
+        }
+    }
+    function scale_icon(){
+      if($("#scale-patches").text()!="<")$("#scale-patches").text("<")
+      else $("#scale-patches").text(">")
+    }
+  </script>
+  <script src="js/three.js"></script>
+  <script src="js/OBJLoader.js"></script>
+  <script src="js/MTLLoader.js"></script>
+  <script src="js/OrbitControls.js"></script>
+  <script type="module">
+    import { GUI } from "js/dat.gui.module.js";
+    let camera, controls, scene, renderer, leggin, gui_values;
+    let camera_patch, controls_patch, scene_patch, renderer_patch, patch;
+    let draw = false;
+    let obj3D = new THREE.Object3D();
+    let progress_obj = -2,
+      progress_mtl = -2;
+    let position_folder = false;
+    let patch_panel_width=$("#container_patch").css("width");
+
+    init();
+    init_patch();
+    animate();
+
+    function init_patch() {
+      scene_patch = new THREE.Scene();
+      renderer_patch = new THREE.WebGLRenderer({ alpha: true });
+
+      renderer_patch.setPixelRatio(window.devicePixelRatio);
+      renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.75);
+      document.getElementById("container_patch").appendChild(renderer_patch.domElement);
+
+      camera_patch = new THREE.PerspectiveCamera(
+        45,
+        $("#container_patch").width() / window.innerHeight / 0.75,
+        0.01,
+        100
+      );
+      camera_patch.position.set(0, 0, 3);
+
+      var cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 1);
+      camera_patch.add(cameralight);
+      scene_patch.add(camera_patch);
+
+      controls_patch = new THREE.OrbitControls(camera_patch, renderer_patch.domElement);
+      //controls.listenToKeyEvents(window); // optional
+
+      //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+      controls_patch.enableDamping = true;
+      controls_patch.dampingFactor = 0.5;
+
+      controls_patch.screenSpacePanning = false;
+
+      //controls.enablePan = false;
+
+      controls_patch.minDistance = 0.5;
+      controls_patch.maxDistance = 5;
+
+      controls_patch.maxPolarAngle = Math.PI * 0.9;
+      controls_patch.minPolarAngle = Math.PI * 0.1;
+
+
+      controls_patch.maxAzimuthAngle = Math.PI * 0.4;
+      controls_patch.minAzimuthAngle = -Math.PI * 0.4;
+
+    }
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x222222);
+      scene.fog = new THREE.FogExp2(0x222222, 0.002);
+
+      renderer = new THREE.WebGLRenderer();
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.getElementById("container").appendChild(renderer.domElement);
+      //document.body.appendChild(renderer.domElement);
+
+      camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      camera.position.set(0, 0, 2);
+
+      var cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 1);
+      camera.add(cameralight);
+      scene.add(camera);
+
+      // controls
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      //controls.listenToKeyEvents(window); // optional
+
+      //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.5;
+
+      controls.screenSpacePanning = false;
+
+      //controls.enablePan = false;
+
+      controls.minDistance = 0.5;
+      controls.maxDistance = 5;
+
+
+      var leggins_obj = "./leggins/leggins_patch.obj";
+      var leggins_mtl = "./leggins/leggins_patch.obj.mtl";
+      var leggins_mtl_texture = "./leggins/"
+      // var leggins_mtl = "./obj/village1/village_final.mtl"
+      // var leggins_obj = "./obj/village1/village_final.obj"
+      // var leggins_mtl_texture = "./obj/village1/"
+      leggin = obj_loader(leggins_obj, leggins_mtl, leggins_mtl_texture, 1, true);
+      scene.add(leggin);
+
+
+
+      gui_values = new (function () {
+        this.garnment_x = 0;
+        this.garnment_y = 0;
+        this.garnment_z = 0;
+        this.patch_x = 0;
+        this.patch_y = 0;
+        this.patch_z = 0;
+        this.garnment_scale = 1;
+        this.patch_scale = 1;
+      })();
+      //
+      window.addEventListener("resize", onWindowResize);
+      window.addEventListener("mousedown", onmouseDown, false);
+      window.addEventListener("mouseup", onmouseUp, false);
+      document.addEventListener("mousemove", mouseMove, false);
+    }
+
+    function onmouseDown(event) {
+      if (event.button == 2) {
+        draw = true;
+      }
+    }
+
+    function onmouseUp(event) {
+      if (event.button == 2) {
+        draw = false;
+      }
+    }
+
+    function mouseMove(event) {
+      if (draw) {
+      }
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.75;
+      camera_patch.updateProjectionMatrix();
+      renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.75);
+    }
+
+
+    function animate() {
+      if(patch_panel_width!=$("#container_patch").css("width")){
+        patch_panel_width=$("#container_patch").css("width")
+        onWindowResize()
+      }
+      if (progress_obj + progress_mtl == 200) {
+        progress_obj = progress_mtl = -1;
+        var num = leggin.children[0].children.length;
+        var uvs = []
+        for (var i = 0; i < num; i++) { uvs.push(leggin.children[0].children[0].geometry.attributes.uv.array); }
+        patch = patch_loader(leggin, uvs, "./leggins/leggins_patch.obj.mtl", 1, num, true);
+        scene_patch.add(patch)
+
+        if (!position_folder) {
+          var gui = new GUI({ width: window.innerWidth * 0.2, autoPlace: false })
+          position_folder = gui.addFolder("Position and Scale")
+          position_folder.add(gui_values, "garnment_x", -5, 5, 0.05)
+          position_folder.add(gui_values, "garnment_y", -5, 5, 0.05)
+          position_folder.add(gui_values, "garnment_z", -5, 5, 0.05)
+          position_folder.add(gui_values, "garnment_scale", 0.1, 10, 0.05)
+          position_folder.add(gui_values, "patch_x", -5, 5, 0.05)
+          position_folder.add(gui_values, "patch_y", -5, 5, 0.05)
+          position_folder.add(gui_values, "patch_z", -5, 5, 0.05)
+          position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.05)
+
+          document.getElementById('my-gui-container').appendChild(gui.domElement);
+          position_folder.open();
+        }
+
+      }
+      if (progress_obj + progress_mtl == -2) {
+        leggin.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
+        patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
+        leggin.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
+        patch.scale.set(gui_values.patch_scale, gui_values.patch_scale, gui_values.patch_scale)
+      }
+
+
+
+      requestAnimationFrame(animate);
+      controls.update();
+      controls_patch.update();
+      render();
+    }
+
+    function render() {
+      renderer.render(scene, camera);
+      renderer_patch.render(scene_patch, camera_patch);
+    }
+
+    function obj_loader(url_obj, url_mtl, url_mtl_texture, scale, double = false) {
+      const onProgress_obj = function (xhr) {
+        if (xhr.lengthComputable) {
+          const percentComplete = (xhr.loaded / xhr.total) * 100;
+          console.log(Math.round(percentComplete, 2) + "% downloaded");
+          progress_obj = Math.round(percentComplete, 2);
+        }
+      };
+      const onProgress_mtl = function (xhr) {
+        if (xhr.lengthComputable) {
+          const percentComplete = (xhr.loaded / xhr.total) * 100;
+          console.log(Math.round(percentComplete, 2) + "% downloaded");
+          progress_mtl = Math.round(percentComplete, 2);
+        }
+      };
+      var newobj = obj3D.clone();
+      var newmtl = new THREE.MTLLoader();
+      newmtl.setTexturePath(url_mtl_texture);
+      if (double) {
+        newmtl.setMaterialOptions({ side: THREE.DoubleSide });
+      }
+      newmtl.load(
+        url_mtl,
+        (mtl) => {
+          mtl.preload();
+          var objLoader = new THREE.OBJLoader();
+          objLoader.setMaterials(mtl);
+          objLoader.load(
+            url_obj,
+            (root) => {
+              for (var k = 0; k < root.children.length; k++) {
+                root.children[k].castShadow = true;
+                root.children[k].receiveShadow = true;
+              }
+              root.position.set(0, 0, 0);
+              root.scale.set(scale, scale, scale);
+              newobj.add(root);
+            },
+            onProgress_mtl
+          );
+        },
+        onProgress_obj
+      );
+      return newobj;
+    }
+
+    function array_clone(array) {
+      var result = []
+      for (var i = 0; i < array.length; i++) {
+        result.push(array[i].clone())
+      }
+      return result
+    }
+
+    function patch_loader(leggin, uv, url_mtl, scale, num, double = false) {
+      var newobj = obj3D.clone();
+      var last_x = 0;
+      for (var x = 0; x < num; x++) {
+        var u_max = 0, u_min = 0, v_max = 0, v_min = 0;
+        var patch = Array.isArray(leggin.children[0].children[x].geometry) ? array_clone(leggin.children[0].children[x].geometry) : leggin.children[0].children[x].geometry.clone();
+        var patch_mtl = Array.isArray(leggin.children[0].children[x].material) ? array_clone(leggin.children[0].children[x].material) : leggin.children[0].children[x].material.clone();
+        for (var i = 0; i < patch_mtl.length; i++) {
+          patch_mtl[i].flatShading = true;
+        }
+        var vertices = [];
+        for (var i = 0; i < uv[x].length; i++) {
+          if (i % 2 != 0) {
+            u_max = u_max < -uv[x][i - 1] ? -uv[x][i - 1] : u_max
+            u_min = u_min > -uv[x][i - 1] ? -uv[x][i - 1] : u_min
+            v_max = v_max < -uv[x][i] ? -uv[x][i] : v_max
+            v_min = v_min > -uv[x][i] ? -uv[x][i] : v_min
+
+            var vertice = new THREE.Vector3();
+            vertice.set(-uv[x][i - 1], -uv[x][i], 0);
+            vertices.push(vertice);
+          }
+        }
+        patch.setFromPoints(vertices);
+        var patch_map = new THREE.Mesh(patch, patch_mtl);
+        patch_map.position.set((u_max - u_min) / 2 + last_x, (v_max - v_min) / 2, 0);
+        last_x += (u_max - u_min) / 2
+        patch_map.scale.set(scale, scale, scale);
+        newobj.add(patch_map);
+      }
+      return newobj
+    }
+  </script>
+</body>
+
+</html>
