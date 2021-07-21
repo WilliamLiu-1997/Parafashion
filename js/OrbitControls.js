@@ -664,7 +664,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		switch ( event.button ) {
 
-			case scope.mouseButtons.ORBIT:
+			case scope.mouseButtons.ZOOM:
 
 				if ( scope.enableRotate === false ) return;
 
@@ -684,7 +684,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			// 	break;
 
-			case scope.mouseButtons.ZOOM:
+			case scope.mouseButtons.PAN:
 
 				if ( scope.enablePan === false ) return;
 

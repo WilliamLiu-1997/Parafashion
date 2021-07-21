@@ -93,7 +93,7 @@
   <div id="info">
     <p>
       Parafashion<br />
-      left button to rotate the scene, scroll to zoom in/out, middle button to pan, right button to draw
+      Middle button to rotate the scene, scroll to zoom in/out, right button to pan, left button to draw or select patch
     </p>
   </div>
   <script>
@@ -104,7 +104,7 @@
       });
       $("#panel-patches").on("hide.bs.collapse", function () {
         $("#hide-patches").text("Show Patches");
-        $("#scale-patches").css({ "color": "#888" });
+        $("#scale-patches").css({ "color": "#aaa" });
         if ($("#scale-patches").text() == "<") {
           $(".panel_box").animate({ width: '20%' }, 300, scale_icon());
         }
@@ -129,14 +129,19 @@
   <script src="js/OrbitControls.js"></script>
   <script type="module">
     import { GUI } from "./js/dat.gui.module.js";
-    let camera, cameralight, controls, scene, renderer, leggin, gui_values, env_light;
+    let camera, cameralight, controls, scene, renderer, leggin, gui, gui_values, env_light, gui_options;
     let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
-    let draw = false;
+    let draw = false, cut = false, select = true;
     let obj3D = new THREE.Object3D();
     let progress_obj = -2,
       progress_mtl = -2;
     let position_folder = false;
     let patch_panel_width = $("#container_patch").css("width");
+    let raycaster = new THREE.Raycaster();
+    let pointer = new THREE.Vector2();
+    let color = new THREE.Color();
+    let selected_material, selected_patch_material;
+    let selected = [], selected_patch = [];
 
     init();
     init_patch();
@@ -186,6 +191,34 @@
       controls_patch.maxAzimuthAngle = Math.PI * 0.4;
       controls_patch.minAzimuthAngle = -Math.PI * 0.4;
 
+
+      gui_values = new (function () {
+        this.garnment_x = 0;
+        this.garnment_y = 0;
+        this.garnment_z = 0;
+        this.patch_x = 0;
+        this.patch_y = 0;
+        this.patch_z = 0;
+        this.garnment_scale = 1;
+        this.patch_scale = 1;
+      })();
+
+      gui_options = {
+        reset: function () {
+          controls.reset();
+          controls_patch.reset();
+          gui_values.garnment_x = 0;
+          gui_values.garnment_y = 0;
+          gui_values.garnment_z = 0;
+          gui_values.patch_x = 0;
+          gui_values.patch_y = 0;
+          gui_values.patch_z = 0;
+          gui_values.garnment_scale = 1;
+          gui_values.patch_scale = 1;
+          if (position_folder) { gui.updateDisplay() }
+        }
+      }
+
     }
 
     function init() {
@@ -200,12 +233,12 @@
       //document.body.appendChild(renderer.domElement);
 
       camera = new THREE.PerspectiveCamera(
-        60,
+        45,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
       );
-      camera.position.set(0, 0, 2);
+      camera.position.set(0, 0, 10);
 
       cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 1);
       camera.add(cameralight);
@@ -233,25 +266,15 @@
       var leggins_obj = "./leggins/leggins_patch.obj";
       var leggins_mtl = "./leggins/leggins_patch.obj.mtl";
       var leggins_mtl_texture = "./leggins/"
+      var leggins_mtl = "./leggins/patch.mtl"
+      var leggins_obj = "./leggins/patch.obj"
+      var leggins_mtl_texture = "./leggins/"
       // var leggins_mtl = "./obj/tower/tower.mtl"
       // var leggins_obj = "./obj/tower/tower.obj"
       // var leggins_mtl_texture = "./obj/tower/"
       leggin = obj_loader(leggins_obj, leggins_mtl, leggins_mtl_texture, 1, true);
       scene.add(leggin);
 
-
-
-
-      gui_values = new (function () {
-        this.garnment_x = 0;
-        this.garnment_y = 0;
-        this.garnment_z = 0;
-        this.patch_x = 0;
-        this.patch_y = 0;
-        this.patch_z = 0;
-        this.garnment_scale = 1;
-        this.patch_scale = 1;
-      })();
       //
       window.addEventListener("resize", onWindowResize);
       window.addEventListener("mousedown", onmouseDown, false);
@@ -260,19 +283,101 @@
     }
 
     function onmouseDown(event) {
-      if (event.button == 2) {
+      if (event.button == 0 && cut) {
         draw = true;
       }
+      if (event.button == 1) { select = false; }
+      if (event.button == 2) { select = false; }
     }
 
     function onmouseUp(event) {
-      if (event.button == 2) {
+      if (event.button == 0 && cut) {
         draw = false;
+      }
+      if (event.button == 1) {
+        select = true;
+        if (selected.length == 1 && selected_patch.length == 1) {
+          selected[0].material = selected_material;
+          selected_patch[0].material = selected_patch_material;
+        }
+        else if (selected.length == 2 && selected_patch.length == 2) {
+          selected[0][selected[1]] = selected_material;
+          selected_patch[0][selected_patch[1]] = selected_patch_material;
+        }
+      }
+      if (event.button == 2) {
+        select = true;
+        if (selected.length == 1 && selected_patch.length == 1) {
+          selected[0].material = selected_material;
+          selected_patch[0].material = selected_patch_material;
+        }
+        else if (selected.length == 2 && selected_patch.length == 2) {
+          selected[0][selected[1]] = selected_material;
+          selected_patch[0][selected_patch[1]] = selected_patch_material;
+        }
       }
     }
 
     function mouseMove(event) {
+      var obj = document.getElementById("panel_box");
+      pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+      pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+      if (event.clientX > obj.offsetLeft
+        && event.clientX < (obj.offsetLeft + obj.clientWidth)
+        && event.clientY > obj.offsetTop
+        && event.clientY < (obj.offsetTop + obj.clientHeight)) { return; }
       if (draw) {
+      }
+      else if (select) {
+        raycaster.setFromCamera(pointer, camera);
+        if (selected.length == 1 && selected_patch.length == 1) {
+          selected[0].material = selected_material;
+          selected_patch[0].material = selected_patch_material;
+        }
+        else if (selected.length == 2 && selected_patch.length == 2) {
+          selected[0][selected[1]] = selected_material;
+          selected_patch[0][selected_patch[1]] = selected_patch_material;
+        }
+        const intersects = raycaster.intersectObject(leggin, true);
+        if (intersects.length > 0) {
+          // console.log(intersects[ 0 ].face.normal)
+          // console.log(intersects[ 0 ].point)
+          var material_seleted = new THREE.MeshLambertMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+          var material_patch_seleted = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+          var group_num = intersects[0].object.geometry.groups.length;
+          var vertice_index = intersects[0].face.a;
+          var i = 0;
+          var num = patch ? patch.children.length : 0;
+          if (group_num > 0) {
+            for (i = 0; i < group_num; i++) {
+              if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
+            }
+            selected_material = intersects[0].object.material[i].clone();
+            intersects[0].object.material[i] = material_seleted;
+            selected = [intersects[0].object.material, i]
+            for (var x = 0; x < num; x++) {
+              if (patch && intersects[0].object.name == patch.children[x].name) {
+                selected_patch_material = patch.children[x].material[i].clone();
+                patch.children[x].material[i] = material_patch_seleted;
+                selected_patch = [patch.children[x].material, i];
+                break;
+              }
+            }
+          }
+          else {
+            selected_material = intersects[0].object.material.clone();
+            intersects[0].object.material = material_seleted;
+            selected = [intersects[0].object];
+            for (var x = 0; x < num; x++) {
+              if (patch && intersects[0].object.name == patch.children[x].name) {
+                selected_patch_material = patch.children[x].material.clone();
+                patch.children[x].material = material_patch_seleted;
+                selected_patch = [patch.children[x]];
+                break;
+              }
+            }
+          }
+        }
       }
     }
 
@@ -283,8 +388,12 @@
       camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.75;
       camera_patch.updateProjectionMatrix();
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.75);
+      if (position_folder) {
+        var width = Math.max(250, window.innerWidth * 0.2);
+        gui.domElement.style.width = width + 'px';
+        gui.__closeButton.style.width = width + 'px';
+      }
     }
-
 
     function animate() {
       if (patch_panel_width != $("#container_patch").css("width")) {
@@ -298,11 +407,12 @@
         for (var i = 0; i < num; i++) {
           uvs.push(leggin.children[0].children[i].geometry.attributes.uv.array);
         }
-        patch = patch_loader(leggin, uvs, "./leggins/leggins_patch.obj.mtl", 1, num, true);
+        patch = patch_loader(leggin, uvs, "./leggins/leggins_patch.obj.mtl", 1, num, false);
+        patch.name = "patch"
         scene_patch.add(patch)
 
         if (!position_folder) {
-          var gui = new GUI({ width: window.innerWidth * 0.2, autoPlace: false })
+          gui = new GUI({ width: window.innerWidth * 0.2, autoPlace: false })
           position_folder = gui.addFolder("Position and Scale")
           position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
           position_folder.add(gui_values, "garnment_y", -10, 10, 0.01)
@@ -312,6 +422,7 @@
           position_folder.add(gui_values, "patch_y", -10, 10, 0.01)
           position_folder.add(gui_values, "patch_z", -10, 10, 0.01)
           position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.01)
+          position_folder.add(gui_options, 'reset');
 
           document.getElementById('my-gui-container').appendChild(gui.domElement);
           position_folder.open();
@@ -337,6 +448,7 @@
       renderer.render(scene, camera);
       renderer_patch.render(scene_patch, camera_patch);
     }
+
 
     function obj_loader(url_obj, url_mtl, url_mtl_texture, scale, double = false) {
       const onProgress_obj = function (xhr) {
@@ -368,12 +480,25 @@
           objLoader.load(
             url_obj,
             (root) => {
+              var x_max = 0, x_min = 0, y_max = 0, y_min = 0, z_max = 0, z_min = 0;
               for (var k = 0; k < root.children.length; k++) {
                 root.children[k].castShadow = true;
                 root.children[k].receiveShadow = true;
+                root.children[k].geometry.computeFaceNormals();
+                for (var i = 0; i < root.children[k].geometry.attributes.position.array.length; i++) {
+                  if ((i + 1) % 3 == 0) {
+                    x_max = x_max < root.children[k].geometry.attributes.position.array[i - 2] ? root.children[k].geometry.attributes.position.array[i - 2] : x_max
+                    x_min = x_min > root.children[k].geometry.attributes.position.array[i - 2] ? root.children[k].geometry.attributes.position.array[i - 2] : x_min
+                    y_max = y_max < root.children[k].geometry.attributes.position.array[i - 1] ? root.children[k].geometry.attributes.position.array[i - 1] : y_max
+                    y_min = y_min > root.children[k].geometry.attributes.position.array[i - 1] ? root.children[k].geometry.attributes.position.array[i - 1] : y_min
+                    z_max = z_max < root.children[k].geometry.attributes.position.array[i] ? root.children[k].geometry.attributes.position.array[i] : z_max
+                    z_min = z_min > root.children[k].geometry.attributes.position.array[i] ? root.children[k].geometry.attributes.position.array[i] : z_min
+                  }
+                }
               }
-              root.position.set(0, 0, 0);
-              root.scale.set(scale, scale, scale);
+              var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min) / 5
+              root.position.set(-(x_min + x_max) / 2 / scale_value, -(y_min + y_max) / 2 / scale_value - (y_max - y_min) / 20 / scale_value, -(z_min + z_max) / 2 / scale_value);
+              root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
               newobj.add(root);
             },
             onProgress_mtl
@@ -414,7 +539,6 @@
             u_min = u_min > -uv[x][i - 1] ? -uv[x][i - 1] : u_min
             v_max = v_max < -uv[x][i] ? -uv[x][i] : v_max
             v_min = v_min > -uv[x][i] ? -uv[x][i] : v_min
-
             var vertice = new THREE.Vector3();
             vertice.set(-uv[x][i - 1], -uv[x][i], 0);
             vertices.push(vertice);
@@ -422,6 +546,7 @@
         }
         patch.setFromPoints(vertices);
         var patch_map = new THREE.Mesh(patch, patch_mtl);
+        patch_map.name = leggin.children[0].children[x].name;
         last_x = last_x == 0 ? -(u_max - u_min) / 2 : last_x;
         patch_map.position.set((u_max - u_min) + last_x, (v_max - v_min) / 2, 0);
         last_x += (u_max - u_min) + 0.5

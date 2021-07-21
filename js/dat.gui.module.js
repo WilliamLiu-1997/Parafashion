@@ -2858,7 +2858,7 @@ Common.extend( GUI.prototype,
 			}
 			if ( root.__closeButton ) {
 
-				root.__closeButton.style.width = root.width + 'px';
+				//root.__closeButton.style.width = root.width + 'px';
 
 			}
 
