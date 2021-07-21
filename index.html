@@ -227,8 +227,8 @@
       controls.maxDistance = 5;
 
 
-      var leggins_obj = "./leggins/leggins_patch.obj";
-      var leggins_mtl = "./leggins/leggins_patch.obj.mtl";
+      var leggins_obj = "./leggins/patch.obj";
+      var leggins_mtl = "./leggins/patch.mtl";
       var leggins_mtl_texture = "./leggins/"
       // var leggins_mtl = "./obj/village1/village_final.mtl"
       // var leggins_obj = "./obj/village1/village_final.obj"
@@ -291,7 +291,7 @@
         progress_obj = progress_mtl = -1;
         var num = leggin.children[0].children.length;
         var uvs = []
-        for (var i = 0; i < num; i++) { uvs.push(leggin.children[0].children[0].geometry.attributes.uv.array); }
+        for (var i = 0; i < num; i++) { uvs.push(leggin.children[0].children[i].geometry.attributes.uv.array); }
         patch = patch_loader(leggin, uvs, "./leggins/leggins_patch.obj.mtl", 1, num, true);
         scene_patch.add(patch)
 
@@ -390,6 +390,7 @@
       var newobj = obj3D.clone();
       var last_x = 0;
       for (var x = 0; x < num; x++) {
+        console.log(uv[x])
         var u_max = 0, u_min = 0, v_max = 0, v_min = 0;
         var patch = Array.isArray(leggin.children[0].children[x].geometry) ? array_clone(leggin.children[0].children[x].geometry) : leggin.children[0].children[x].geometry.clone();
         var patch_mtl = Array.isArray(leggin.children[0].children[x].material) ? array_clone(leggin.children[0].children[x].material) : leggin.children[0].children[x].material.clone();
@@ -411,8 +412,9 @@
         }
         patch.setFromPoints(vertices);
         var patch_map = new THREE.Mesh(patch, patch_mtl);
-        patch_map.position.set((u_max - u_min) / 2 + last_x, (v_max - v_min) / 2, 0);
-        last_x += (u_max - u_min) / 2
+        last_x=last_x==0?-(u_max - u_min)/2:last_x;
+        patch_map.position.set((u_max - u_min) + last_x, (v_max - v_min) / 2, 0);
+        last_x += (u_max - u_min)
         patch_map.scale.set(scale, scale, scale);
         newobj.add(patch_map);
       }
