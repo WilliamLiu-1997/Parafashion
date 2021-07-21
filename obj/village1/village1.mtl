@@ -1,0 +1,134 @@
+# Blender MTL File: 'None'
+# Material Count: 12
+
+newmtl AcaciaBranch_01
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.800000 0.800000 0.800000
+Ks 0.010000 0.010000 0.010000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd 3td_AcaciaBranch_01.png
+map_d 3td_AcaciaBranch_03_NRM.png
+
+newmtl AcaciaBranch_03
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.800000 0.800000 0.800000
+Ks 0.010000 0.010000 0.010000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd 3td_AcaciaBranch_03.png
+map_d 3td_AcaciaBranch_01_NRM.png
+
+newmtl BK_africarockfive_DIF
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.768627 0.650980 0.513726
+Ks 0.004941 0.003294 0.000863
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump africarockfive300_NRM.png
+map_Kd africarockfive300_DIF.jpg
+
+newmtl Corigate04
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.109804 0.011765 0.007843
+Ks 0.004784 0.003529 0.001176
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump 3TD_Corrigate_Rust_04_NRM.png
+map_Kd 3TD_Corrigate_Rust_04.jpg
+
+newmtl DeadWood01
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.027451 0.015686 0.007843
+Ks 0.003529 0.003137 0.003137
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump 3td_DeadWood_01_NRM.png
+map_Kd 3td_DeadWood_01.png
+
+newmtl FenceCorrigate01
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.258824 0.078431 0.078431
+Ks 0.003373 0.000078 0.000078
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump 3TD_Corrigate_Rust_01_NRM.png
+map_Kd 3TD_Corrigate_Rust_01.jpg
+
+newmtl RustyMetal05
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.149020 0.086275 0.043137
+Ks 0.010000 0.010000 0.010000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump 3TD_Corrigate_Rust_04_NRM.png
+map_Kd 3td_RustMetal_05.jpg
+
+newmtl Standard_1
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.486275 0.439216 0.368627
+Ks 0.007137 0.006118 0.004157
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump House Bump.jpg
+map_Kd House body .jpg
+
+newmtl Standard_2
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.207843 0.172549 0.074510
+Ks 0.010000 0.010000 0.010000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd Plants1.jpg
+map_d Plants 1 mask .jpg
+
+newmtl Standard_3
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.376471 0.349020 0.078431
+Ks 0.010000 0.010000 0.010000
+Ni 1.000000
+d 0.000000
+illum 2
+map_Kd Plants 2.jpg
+map_d Plants 2 mask.jpg
+
+newmtl acciaBark_01
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.807843 0.458824 0.047059
+Ks 0.007529 0.005412 0.001098
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump 3td_AcaciaBranch_03.png
+map_Kd 3td_acciaBark_01.jpg
+
+newmtl sand
+Ns 96.078431
+Ka 0.062745 0.156863 0.156863
+Kd 0.407843 0.407843 0.407843
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump Sand_bump.1024x1024.jpg
+map_Kd Seamless desert sand 00.1024x1024.jpg

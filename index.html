@@ -69,7 +69,7 @@
     <div class="btn-group" style="width: 100%;">
       <button id="hide-patches" type="button" class="btn btn-default" data-toggle="collapse"
         data-target="#panel-patches" style="
-          background-color: rgba(182, 182, 182, 0.5);
+          background-color: rgba(182, 182, 182, 0.75);
           color: #fff;
           padding: 2px;
           width:90%;
@@ -77,7 +77,7 @@
         Hide Patches
       </button>
       <button id="scale-patches" type="button" class="btn btn-default" style="
-          background-color: rgba(182, 182, 182, 0.5);
+          background-color: rgba(182, 182, 182, 0.75);
           color: #fff;
           padding: 2px;
           width:10%;
@@ -85,7 +85,7 @@
         >
       </button>
     </div>
-    <div id="panel-patches" class="panel-collapse collapse in" style="background-color: rgba(0, 0, 0, 0.5)">
+    <div id="panel-patches" class="panel-collapse collapse in" style="background-color: rgba(0, 0, 0, 0.75)">
       <div id="container_patch">
       </div>
     </div>
@@ -227,12 +227,12 @@
       controls.maxDistance = 5;
 
 
-      var leggins_obj = "./leggins/patch.obj";
-      var leggins_mtl = "./leggins/patch.mtl";
+      var leggins_obj = "./leggins/leggins_patch.obj";
+      var leggins_mtl = "./leggins/leggins_patch.obj.mtl";
       var leggins_mtl_texture = "./leggins/"
-      // var leggins_mtl = "./obj/village1/village_final.mtl"
-      // var leggins_obj = "./obj/village1/village_final.obj"
-      // var leggins_mtl_texture = "./obj/village1/"
+      // var leggins_mtl = "./obj/tower/tower.mtl"
+      // var leggins_obj = "./obj/tower/tower.obj"
+      // var leggins_mtl_texture = "./obj/tower/"
       leggin = obj_loader(leggins_obj, leggins_mtl, leggins_mtl_texture, 1, true);
       scene.add(leggin);
 
@@ -298,14 +298,14 @@
         if (!position_folder) {
           var gui = new GUI({ width: window.innerWidth * 0.2, autoPlace: false })
           position_folder = gui.addFolder("Position and Scale")
-          position_folder.add(gui_values, "garnment_x", -5, 5, 0.05)
-          position_folder.add(gui_values, "garnment_y", -5, 5, 0.05)
-          position_folder.add(gui_values, "garnment_z", -5, 5, 0.05)
-          position_folder.add(gui_values, "garnment_scale", 0.1, 10, 0.05)
-          position_folder.add(gui_values, "patch_x", -5, 5, 0.05)
-          position_folder.add(gui_values, "patch_y", -5, 5, 0.05)
-          position_folder.add(gui_values, "patch_z", -5, 5, 0.05)
-          position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.05)
+          position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
+          position_folder.add(gui_values, "garnment_y", -10, 10, 0.01)
+          position_folder.add(gui_values, "garnment_z", -10, 10, 0.01)
+          position_folder.add(gui_values, "garnment_scale", 0.01, 10, 0.01)
+          position_folder.add(gui_values, "patch_x", -10, 10, 0.01)
+          position_folder.add(gui_values, "patch_y", -10, 10, 0.01)
+          position_folder.add(gui_values, "patch_z", -10, 10, 0.01)
+          position_folder.add(gui_values, "patch_scale", 0.01, 10, 0.01)
 
           document.getElementById('my-gui-container').appendChild(gui.domElement);
           position_folder.open();
@@ -414,7 +414,7 @@
         var patch_map = new THREE.Mesh(patch, patch_mtl);
         last_x=last_x==0?-(u_max - u_min)/2:last_x;
         patch_map.position.set((u_max - u_min) + last_x, (v_max - v_min) / 2, 0);
-        last_x += (u_max - u_min)
+        last_x += (u_max - u_min)+0.5
         patch_map.scale.set(scale, scale, scale);
         newobj.add(patch_map);
       }

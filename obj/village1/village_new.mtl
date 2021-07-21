@@ -1,0 +1,110 @@
+# Blender MTL File: 'None'
+# Material Count: 9
+
+newmtl AcaciaBranch_01
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.010000 0.010000 0.010000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 9
+map_Kd 3td_AcaciaBranch_01.png
+map_d 3td_AcaciaBranch_03_NRM.png
+
+newmtl AcaciaBranch_03
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.010000 0.010000 0.010000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 9
+map_Kd 3td_AcaciaBranch_03.png
+map_d 3td_AcaciaBranch_01_NRM.png
+
+newmtl BK_africarockfive_DIF
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.768627 0.650980 0.513726
+Ks 0.003033 0.003033 0.003033
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump africarockfive300_NRM.png
+map_Kd africarockfive300_DIF.jpg
+
+newmtl DeadWood01
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.027451 0.015686 0.007843
+Ks 0.003268 0.003268 0.003268
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump 3td_DeadWood_01_NRM.png
+map_Kd 3td_DeadWood_01.png
+
+newmtl Standard_1
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.486275 0.439216 0.368627
+Ks 0.005804 0.005804 0.005804
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump House Bump.jpg
+map_Kd House body .jpg
+
+newmtl Standard_2
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.207843 0.172549 0.074510
+Ks 0.010000 0.010000 0.010000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 9
+map_Kd Plants1.jpg
+map_d Plants 1 mask .jpg
+
+newmtl Standard_3
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.376471 0.349020 0.078431
+Ks 0.010000 0.010000 0.010000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.000000
+illum 9
+map_Kd Plants 2.jpg
+map_d Plants 2 mask.jpg
+
+newmtl acciaBark_01
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.807843 0.458824 0.047059
+Ks 0.004680 0.004680 0.004680
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Bump 3td_AcaciaBranch_03.png
+map_Kd 3td_acciaBark_01.jpg
+
+newmtl sand
+Ns 96.078443
+Ka 1.000000 1.000000 1.000000
+Kd 0.407843 0.407843 0.407843
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Bump Sand_bump.1024x1024.jpg
+map_Kd Seamless desert sand 00.1024x1024.jpg
