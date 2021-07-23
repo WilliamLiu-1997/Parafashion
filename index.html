@@ -146,8 +146,9 @@
     import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
     import { FXAAShader } from './three.js/examples/jsm/shaders/FXAAShader.js';
     import { GUI } from './three.js/examples/jsm/libs/dat.gui.module.js';
+    import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
-    let camera, cameralight, controls, scene, renderer, leggin, gui, gui_values, env_light, gui_options;
+    let camera, cameralight, controls, scene, renderer, leggin, gui, gui_values, env_light, gui_options, stats;
     let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
     let drawing = false, cut = false, select = true;
     let obj3D = new THREE.Object3D();
@@ -157,27 +158,21 @@
     let raycaster = new THREE.Raycaster();
     let pointer = new THREE.Vector2();
     let color = new THREE.Color();
-    let covered_material;
-    let covered = [], covered_patch = [];
+    let selected_material;
+    let selected = [], selected_patch = [];
     let mouse_down = false;
-    let resizeTimer;
-    let material = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    let loader_scale, loader_position;
-    let selected_box = false;
-    let box = obj3D.clone();
-    let box_patch = obj3D.clone();
-    let this_part = new THREE.Mesh();
+    let covered_obj = new THREE.Mesh();
+    let covered_obj_patch = new THREE.Mesh();
+    let last_cover = [];
 
 
-    let composer, outlinePass,effectFXAA;
-    let selectedObjects = [];
-    let group = new THREE.Group();
+    let composer, outlinePass, effectFXAA, composer_patch, outlinePass_patch, effectFXAA_patch;
 
     let params = {
       edgeStrength: 2.0,
       edgeGlow: 1.0,
       edgeThickness: 0.5,
-      pulsePeriod: 4,
+      pulsePeriod: 0,
       rotate: false,
       usePatternTexture: false
     };
@@ -193,7 +188,6 @@
       renderer_patch.setPixelRatio(window.devicePixelRatio);
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
       document.getElementById("container_patch").appendChild(renderer_patch.domElement);
-
       camera_patch = new THREE.PerspectiveCamera(
         45,
         $("#container_patch").width() / window.innerHeight / 0.76,
@@ -208,31 +202,38 @@
       env_light_patch = new THREE.AmbientLight(0x303030);
       scene_patch.add(env_light_patch);
 
-      controls_patch = new THREE.OrbitControls(camera_patch, renderer_patch.domElement);
-      //controls.listenToKeyEvents(window); // optional
+      composer_patch = new EffectComposer(renderer_patch);
+      const renderPass_patch = new RenderPass(scene_patch, camera_patch);
+      composer_patch.addPass(renderPass_patch);
+      outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
+      composer_patch.addPass(outlinePass_patch);
+      outlinePass_patch.edgeStrength = params.edgeStrength*2;
+      outlinePass_patch.edgeThickness = params.edgeThickness*2;
+      outlinePass_patch.edgeGlow = params.edgeGlow;
+      outlinePass_patch.pulsePeriod = params.pulsePeriod;
+      outlinePass_patch.visibleEdgeColor.set("#aa5555")
+      outlinePass_patch.hiddenEdgeColor.set("#221111")
+      effectFXAA_patch = new ShaderPass(FXAAShader);
+      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / $("#container_patch").width(), 0.1 / window.innerHeight / 0.76);
+      composer_patch.addPass(effectFXAA_patch);
 
-      //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+      controls_patch = new THREE.OrbitControls(camera_patch, renderer_patch.domElement);
 
       controls_patch.enableDamping = true;
       controls_patch.dampingFactor = 0.05;
       controls.rotateSpeed = 0.1;
-
       controls_patch.screenSpacePanning = false;
-
-      //controls.enablePan = false;
-
       controls_patch.minDistance = 0.1;
       controls_patch.maxDistance = 1000;
-
       controls_patch.enableRotate = false;
 
       // controls_patch.maxPolarAngle = Math.PI * 0.9;
       // controls_patch.minPolarAngle = Math.PI * 0.1;
-
-
       // controls_patch.maxAzimuthAngle = Math.PI * 0.4;
       // controls_patch.minAzimuthAngle = -Math.PI * 0.4;
-      scene_patch.add(box_patch);
+
+
+      scene_patch.add(covered_obj_patch);
 
       gui_values = new (function () {
         this.garnment_x = 0;
@@ -271,6 +272,8 @@
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.getElementById("container").appendChild(renderer.domElement);
+      stats = new Stats();
+      document.getElementById("container").appendChild(stats.dom);
 
       camera = new THREE.PerspectiveCamera(
         45,
@@ -297,26 +300,19 @@
       outlinePass.edgeThickness = params.edgeThickness;
       outlinePass.edgeGlow = params.edgeGlow;
       outlinePass.pulsePeriod = params.pulsePeriod;
-      outlinePass.edgeStrength = params.edgeStrength;
-      outlinePass.hiddenEdgeColor.set("0xffffff")
-      effectFXAA = new ShaderPass( FXAAShader );
-				effectFXAA.uniforms[ 'resolution' ].value.set( 0.1 / window.innerWidth, 0.1 / window.innerHeight );
-				composer.addPass( effectFXAA );
+      outlinePass.visibleEdgeColor.set("#aa5555")
+      outlinePass.hiddenEdgeColor.set("#221111")
+      effectFXAA = new ShaderPass(FXAAShader);
+      effectFXAA.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
+      composer.addPass(effectFXAA);
       // controls
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
-      //controls.listenToKeyEvents(window); // optional
-
-      //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
 
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
       controls.rotateSpeed = 0.1;
-
       controls.screenSpacePanning = false;
-
-      //controls.enablePan = false;
-
       controls.minDistance = 0.1;
       controls.maxDistance = 100;
 
@@ -334,8 +330,7 @@
       leggin = obj_loader(leggins_obj, leggins_mtl, 1, true);
       scene.add(leggin);
 
-      scene.add(box);
-      scene.add(this_part);
+      scene.add(covered_obj);
       //
       window.addEventListener("resize", onWindowResize);
       window.addEventListener("mousedown", onmouseDown, false);
@@ -358,29 +353,35 @@
       }
       else if (event.button == 1) {
         select = true;
-        material_recovery();
+        cover_recovery()
       }
       else if (event.button == 2) {
         select = true;
-        material_recovery();
+        cover_recovery()
       }
     }
 
     function material_recovery() {
-      if (covered.length == 1) {
-        covered[0].material = covered_material;
-        covered_patch[0].material = covered_material;
-        covered = [];
-        covered_patch = [];
-        covered_material = false;
+      if (selected.length == 1) {
+        selected[0].material = selected_material;
+        selected_patch[0].material = selected_material;
+        selected = [];
+        selected_patch = [];
+        selected_material = false;
       }
-      else if (covered.length == 2) {
-        covered[0][covered[1]] = covered_material;
-        //covered_patch[0][covered_patch[1]] = covered_material;
-        covered = [];
-        covered_patch = [];
-        covered_material = false;
+      else if (selected.length == 2) {
+        selected[0][selected[1]] = selected_material;
+        //selected_patch[0][selected_patch[1]] = selected_material;
+        selected = [];
+        selected_patch = [];
+        selected_material = false;
       }
+    }
+
+    function cover_recovery() {
+      outlinePass.selectedObjects = []
+      outlinePass_patch.selectedObjects = []
+      last_cover = []
     }
 
     function mouseMove(event) {
@@ -391,22 +392,17 @@
         && event.clientX < (obj.offsetLeft + obj.clientWidth)
         && event.clientY > obj.offsetTop
         && event.clientY < (obj.offsetTop + obj.clientHeight)) {
-        if (!mouse_down && select) { material_recovery(); }
+        if (!mouse_down && select) { cover_recovery(); }
         return;
       }
       if (drawing) {
       }
       else if (select) {
-        box.remove(...box.children);
-        box_patch.remove(...box_patch.children);
         raycaster.setFromCamera(pointer, camera);
-        material_recovery();
         const intersects = raycaster.intersectObject(leggin, true);
         if (intersects.length > 0) {
           // console.log(intersects[ 0 ].face)
           // console.log(intersects[ 0 ].point)
-          //outlinePass.selectedObjects = [intersects[0].object];
-          var material_seleted = new THREE.MeshLambertMaterial({ color: 0xff0000, side: THREE.DoubleSide });
           var group_num = intersects[0].object.geometry.groups.length;
           var vertice_index = intersects[0].face.a;
           var i = 0;
@@ -415,135 +411,150 @@
             for (i = 0; i < group_num; i++) {
               if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
             }
-            covered_material = intersects[0].object.material[i].clone();
-            intersects[0].object.material[i] = intersects[0].object.material[i].clone()
-            var color_rgb = intersects[0].object.material[i].color;
-            Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? intersects[0].object.material[i].color.setRGB(1, 0.5, 0.5) : intersects[0].object.material[i].color.setRGB(1.2, 0.6, 0.6)
-            covered = [intersects[0].object.material, i]
+            if (last_cover.length != 2 || last_cover[1] != i || last_cover[0] != intersects[0].object) {
+              //****************************************************************************************************
+              // selected_material = intersects[0].object.material[i].clone();
+              // intersects[0].object.material[i] = intersects[0].object.material[i].clone()
+              // var color_rgb = intersects[0].object.material[i].color;
+              // Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? intersects[0].object.material[i].color.setRGB(1, 0.5, 0.5) : intersects[0].object.material[i].color.setRGB(1.2, 0.6, 0.6)
+              // selected = [intersects[0].object.material, i]
 
-            //****************************************************************************************************
-            // var g_position = g.attributes.position.array.slice(g.groups[i].start, g.groups[i].start + g.groups[i].count)
-            // g.deleteAttribute("position");
-            // g.setAttribute("position", new THREE.BufferAttribute(g_position, 3));
+              //****************************************************************************************************
+              covered_obj.traverse(function (obj) {
+                if (obj.type === 'Mesh') {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                }
+              })
+              scene.remove(covered_obj);
+              var this_scale = intersects[0].object.parent.scale;
+              var this_position = intersects[0].object.parent.position;
+              var g = separateGroups(intersects[0].object.geometry, i)
+              covered_obj = new THREE.Mesh(g);
+              covered_obj.material.transparent = true;
+              covered_obj.material.opacity = 0;
+              covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+              covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+              scene.add(covered_obj)
+              outlinePass.selectedObjects = [covered_obj];
+              last_cover = []
+              last_cover.push(intersects[0].object, i)
+              //****************************************************************************************************
 
-            // var g_normal = g.attributes.normal.array.slice(g.groups[i].start, g.groups[i].start + g.groups[i].count)
-            // g.deleteAttribute("normal");
-            // g.setAttribute("normal", new THREE.BufferAttribute(g_normal, 3));
+              for (var x = 0; x < num; x++) {
+                if (patch && intersects[0].object.name == patch.children[x].name) {
+                  //****************************************************************************************************
+                  // selected_patch = [patch.children[x].material, i];
+                  // patch.children[x].geometry.computeBoundingSphere();
 
-            // var g_uv = g.attributes.uv.array.slice(g.groups[i].start, g.groups[i].start + g.groups[i].count)
-            // g.deleteAttribute("uv");
-            // g.setAttribute("uv", new THREE.BufferAttribute(g_uv, 3));
+                  covered_obj_patch.traverse(function (obj) {
+                    if (obj.type === 'Mesh') {
+                      obj.geometry.dispose();
+                      obj.material.dispose();
+                    }
+                  })
+                  scene_patch.remove(covered_obj_patch);
+                  var this_scale = patch.children[x].scale;
+                  var this_position = patch.children[x].position;
+                  var g = separateGroups(patch.children[x].geometry, i)
+                  covered_obj_patch = new THREE.Mesh(g);
+                  covered_obj_patch.material.transparent = true;
+                  covered_obj_patch.material.opacity = 0;
+                  covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                  covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+                  scene_patch.add(covered_obj_patch)
+                  outlinePass_patch.selectedObjects = [covered_obj_patch];
+                  //****************************************************************************************************
+                  //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
+                  //****************************************************************************************************
 
-
-            // box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
-            // var aaa = new THREE.Mesh(g)
-            // scene.add(aaa)
-            this_part.traverse(function (obj) {
-              if (obj.type === 'Mesh') {
-                obj.geometry.dispose();
-                obj.material.dispose();
-              }
-            })
-            scene.remove(this_part);
-            var this_scale = intersects[0].object.parent.scale;
-            var this_position = intersects[0].object.parent.position;
-            var g = separateGroups(intersects[0].object.geometry)[i]
-            this_part = new THREE.Mesh(g);
-            this_part.material.transparent=true;
-            this_part.material.opacity=0;
-            this_part.scale.set(this_scale.x,this_scale.y,this_scale.z);
-            this_part.position.set(this_position.x,this_position.y,this_position.z);
-            scene.add(this_part)
-            outlinePass.selectedObjects = [this_part];
-            //****************************************************************************************************
-
-            for (var x = 0; x < num; x++) {
-              if (patch && intersects[0].object.name == patch.children[x].name) {
-                covered_patch = [patch.children[x].material, i];
-                patch.children[x].geometry.computeBoundingSphere();
-
-                //****************************************************************************************************
-                //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
-                //****************************************************************************************************
-
-                break;
+                  break;
+                }
               }
             }
           }
           else {
-            covered_material = intersects[0].object.material.clone();
-            intersects[0].object.material = intersects[0].object.material.clone();
-            var color_rgb = intersects[0].object.material.color;
-            Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? intersects[0].object.material.color.setRGB(1, 0.5, 0.5) : intersects[0].object.material.color.setRGB(1.2, 0.6, 0.6);
-            covered = [intersects[0].object];
+            if (last_cover.length != 1 || last_cover[0] != intersects[0].object) {
+              //****************************************************************************************************
+              // selected_material = intersects[0].object.material.clone();
+              // intersects[0].object.material = intersects[0].object.material.clone();
+              // var color_rgb = intersects[0].object.material.color;
+              // Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? intersects[0].object.material.color.setRGB(1, 0.5, 0.5) : intersects[0].object.material.color.setRGB(1.2, 0.6, 0.6);
+              // selected = [intersects[0].object];
 
 
-            //****************************************************************************************************
-            //box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
-            outlinePass.selectedObjects = [intersects[0].object];
-            //****************************************************************************************************
+              //****************************************************************************************************
+              //box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
+              outlinePass.selectedObjects = [intersects[0].object];
+              last_cover = []
+              last_cover.push(intersects[0].object)
+              //****************************************************************************************************
 
-            for (var x = 0; x < num; x++) {
-              if (patch && intersects[0].object.name == patch.children[x].name) {
-                patch.children[x].material = patch.children[x].material.clone();
-                Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? patch.children[x].material.color.setRGB(1, 0.5, 0.5) : patch.children[x].material.color.setRGB(1.2, 0.6, 0.6);
-                covered_patch = [patch.children[x]];
+              for (var x = 0; x < num; x++) {
+                if (patch && intersects[0].object.name == patch.children[x].name) {
+                  //****************************************************************************************************
+                  // patch.children[x].material = patch.children[x].material.clone();
+                  // Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? patch.children[x].material.color.setRGB(1, 0.5, 0.5) : patch.children[x].material.color.setRGB(1.2, 0.6, 0.6);
+                  // selected_patch = [patch.children[x]];
 
-                //****************************************************************************************************
-                //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
-                //****************************************************************************************************
 
-                break;
+                  outlinePass_patch.selectedObjects = [patch.children[x]];
+
+                  //****************************************************************************************************
+                  //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
+                  //****************************************************************************************************
+
+                  break;
+                }
               }
             }
           }
-        }
+        } else { cover_recovery() }
       }
     }
 
-    function separateGroups(bufGeom) {
-
-      var outGeometries = [];
+    function separateGroups(bufGeom, ig) {
 
       var groups = bufGeom.groups;
 
       var origVerts = bufGeom.getAttribute('position').array;
       var origNormals = bufGeom.getAttribute('normal').array;
-      var origNumVerts = Math.floor(origVerts.length / 3);
+      var origUVs = bufGeom.getAttribute('uv').array;
 
-      for (var ig = 0, ng = groups.length; ig < ng; ig++) {
+      var group = groups[ig];
 
-        var group = groups[ig];
+      var destNumVerts = group.count;
 
-        var destNumVerts = group.count;
+      var newBufGeom = new THREE.BufferGeometry();
+      var newPositions = new Float32Array(destNumVerts * 3);
+      var newNormals = new Float32Array(destNumVerts * 3);
+      var newUVs = new Float32Array(destNumVerts * 3);
 
-        var newBufGeom = new THREE.BufferGeometry();
-        var newPositions = new Float32Array(destNumVerts * 3);
-        var newNormals = new Float32Array(destNumVerts * 3);
+      for (var iv = 0; iv < destNumVerts; iv++) {
 
-        for (var iv = 0; iv < destNumVerts; iv++) {
+        var indexOrig = 3 * (group.start + iv);
+        var indexDest = 3 * iv;
 
-          var indexOrig = 3 * (group.start + iv);
-          var indexDest = 3 * iv;
+        newPositions[indexDest] = origVerts[indexOrig];
+        newPositions[indexDest + 1] = origVerts[indexOrig + 1];
+        newPositions[indexDest + 2] = origVerts[indexOrig + 2];
 
-          newPositions[indexDest] = origVerts[indexOrig];
-          newPositions[indexDest + 1] = origVerts[indexOrig + 1];
-          newPositions[indexDest + 2] = origVerts[indexOrig + 2];
+        newNormals[indexDest] = origNormals[indexOrig];
+        newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+        newNormals[indexDest + 2] = origNormals[indexOrig + 2];
 
-          newNormals[indexDest] = origNormals[indexOrig];
-          newNormals[indexDest + 1] = origNormals[indexOrig + 1];
-          newNormals[indexDest + 2] = origNormals[indexOrig + 2];
-
-        }
-
-        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
-
-        outGeometries.push(newBufGeom);
+        newUVs[indexDest] = origUVs[indexOrig];
+        newUVs[indexDest + 1] = origUVs[indexOrig + 1];
+        newUVs[indexDest + 2] = origUVs[indexOrig + 2];
 
       }
 
-      return outGeometries;
+      newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+      newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+      newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 3));
+
+
+      return newBufGeom;
 
     }
 
@@ -552,11 +563,15 @@
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       composer.setSize(window.innerWidth, window.innerHeight);
-      effectFXAA.uniforms[ 'resolution' ].value.set( 0.1 / window.innerWidth, 0.1 / window.innerHeight );
+      effectFXAA.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
 
       camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.76;
       camera_patch.updateProjectionMatrix();
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
+      composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
+      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / $("#container_patch").width(), 0.1 / window.innerHeight / 0.76);
+
+
       if (position_folder) {
         var width = Math.max(250, window.innerWidth * 0.2);
         gui.domElement.style.width = width + 'px';
@@ -565,6 +580,7 @@
     }
 
     function animate() {
+      stats.begin();
       if (patch_panel_width != $("#container_patch").css("width")) {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
@@ -638,7 +654,8 @@
 
     function render() {
       composer.render();
-      renderer_patch.render(scene_patch, camera_patch);
+      composer_patch.render();
+      stats.end();
     }
 
 
@@ -692,8 +709,6 @@
               var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min) / 5
               root.position.set(-(x_min + x_max) / 2 / scale_value, -(y_min + y_max) / 2 / scale_value - (y_max - y_min) / 20 / scale_value, -(z_min + z_max) / 2 / scale_value);
               root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
-              loader_position = root.position.clone();
-              loader_scale = root.scale.clone();
               newobj.add(root);
             },
             onProgress_mtl
