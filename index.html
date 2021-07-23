@@ -166,17 +166,18 @@
     let selected_box = false;
     let box = obj3D.clone();
     let box_patch = obj3D.clone();
+    let this_part = new THREE.Mesh();
 
 
-    let composer, effectFXAA, outlinePass;
+    let composer, outlinePass,effectFXAA;
     let selectedObjects = [];
     let group = new THREE.Group();
 
     let params = {
-      edgeStrength: 3.0,
-      edgeGlow: 0.0,
-      edgeThickness: 1.0,
-      pulsePeriod: 0,
+      edgeStrength: 2.0,
+      edgeGlow: 1.0,
+      edgeThickness: 0.5,
+      pulsePeriod: 4,
       rotate: false,
       usePatternTexture: false
     };
@@ -270,7 +271,6 @@
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.getElementById("container").appendChild(renderer.domElement);
-      //document.body.appendChild(renderer.domElement);
 
       camera = new THREE.PerspectiveCamera(
         45,
@@ -285,6 +285,23 @@
       scene.add(camera);
       env_light = new THREE.AmbientLight(0x282828);
       scene.add(env_light);
+
+
+      // postprocessing
+      composer = new EffectComposer(renderer);
+      const renderPass = new RenderPass(scene, camera);
+      composer.addPass(renderPass);
+      outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+      composer.addPass(outlinePass);
+      outlinePass.edgeStrength = params.edgeStrength;
+      outlinePass.edgeThickness = params.edgeThickness;
+      outlinePass.edgeGlow = params.edgeGlow;
+      outlinePass.pulsePeriod = params.pulsePeriod;
+      outlinePass.edgeStrength = params.edgeStrength;
+      outlinePass.hiddenEdgeColor.set("0xffffff")
+      effectFXAA = new ShaderPass( FXAAShader );
+				effectFXAA.uniforms[ 'resolution' ].value.set( 0.1 / window.innerWidth, 0.1 / window.innerHeight );
+				composer.addPass( effectFXAA );
       // controls
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -318,6 +335,7 @@
       scene.add(leggin);
 
       scene.add(box);
+      scene.add(this_part);
       //
       window.addEventListener("resize", onWindowResize);
       window.addEventListener("mousedown", onmouseDown, false);
@@ -387,6 +405,7 @@
         if (intersects.length > 0) {
           // console.log(intersects[ 0 ].face)
           // console.log(intersects[ 0 ].point)
+          //outlinePass.selectedObjects = [intersects[0].object];
           var material_seleted = new THREE.MeshLambertMaterial({ color: 0xff0000, side: THREE.DoubleSide });
           var group_num = intersects[0].object.geometry.groups.length;
           var vertice_index = intersects[0].face.a;
@@ -403,16 +422,39 @@
             covered = [intersects[0].object.material, i]
 
             //****************************************************************************************************
-            // var g = intersects[0].object.geometry.clone()
             // var g_position = g.attributes.position.array.slice(g.groups[i].start, g.groups[i].start + g.groups[i].count)
             // g.deleteAttribute("position");
             // g.setAttribute("position", new THREE.BufferAttribute(g_position, 3));
-            // g.computeBoundingBox();
-            // var small_box = g.boundingBox;
-            // small_box.min = new THREE.Vector3(small_box.min.x * loader_scale.x + loader_position.x, small_box.min.y * loader_scale.y + loader_position.y, small_box.min.z * loader_scale.z + loader_position.z)
-            // small_box.max = new THREE.Vector3(small_box.max.x * loader_scale.x + loader_position.x, small_box.max.y * loader_scale.y + loader_position.y, small_box.max.z * loader_scale.z + loader_position.z)
-            // box.add(new THREE.Box3Helper(small_box, 0xffffff));
-            box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
+
+            // var g_normal = g.attributes.normal.array.slice(g.groups[i].start, g.groups[i].start + g.groups[i].count)
+            // g.deleteAttribute("normal");
+            // g.setAttribute("normal", new THREE.BufferAttribute(g_normal, 3));
+
+            // var g_uv = g.attributes.uv.array.slice(g.groups[i].start, g.groups[i].start + g.groups[i].count)
+            // g.deleteAttribute("uv");
+            // g.setAttribute("uv", new THREE.BufferAttribute(g_uv, 3));
+
+
+            // box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
+            // var aaa = new THREE.Mesh(g)
+            // scene.add(aaa)
+            this_part.traverse(function (obj) {
+              if (obj.type === 'Mesh') {
+                obj.geometry.dispose();
+                obj.material.dispose();
+              }
+            })
+            scene.remove(this_part);
+            var this_scale = intersects[0].object.parent.scale;
+            var this_position = intersects[0].object.parent.position;
+            var g = separateGroups(intersects[0].object.geometry)[i]
+            this_part = new THREE.Mesh(g);
+            this_part.material.transparent=true;
+            this_part.material.opacity=0;
+            this_part.scale.set(this_scale.x,this_scale.y,this_scale.z);
+            this_part.position.set(this_position.x,this_position.y,this_position.z);
+            scene.add(this_part)
+            outlinePass.selectedObjects = [this_part];
             //****************************************************************************************************
 
             for (var x = 0; x < num; x++) {
@@ -421,7 +463,7 @@
                 patch.children[x].geometry.computeBoundingSphere();
 
                 //****************************************************************************************************
-                box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
+                //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
                 //****************************************************************************************************
 
                 break;
@@ -437,7 +479,8 @@
 
 
             //****************************************************************************************************
-            box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
+            //box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
+            outlinePass.selectedObjects = [intersects[0].object];
             //****************************************************************************************************
 
             for (var x = 0; x < num; x++) {
@@ -447,7 +490,7 @@
                 covered_patch = [patch.children[x]];
 
                 //****************************************************************************************************
-                box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
+                //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
                 //****************************************************************************************************
 
                 break;
@@ -458,10 +501,59 @@
       }
     }
 
+    function separateGroups(bufGeom) {
+
+      var outGeometries = [];
+
+      var groups = bufGeom.groups;
+
+      var origVerts = bufGeom.getAttribute('position').array;
+      var origNormals = bufGeom.getAttribute('normal').array;
+      var origNumVerts = Math.floor(origVerts.length / 3);
+
+      for (var ig = 0, ng = groups.length; ig < ng; ig++) {
+
+        var group = groups[ig];
+
+        var destNumVerts = group.count;
+
+        var newBufGeom = new THREE.BufferGeometry();
+        var newPositions = new Float32Array(destNumVerts * 3);
+        var newNormals = new Float32Array(destNumVerts * 3);
+
+        for (var iv = 0; iv < destNumVerts; iv++) {
+
+          var indexOrig = 3 * (group.start + iv);
+          var indexDest = 3 * iv;
+
+          newPositions[indexDest] = origVerts[indexOrig];
+          newPositions[indexDest + 1] = origVerts[indexOrig + 1];
+          newPositions[indexDest + 2] = origVerts[indexOrig + 2];
+
+          newNormals[indexDest] = origNormals[indexOrig];
+          newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+          newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+
+        }
+
+        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+
+        outGeometries.push(newBufGeom);
+
+      }
+
+      return outGeometries;
+
+    }
+
     function onWindowResize() {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+      effectFXAA.uniforms[ 'resolution' ].value.set( 0.1 / window.innerWidth, 0.1 / window.innerHeight );
+
       camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.76;
       camera_patch.updateProjectionMatrix();
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
@@ -545,7 +637,7 @@
     }
 
     function render() {
-      renderer.render(scene, camera);
+      composer.render();
       renderer_patch.render(scene_patch, camera_patch);
     }
 
