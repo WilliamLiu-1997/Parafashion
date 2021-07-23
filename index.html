@@ -403,9 +403,6 @@
             covered = [intersects[0].object.material, i]
 
             //****************************************************************************************************
-
-
-
             // var g = intersects[0].object.geometry.clone()
             // var g_position = g.attributes.position.array.slice(g.groups[i].start, g.groups[i].start + g.groups[i].count)
             // g.deleteAttribute("position");
@@ -416,15 +413,17 @@
             // small_box.max = new THREE.Vector3(small_box.max.x * loader_scale.x + loader_position.x, small_box.max.y * loader_scale.y + loader_position.y, small_box.max.z * loader_scale.z + loader_position.z)
             // box.add(new THREE.Box3Helper(small_box, 0xffffff));
             box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
-
-
             //****************************************************************************************************
 
             for (var x = 0; x < num; x++) {
               if (patch && intersects[0].object.name == patch.children[x].name) {
                 covered_patch = [patch.children[x].material, i];
                 patch.children[x].geometry.computeBoundingSphere();
+
+                //****************************************************************************************************
                 box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
+                //****************************************************************************************************
+
                 break;
               }
             }
@@ -439,15 +438,18 @@
 
             //****************************************************************************************************
             box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
-
-
             //****************************************************************************************************
+
             for (var x = 0; x < num; x++) {
               if (patch && intersects[0].object.name == patch.children[x].name) {
                 patch.children[x].material = patch.children[x].material.clone();
                 Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? patch.children[x].material.color.setRGB(1, 0.5, 0.5) : patch.children[x].material.color.setRGB(1.2, 0.6, 0.6);
                 covered_patch = [patch.children[x]];
+
+                //****************************************************************************************************
                 box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
+                //****************************************************************************************************
+
                 break;
               }
             }
