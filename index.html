@@ -207,8 +207,8 @@
       composer_patch.addPass(renderPass_patch);
       outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch);
-      outlinePass_patch.edgeStrength = params.edgeStrength*2;
-      outlinePass_patch.edgeThickness = params.edgeThickness*2;
+      outlinePass_patch.edgeStrength = params.edgeStrength*1.5;
+      outlinePass_patch.edgeThickness = params.edgeThickness*1.5;
       outlinePass_patch.edgeGlow = params.edgeGlow;
       outlinePass_patch.pulsePeriod = params.pulsePeriod;
       outlinePass_patch.visibleEdgeColor.set("#aa5555")
