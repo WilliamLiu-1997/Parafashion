@@ -10,6 +10,25 @@
 </head>
 
 <style>
+  ::-webkit-scrollbar {
+    width: 1px;
+    height: 5px;
+    background-color: #F5F5F5;
+
+  }
+
+  ::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    background-color: #555;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+    background-color: #F5F5F5;
+  }
+
   * {
     font-family: "Comic Sans MS";
   }
@@ -20,6 +39,7 @@
     color: #fff;
     margin: 0px;
     overflow: hidden;
+    scrollbar-width: none;
   }
 
   #info {
@@ -39,7 +59,7 @@
     position: absolute;
     top: 10%;
     width: 20%;
-    min-width: 240px;
+    min-width: 216px;
     height: 80%;
     z-index: 2;
     text-align: center;
@@ -57,21 +77,22 @@
     position: absolute;
     top: 10%;
     right: 0px;
-    z-index: 2;
+    z-index: 1;
+  }
+
+  #alert_container {
+    position: absolute;
+    top: 0%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    z-index: 99;
   }
 </style>
 
-<script>
-  function reactlayout() {
-    if (window.innerWidth < 1250) {
-      alert("Window width is too small!");
-    }
-  }
-</script>
-
-<body onload="reactlayout()">
+<body>
   <div id="container"></div>
   <div id="my-gui-container"></div>
+  <div id="alert_container"></div>
   <div id="panel_box" class="panel_box">
 
     <div class="btn-group" style="width: 100%;">
@@ -101,7 +122,6 @@
   <div id="info">
     <p>
       Parafashion<br />
-      Middle button to rotate the scene, scroll to zoom in/out, right button to pan, left button to draw or select patch
     </p>
   </div>
   <script>
@@ -120,10 +140,7 @@
     }
     function scalePatches() {
       if ($("#hide-patches").text() != "Show Patches" && $("#scale-patches").text() != "<") {
-
-        if (window.innerWidth < 1250) {
-          alert("Window width is too small!");
-        } else { $(".panel_box").animate({ width: '80%' }, 300, scale_icon()); }
+        $(".panel_box").animate({ width: '80%' }, 300, scale_icon());
       }
       else if ($("#hide-patches").text() != "Show Patches" && $("#scale-patches").text() == "<") {
         $(".panel_box").animate({ width: '20%' }, 300, scale_icon());
@@ -148,9 +165,9 @@
     import { GUI } from './three.js/examples/jsm/libs/dat.gui.module.js';
     import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
-    let camera, cameralight, controls, scene, renderer, leggin, gui, gui_values, env_light, gui_options, stats;
+    let camera, cameralight, controls, scene, renderer, garment, gui, gui_values, env_light, gui_options, stats;
     let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
-    let drawing = false, cut = false, select = true;
+    let drawing = false, cut = false, cover = true;
     let obj3D = new THREE.Object3D();
     let progress_obj = -2, progress_mtl = -2;
     let position_folder = false;
@@ -158,32 +175,161 @@
     let raycaster = new THREE.Raycaster();
     let pointer = new THREE.Vector2();
     let color = new THREE.Color();
-    let selected_material;
+    let original_material = [];
     let selected = [], selected_patch = [];
     let mouse_down = false;
     let covered_obj = new THREE.Mesh();
     let covered_obj_patch = new THREE.Mesh();
+    let selected_obj = new THREE.Mesh();
+    let selected_obj_patch = new THREE.Mesh();
     let last_cover = [];
+    let last_select = [];
 
 
-    let composer, outlinePass, effectFXAA, composer_patch, outlinePass_patch, effectFXAA_patch;
+    let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
-    let params = {
+    let outlinePass_params_cover = {
       edgeStrength: 2.0,
-      edgeGlow: 1.0,
+      edgeGlow: 1,
       edgeThickness: 0.5,
       pulsePeriod: 0,
       rotate: false,
       usePatternTexture: false
     };
 
+    let outlinePass_params_select = {
+      edgeStrength: 2.0,
+      edgeGlow: 0.5,
+      edgeThickness: 1,
+      pulsePeriod: 4,
+      rotate: false,
+      usePatternTexture: false
+    };
+
+    let texture_map_params = {
+      offsetX: 0,
+      offsetY: 0,
+      repeatX: 1,
+      repeatY: 1,
+      rotation: 0,
+      centerX: 0.5,
+      centerY: 0.5
+    };
+
+    let texture_normalMap_params = {
+      offsetX: 0,
+      offsetY: 0,
+      repeatX: 1,
+      repeatY: 1,
+      rotation: 0,
+      centerX: 0.5,
+      centerY: 0.5
+    };
+
     init();
     init_patch();
     animate();
 
+
+    function init() {
+
+      if (window.innerWidth < 1080) {
+        $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
+      }
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x282828);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.getElementById("container").appendChild(renderer.domElement);
+      stats = new Stats();
+      document.getElementById("container").appendChild(stats.dom);
+
+      camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.01,
+        1000
+      );
+      camera.position.set(0, 0, 10);
+
+      cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
+
+      camera.add(cameralight);
+      scene.add(camera);
+      env_light = new THREE.AmbientLight(0x282828);
+      scene.add(env_light);
+
+      // postprocessing
+      composer = new EffectComposer(renderer);
+      const renderPass = new RenderPass(scene, camera);
+      composer.addPass(renderPass);
+
+      outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+      composer.addPass(outlinePass);
+      outlinePass.edgeStrength = outlinePass_params_cover.edgeStrength;
+      outlinePass.edgeThickness = outlinePass_params_cover.edgeThickness;
+      outlinePass.edgeGlow = outlinePass_params_cover.edgeGlow;
+      outlinePass.pulsePeriod = outlinePass_params_cover.pulsePeriod;
+      outlinePass.visibleEdgeColor.set("#aa5555");
+      outlinePass.hiddenEdgeColor.set("#221111");
+
+      outlinePass_select = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
+      composer.addPass(outlinePass_select);
+      outlinePass_select.edgeStrength = outlinePass_params_select.edgeStrength;
+      outlinePass_select.edgeThickness = outlinePass_params_select.edgeThickness;
+      outlinePass_select.edgeGlow = outlinePass_params_select.edgeGlow;
+      outlinePass_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
+      outlinePass_select.visibleEdgeColor.set("#ffffff");
+      outlinePass_select.hiddenEdgeColor.set("#555555");
+
+      effectFXAA = new ShaderPass(FXAAShader);
+      effectFXAA.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
+      composer.addPass(effectFXAA);
+      // controls
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.1;
+      controls.rotateSpeed = 0.2;
+      controls.screenSpacePanning = false;
+      controls.minDistance = 0.1;
+      controls.maxDistance = 200;
+      controls.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
+
+      var garments_obj = "./leggins/leggins_patch.obj";
+      var garments_mtl = "./leggins/leggins_patch.obj.mtl";
+      var garments_mtl = "./leggins/patch.mtl"
+      var garments_obj = "./leggins/patch.obj"
+      var garments_mtl = "./obj/village1/village_final.mtl"
+      var garments_obj = "./obj/village1/village_final.obj"
+      var garments_mtl = "./obj/tower/tower1.mtl"
+      var garments_obj = "./obj/tower/tower1.obj"
+      // var garments_mtl = "./obj/city2/city2.mtl"
+      // var garments_obj = "./obj/city2/city2.obj"
+      garment = obj_loader(garments_obj, garments_mtl, 1, true);
+      scene.add(garment);
+
+      scene.add(covered_obj);
+
+
+      const helper = new THREE.GridHelper(1000, 200);
+      helper.position.y = -2.5;
+      helper.material.opacity = 0.1;
+      helper.material.transparent = true;
+      scene.add(helper);
+      //
+      window.addEventListener("resize", onWindowResize);
+      window.addEventListener("mousedown", onmouseDown, false);
+      window.addEventListener("mouseup", onmouseUp, false);
+    }
+
+
     function init_patch() {
       scene_patch = new THREE.Scene();
-      renderer_patch = new THREE.WebGLRenderer({ alpha: true });
+      renderer_patch = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
       renderer_patch.setPixelRatio(window.devicePixelRatio);
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
@@ -192,7 +338,7 @@
         45,
         $("#container_patch").width() / window.innerHeight / 0.76,
         0.01,
-        1000
+        2000
       );
       camera_patch.position.set(0, 0, 10);
 
@@ -205,14 +351,25 @@
       composer_patch = new EffectComposer(renderer_patch);
       const renderPass_patch = new RenderPass(scene_patch, camera_patch);
       composer_patch.addPass(renderPass_patch);
+
       outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch);
-      outlinePass_patch.edgeStrength = params.edgeStrength*1.5;
-      outlinePass_patch.edgeThickness = params.edgeThickness*1.5;
-      outlinePass_patch.edgeGlow = params.edgeGlow;
-      outlinePass_patch.pulsePeriod = params.pulsePeriod;
+      outlinePass_patch.edgeStrength = outlinePass_params_cover.edgeStrength * 1.5;
+      outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness * 1.5;
+      outlinePass_patch.edgeGlow = outlinePass_params_cover.edgeGlow;
+      outlinePass_patch.pulsePeriod = outlinePass_params_cover.pulsePeriod;
       outlinePass_patch.visibleEdgeColor.set("#aa5555")
       outlinePass_patch.hiddenEdgeColor.set("#221111")
+
+      outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
+      composer_patch.addPass(outlinePass_patch_select);
+      outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength;
+      outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness;
+      outlinePass_patch_select.edgeGlow = outlinePass_params_select.edgeGlow;
+      outlinePass_patch_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
+      outlinePass_patch_select.visibleEdgeColor.set("#ffffff");
+      outlinePass_patch_select.hiddenEdgeColor.set("#555555");
+
       effectFXAA_patch = new ShaderPass(FXAAShader);
       effectFXAA_patch.uniforms['resolution'].value.set(0.1 / $("#container_patch").width(), 0.1 / window.innerHeight / 0.76);
       composer_patch.addPass(effectFXAA_patch);
@@ -220,12 +377,14 @@
       controls_patch = new THREE.OrbitControls(camera_patch, renderer_patch.domElement);
 
       controls_patch.enableDamping = true;
-      controls_patch.dampingFactor = 0.05;
-      controls.rotateSpeed = 0.1;
+      controls_patch.dampingFactor = 0.1;
+      controls_patch.rotateSpeed = 0.2;
       controls_patch.screenSpacePanning = false;
       controls_patch.minDistance = 0.1;
       controls_patch.maxDistance = 1000;
       controls_patch.enableRotate = false;
+
+      controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
       // controls_patch.maxPolarAngle = Math.PI * 0.9;
       // controls_patch.minPolarAngle = Math.PI * 0.1;
@@ -258,92 +417,147 @@
           gui_values.patch_z = 0;
           gui_values.garnment_scale = 1;
           gui_values.patch_scale = 1;
-          if (position_folder) { gui.updateDisplay() }
+          if (gui) { gui.updateDisplay() }
+        },
+        Unselect: function () {
+          select_recovery();
+          if (gui) { gui.updateDisplay() }
         }
       }
 
     }
 
-    function init() {
-      scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x222222);
 
-      renderer = new THREE.WebGLRenderer();
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.getElementById("container").appendChild(renderer.domElement);
-      stats = new Stats();
-      document.getElementById("container").appendChild(stats.dom);
+    function animate() {
+      stats.begin();
+      if (patch_panel_width != $("#container_patch").css("width")) {
+        patch_panel_width = $("#container_patch").css("width")
+        onWindowResize()
+      }
+      if (progress_obj + progress_mtl == 200) {
+        var lack = false;
+        var all_empty = true;
+        progress_obj = progress_mtl = -1;
+        var num = garment.children[0].children.length;
+        var uvs = []
+        for (var i = 0; i < num; i++) {
+          try {
+            var empty = true;
+            var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
+            uvs.push(uvarray);
+            if (!all_empty || i == 0) {
+              for (var uv_index in uvarray) {
+                if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
+                  empty = false;
+                }
+              }
+            }
+            !empty ? all_empty = false : all_empty = true;
+          }
+          catch (err) {
+            console.warn(err + ". Using empty UVs instead.")
+            lack = true
+            uvs.push([]);
+          }
+        }
+        if (lack || all_empty) { $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete!&nbsp;&nbsp;</div>'); }
 
-      camera = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
-        0.01,
-        1000
-      );
-      camera.position.set(0, 0, 10);
+        patch = patch_loader(garment, uvs, 3, num, false);
+        patch.name = "patch"
+        scene_patch.add(patch)
 
-      cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
-      camera.add(cameralight);
-      scene.add(camera);
-      env_light = new THREE.AmbientLight(0x282828);
-      scene.add(env_light);
+        document.addEventListener("mousemove", mouseMove, false);
 
+        gui = new GUI({ width: Math.max(200, window.innerWidth * 0.2), autoPlace: false, scrollable: true })
 
-      // postprocessing
-      composer = new EffectComposer(renderer);
-      const renderPass = new RenderPass(scene, camera);
-      composer.addPass(renderPass);
-      outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
-      composer.addPass(outlinePass);
-      outlinePass.edgeStrength = params.edgeStrength;
-      outlinePass.edgeThickness = params.edgeThickness;
-      outlinePass.edgeGlow = params.edgeGlow;
-      outlinePass.pulsePeriod = params.pulsePeriod;
-      outlinePass.visibleEdgeColor.set("#aa5555")
-      outlinePass.hiddenEdgeColor.set("#221111")
-      effectFXAA = new ShaderPass(FXAAShader);
-      effectFXAA.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
-      composer.addPass(effectFXAA);
-      // controls
+        document.getElementById('my-gui-container').appendChild(gui.domElement);
 
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
+        // if (!position_folder) {
+        //   position_folder = gui.addFolder("Position and Scale")
+        //   position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
+        //   position_folder.add(gui_values, "garnment_y", -10, 10, 0.01)
+        //   position_folder.add(gui_values, "garnment_z", -10, 10, 0.01)
+        //   position_folder.add(gui_values, "garnment_scale", 0.1, 10, 0.01)
+        //   position_folder.add(gui_values, "patch_x", -10, 10, 0.01)
+        //   position_folder.add(gui_values, "patch_y", -10, 10, 0.01)
+        //   position_folder.add(gui_values, "patch_z", -10, 10, 0.01)
+        //   position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.01)
+        //   position_folder.open()
+        // }
 
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controls.rotateSpeed = 0.1;
-      controls.screenSpacePanning = false;
-      controls.minDistance = 0.1;
-      controls.maxDistance = 100;
+        gui.add(gui_options, 'Reset_Camera');
+        gui.add(gui_options, 'Unselect');
+
+      }
+      if (progress_obj + progress_mtl == -2) {
+        garment.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
+        patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
+        garment.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
+        patch.scale.set(gui_values.patch_scale, gui_values.patch_scale, gui_values.patch_scale)
+      }
 
 
-      var leggins_obj = "./leggins/leggins_patch.obj";
-      var leggins_mtl = "./leggins/leggins_patch.obj.mtl";
-      var leggins_mtl = "./leggins/patch.mtl"
-      var leggins_obj = "./leggins/patch.obj"
-      var leggins_mtl = "./obj/village1/village_final.mtl"
-      var leggins_obj = "./obj/village1/village_final.obj"
-      var leggins_mtl = "./obj/tower/tower1.mtl"
-      var leggins_obj = "./obj/tower/tower1.obj"
-      // var leggins_mtl = "./obj/city2/city2.mtl"
-      // var leggins_obj = "./obj/city2/city2.obj"
-      leggin = obj_loader(leggins_obj, leggins_mtl, 1, true);
-      scene.add(leggin);
 
-      scene.add(covered_obj);
-      //
-      window.addEventListener("resize", onWindowResize);
-      window.addEventListener("mousedown", onmouseDown, false);
-      window.addEventListener("mouseup", onmouseUp, false);
+      requestAnimationFrame(animate);
+      controls.update();
+      controls_patch.update();
+      render();
     }
+
+    function render() {
+      composer.render();
+      composer_patch.render();
+      stats.end();
+    }
+
+
+    function onWindowResize() {
+      if (window.innerWidth < 1080) {
+        $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
+      } else { $("#alert_container").html("") }
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+      effectFXAA.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
+
+      camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.76;
+      camera_patch.updateProjectionMatrix();
+      renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
+      composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
+      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / $("#container_patch").width(), 0.1 / window.innerHeight / 0.76);
+
+      if (gui) {
+        var width = Math.max(216, window.innerWidth * 0.2);
+        gui.domElement.style.width = width + 'px';
+        gui.__closeButton.style.width = width + 'px';
+      }
+    }
+
 
     function onmouseDown(event) {
       mouse_down = true;
       if (event.button == 0 && cut) {
         drawing = true;
       }
-      else if (event.button == 1) { select = false; }
-      else if (event.button == 2) { select = false; }
+      else if (event.button == 0) {
+        let obj = document.getElementById("panel_box");
+        pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+        pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+        if (event.clientX > obj.offsetLeft
+          && event.clientX < (obj.offsetLeft + obj.clientWidth)
+          && event.clientY > obj.offsetTop
+          && event.clientY < (obj.offsetTop + obj.clientHeight)) {
+          if (!mouse_down && cover) { cover_recovery(); }
+          return;
+        }
+        if (cover) {
+          select_material(pointer, camera);
+        }
+        cover = false;
+      }
+      else if (event.button == 1) { cover = false; }
+      else if (event.button == 2) { cover = false; }
     }
 
     function onmouseUp(event) {
@@ -351,32 +565,20 @@
       if (event.button == 0 && cut) {
         drawing = false;
       }
+      else if (event.button == 0) {
+        cover = true;
+        cover_recovery()
+      }
       else if (event.button == 1) {
-        select = true;
+        cover = true;
         cover_recovery()
       }
       else if (event.button == 2) {
-        select = true;
+        cover = true;
         cover_recovery()
       }
     }
 
-    function material_recovery() {
-      if (selected.length == 1) {
-        selected[0].material = selected_material;
-        selected_patch[0].material = selected_material;
-        selected = [];
-        selected_patch = [];
-        selected_material = false;
-      }
-      else if (selected.length == 2) {
-        selected[0][selected[1]] = selected_material;
-        //selected_patch[0][selected_patch[1]] = selected_material;
-        selected = [];
-        selected_patch = [];
-        selected_material = false;
-      }
-    }
 
     function cover_recovery() {
       outlinePass.selectedObjects = []
@@ -384,132 +586,187 @@
       last_cover = []
     }
 
+    function select_recovery() {
+      outlinePass_select.selectedObjects = []
+      outlinePass_patch_select.selectedObjects = []
+      last_select = []
+    }
+
+    function cover_material(cover_pointer, cover_camera) {
+      raycaster.setFromCamera(cover_pointer, cover_camera);
+      const intersects = raycaster.intersectObject(garment, true);
+      if (intersects.length > 0) {
+        // console.log(intersects[ 0 ].face)
+        // console.log(intersects[ 0 ].point)
+        var group_num = intersects[0].object.geometry.groups.length;
+        var vertice_index = intersects[0].face.a;
+        var i = 0;
+        var num = patch ? patch.children.length : 0;
+        if (group_num > 0) {
+          for (i = 0; i < group_num; i++) {
+            if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
+          }
+          if (last_cover.length != 2 || last_cover[1] != i || last_cover[0] != intersects[0].object) {
+            covered_obj.traverse(function (obj) {
+              if (obj.type === 'Mesh') {
+                obj.geometry.dispose();
+                obj.material.dispose();
+              }
+            })
+            scene.remove(covered_obj);
+            var this_scale = intersects[0].object.parent.scale;
+            var this_position = intersects[0].object.parent.position;
+            var g = separateGroups(intersects[0].object.geometry, i)
+            covered_obj = new THREE.Mesh(g);
+            covered_obj.material.transparent = true;
+            covered_obj.material.opacity = 0;
+            covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+            covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+            scene.add(covered_obj)
+            outlinePass.selectedObjects = [covered_obj];
+            last_cover = []
+            last_cover.push(intersects[0].object, i)
+
+            for (var x = 0; x < num; x++) {
+              if (patch && intersects[0].object.name == patch.children[x].name) {
+                covered_obj_patch.traverse(function (obj) {
+                  if (obj.type === 'Mesh') {
+                    obj.geometry.dispose();
+                    obj.material.dispose();
+                  }
+                })
+                scene_patch.remove(covered_obj_patch);
+                var this_scale = patch.children[x].scale;
+                var this_position = patch.children[x].position;
+                var g = separateGroups(patch.children[x].geometry, i)
+                covered_obj_patch = new THREE.Mesh(g);
+                covered_obj_patch.material.transparent = true;
+                covered_obj_patch.material.opacity = 0;
+                covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+                scene_patch.add(covered_obj_patch)
+                outlinePass_patch.selectedObjects = [covered_obj_patch];
+
+                break;
+              }
+            }
+          }
+        }
+        else {
+          if (last_cover.length != 1 || last_cover[0] != intersects[0].object) {
+            outlinePass.selectedObjects = [intersects[0].object];
+            last_cover = []
+            last_cover.push(intersects[0].object)
+
+            for (var x = 0; x < num; x++) {
+              if (patch && intersects[0].object.name == patch.children[x].name) {
+                outlinePass_patch.selectedObjects = [patch.children[x]];
+                break;
+              }
+            }
+          }
+        }
+      } else { cover_recovery() }
+    }
+
+
+    function select_material(cover_pointer, cover_camera) {
+      raycaster.setFromCamera(cover_pointer, cover_camera);
+      const intersects = raycaster.intersectObject(garment, true);
+      if (intersects.length > 0) {
+        // console.log(intersects[ 0 ].face)
+        // console.log(intersects[ 0 ].point)
+        var group_num = intersects[0].object.geometry.groups.length;
+        var vertice_index = intersects[0].face.a;
+        var i = 0;
+        var num = patch ? patch.children.length : 0;
+        if (group_num > 0) {
+          for (i = 0; i < group_num; i++) {
+            if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
+          }
+          if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
+            selected = [intersects[0].object.material, i]
+            selected_obj.traverse(function (obj) {
+              if (obj.type === 'Mesh') {
+                obj.geometry.dispose();
+                obj.material.dispose();
+              }
+            })
+            scene.remove(selected_obj);
+            var this_scale = intersects[0].object.parent.scale;
+            var this_position = intersects[0].object.parent.position;
+            var g = separateGroups(intersects[0].object.geometry, i)
+            selected_obj = new THREE.Mesh(g);
+            selected_obj.material.transparent = true;
+            selected_obj.material.opacity = 0;
+            selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+            selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+            scene.add(selected_obj)
+            outlinePass_select.selectedObjects = [selected_obj];
+            last_select = []
+            last_select.push(intersects[0].object, i)
+
+            for (var x = 0; x < num; x++) {
+              if (patch && intersects[0].object.name == patch.children[x].name) {
+                selected_patch = [patch.children[x].material, i];
+
+                selected_obj_patch.traverse(function (obj) {
+                  if (obj.type === 'Mesh') {
+                    obj.geometry.dispose();
+                    obj.material.dispose();
+                  }
+                })
+                scene_patch.remove(selected_obj_patch);
+                var this_scale = patch.children[x].scale;
+                var this_position = patch.children[x].position;
+                var g = separateGroups(patch.children[x].geometry, i)
+                selected_obj_patch = new THREE.Mesh(g);
+                selected_obj_patch.material.transparent = true;
+                selected_obj_patch.material.opacity = 0;
+                selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+                scene_patch.add(selected_obj_patch)
+                outlinePass_patch_select.selectedObjects = [selected_obj_patch];
+                break;
+              }
+            }
+          }
+        }
+        else {
+          if (last_select.length != 1 || last_select[0] != intersects[0].object) {
+            selected = [intersects[0].object];
+            outlinePass_select.selectedObjects = [intersects[0].object];
+            last_select = []
+            last_select.push(intersects[0].object)
+
+            for (var x = 0; x < num; x++) {
+              if (patch && intersects[0].object.name == patch.children[x].name) {
+                patch.children[x].material = patch.children[x].material.clone();
+                selected_patch = [patch.children[x]];
+                outlinePass_patch_select.selectedObjects = [patch.children[x]];
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
     function mouseMove(event) {
-      var obj = document.getElementById("panel_box");
+      let obj = document.getElementById("panel_box");
       pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
       pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
       if (event.clientX > obj.offsetLeft
         && event.clientX < (obj.offsetLeft + obj.clientWidth)
         && event.clientY > obj.offsetTop
         && event.clientY < (obj.offsetTop + obj.clientHeight)) {
-        if (!mouse_down && select) { cover_recovery(); }
+        if (!mouse_down && cover) { cover_recovery(); }
         return;
       }
       if (drawing) {
       }
-      else if (select) {
-        raycaster.setFromCamera(pointer, camera);
-        const intersects = raycaster.intersectObject(leggin, true);
-        if (intersects.length > 0) {
-          // console.log(intersects[ 0 ].face)
-          // console.log(intersects[ 0 ].point)
-          var group_num = intersects[0].object.geometry.groups.length;
-          var vertice_index = intersects[0].face.a;
-          var i = 0;
-          var num = patch ? patch.children.length : 0;
-          if (group_num > 0) {
-            for (i = 0; i < group_num; i++) {
-              if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
-            }
-            if (last_cover.length != 2 || last_cover[1] != i || last_cover[0] != intersects[0].object) {
-              //****************************************************************************************************
-              // selected_material = intersects[0].object.material[i].clone();
-              // intersects[0].object.material[i] = intersects[0].object.material[i].clone()
-              // var color_rgb = intersects[0].object.material[i].color;
-              // Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? intersects[0].object.material[i].color.setRGB(1, 0.5, 0.5) : intersects[0].object.material[i].color.setRGB(1.2, 0.6, 0.6)
-              // selected = [intersects[0].object.material, i]
-
-              //****************************************************************************************************
-              covered_obj.traverse(function (obj) {
-                if (obj.type === 'Mesh') {
-                  obj.geometry.dispose();
-                  obj.material.dispose();
-                }
-              })
-              scene.remove(covered_obj);
-              var this_scale = intersects[0].object.parent.scale;
-              var this_position = intersects[0].object.parent.position;
-              var g = separateGroups(intersects[0].object.geometry, i)
-              covered_obj = new THREE.Mesh(g);
-              covered_obj.material.transparent = true;
-              covered_obj.material.opacity = 0;
-              covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              covered_obj.position.set(this_position.x, this_position.y, this_position.z);
-              scene.add(covered_obj)
-              outlinePass.selectedObjects = [covered_obj];
-              last_cover = []
-              last_cover.push(intersects[0].object, i)
-              //****************************************************************************************************
-
-              for (var x = 0; x < num; x++) {
-                if (patch && intersects[0].object.name == patch.children[x].name) {
-                  //****************************************************************************************************
-                  // selected_patch = [patch.children[x].material, i];
-                  // patch.children[x].geometry.computeBoundingSphere();
-
-                  covered_obj_patch.traverse(function (obj) {
-                    if (obj.type === 'Mesh') {
-                      obj.geometry.dispose();
-                      obj.material.dispose();
-                    }
-                  })
-                  scene_patch.remove(covered_obj_patch);
-                  var this_scale = patch.children[x].scale;
-                  var this_position = patch.children[x].position;
-                  var g = separateGroups(patch.children[x].geometry, i)
-                  covered_obj_patch = new THREE.Mesh(g);
-                  covered_obj_patch.material.transparent = true;
-                  covered_obj_patch.material.opacity = 0;
-                  covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                  covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
-                  scene_patch.add(covered_obj_patch)
-                  outlinePass_patch.selectedObjects = [covered_obj_patch];
-                  //****************************************************************************************************
-                  //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
-                  //****************************************************************************************************
-
-                  break;
-                }
-              }
-            }
-          }
-          else {
-            if (last_cover.length != 1 || last_cover[0] != intersects[0].object) {
-              //****************************************************************************************************
-              // selected_material = intersects[0].object.material.clone();
-              // intersects[0].object.material = intersects[0].object.material.clone();
-              // var color_rgb = intersects[0].object.material.color;
-              // Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? intersects[0].object.material.color.setRGB(1, 0.5, 0.5) : intersects[0].object.material.color.setRGB(1.2, 0.6, 0.6);
-              // selected = [intersects[0].object];
-
-
-              //****************************************************************************************************
-              //box.add(new THREE.BoxHelper(intersects[0].object, 0xffffff));
-              outlinePass.selectedObjects = [intersects[0].object];
-              last_cover = []
-              last_cover.push(intersects[0].object)
-              //****************************************************************************************************
-
-              for (var x = 0; x < num; x++) {
-                if (patch && intersects[0].object.name == patch.children[x].name) {
-                  //****************************************************************************************************
-                  // patch.children[x].material = patch.children[x].material.clone();
-                  // Math.abs(color_rgb.r - 1) + Math.abs(color_rgb.g - 0.5) + Math.abs(color_rgb.b - 0.5) > 0.3 ? patch.children[x].material.color.setRGB(1, 0.5, 0.5) : patch.children[x].material.color.setRGB(1.2, 0.6, 0.6);
-                  // selected_patch = [patch.children[x]];
-
-
-                  outlinePass_patch.selectedObjects = [patch.children[x]];
-
-                  //****************************************************************************************************
-                  //box_patch.add(new THREE.BoxHelper(patch.children[x], 0xffffff));
-                  //****************************************************************************************************
-
-                  break;
-                }
-              }
-            }
-          }
-        } else { cover_recovery() }
+      else if (cover) {
+        cover_material(pointer, camera);
       }
     }
 
@@ -553,109 +810,28 @@
       newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
       newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 3));
 
-
       return newBufGeom;
 
     }
 
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      composer.setSize(window.innerWidth, window.innerHeight);
-      effectFXAA.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
 
-      camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.76;
-      camera_patch.updateProjectionMatrix();
-      renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
-      composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
-      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / $("#container_patch").width(), 0.1 / window.innerHeight / 0.76);
+    function updateUvTransform(material) {
 
+      var map = material.map;
 
-      if (position_folder) {
-        var width = Math.max(250, window.innerWidth * 0.2);
-        gui.domElement.style.width = width + 'px';
-        gui.__closeButton.style.width = width + 'px';
-      }
-    }
+      map.offset.set(texture_map_params.offsetX, texture_map_params.offsetY);
+      map.repeat.set(texture_map_params.repeatX, texture_map_params.repeatY);
+      map.center.set(texture_map_params.centerX, texture_map_params.centerY);
+      map.rotation = texture_map_params.rotation;
 
-    function animate() {
-      stats.begin();
-      if (patch_panel_width != $("#container_patch").css("width")) {
-        patch_panel_width = $("#container_patch").css("width")
-        onWindowResize()
-      }
-      if (progress_obj + progress_mtl == 200) {
-        var lack = false;
-        var all_empty = true;
-        progress_obj = progress_mtl = -1;
-        var num = leggin.children[0].children.length;
-        var uvs = []
-        for (var i = 0; i < num; i++) {
-          try {
-            var empty = true;
-            var uvarray = leggin.children[0].children[i].geometry.attributes.uv.array
-            uvs.push(uvarray);
-            if (!all_empty || i == 0) {
-              for (var uv_index in uvarray) {
-                if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
-                  empty = false;
-                }
-              }
-            }
-            !empty ? all_empty = false : all_empty = true;
-          }
-          catch (err) {
-            console.warn(err + ". Using empty UVs instead.")
-            lack = true
-            uvs.push([]);
-          }
-        }
-        if (lack || all_empty) { alert("The imported model lacks of partial UVs. This means that the patches we can get are may not complete!") }
+      var normal_map = material.normalMap;
 
-        patch = patch_loader(leggin, uvs, "./leggins/leggins_patch.obj.mtl", 3, num, false);
-        patch.name = "patch"
-        scene_patch.add(patch)
+      normal_map.offset.set(texture_normalMap_params.offsetX, texture_normalMap_params.offsetY);
+      normal_map.repeat.set(texture_normalMap_params.repeatX, texture_normalMap_params.repeatY);
+      normal_map.center.set(texture_normalMap_params.centerX, texture_normalMap_params.centerY);
+      normal_map.rotation = texture_normalMap_params.rotation;
 
-        document.addEventListener("mousemove", mouseMove, false);
-
-        if (!position_folder) {
-          gui = new GUI({ width: Math.max(250, window.innerWidth * 0.2), autoPlace: false })
-          // position_folder = gui.addFolder("Position and Scale")
-          // position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
-          // position_folder.add(gui_values, "garnment_y", -10, 10, 0.01)
-          // position_folder.add(gui_values, "garnment_z", -10, 10, 0.01)
-          // position_folder.add(gui_values, "garnment_scale", 0.1, 10, 0.01)
-          // position_folder.add(gui_values, "patch_x", -10, 10, 0.01)
-          // position_folder.add(gui_values, "patch_y", -10, 10, 0.01)
-          // position_folder.add(gui_values, "patch_z", -10, 10, 0.01)
-          // position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.01)
-          gui.add(gui_options, 'Reset_Camera');
-
-          document.getElementById('my-gui-container').appendChild(gui.domElement);
-          //position_folder.open();
-        }
-
-      }
-      if (progress_obj + progress_mtl == -2) {
-        leggin.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
-        patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
-        leggin.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
-        patch.scale.set(gui_values.patch_scale, gui_values.patch_scale, gui_values.patch_scale)
-      }
-
-
-
-      requestAnimationFrame(animate);
-      controls.update();
-      controls_patch.update();
-      render();
-    }
-
-    function render() {
-      composer.render();
-      composer_patch.render();
-      stats.end();
+      return material;
     }
 
 
@@ -688,9 +864,10 @@
           objLoader.load(
             url_obj,
             function (root) {
-              var x_max = 0, x_min = 0, y_max = 0, y_min = 0, z_max = 0, z_min = 0;
+              var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
               root.traverse(function (child) {
                 if (child.geometry) {
+                  original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
                   child.castShadow = true;
                   child.receiveShadow = true;
                   child.geometry.computeFaceNormals();
@@ -706,8 +883,9 @@
                   }
                 }
               })
-              var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min) / 5
-              root.position.set(-(x_min + x_max) / 2 / scale_value, -(y_min + y_max) / 2 / scale_value - (y_max - y_min) / 20 / scale_value, -(z_min + z_max) / 2 / scale_value);
+              var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min) / 5;
+              if(scale_value>1){scale_value/=Math.sqrt(scale_value)}
+              root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 2.5, -(z_min + z_max) / 2 / scale_value);
               root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
               newobj.add(root);
             },
@@ -729,12 +907,12 @@
     }
 
 
-    function patch_loader(leggin, uv, url_mtl, scale, num, double = false) {
+    function patch_loader(garment, uv, scale, num, double = false) {
       var newobj = obj3D.clone();
       var last_x = 0;
       for (var x = 0; x < num; x++) {
-        var patch = Array.isArray(leggin.children[0].children[x].geometry) ? array_clone(leggin.children[0].children[x].geometry, true) : leggin.children[0].children[x].geometry.clone();
-        var patch_mtl = leggin.children[0].children[x].material;
+        var patch = Array.isArray(garment.children[0].children[x].geometry) ? array_clone(garment.children[0].children[x].geometry, true) : garment.children[0].children[x].geometry.clone();
+        var patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
 
         var vertices = [];
         var normals = [];
@@ -765,7 +943,7 @@
         patch.deleteAttribute("normal");
         patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
         var patch_map = new THREE.Mesh(patch, patch_mtl);
-        patch_map.name = leggin.children[0].children[x].name;
+        patch_map.name = garment.children[0].children[x].name;
 
         patch.computeBoundingSphere();
         var radius = patch.boundingSphere.radius * 2;
@@ -775,7 +953,6 @@
         //patch_map.rotateZ(Math.PI)
         last_x += radius * 1.5 * scale;
         patch_map.scale.set(scale, scale, scale);
-
 
         newobj.add(patch_map);
       }

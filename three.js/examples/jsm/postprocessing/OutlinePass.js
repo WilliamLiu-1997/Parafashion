@@ -352,7 +352,7 @@ OutlinePass.prototype = Object.assign( Object.create( Pass.prototype ), {
 
 			if ( this.pulsePeriod > 0 ) {
 
-				var scalar = ( 1 + 0.25 ) / 2 + Math.cos( performance.now() * 0.01 / this.pulsePeriod ) * ( 1.0 - 0.25 ) / 2;
+				var scalar = 0.75 + Math.cos( performance.now() * 0.01 / this.pulsePeriod ) * ( 1.0 - 0.25 ) / 2;
 				this.tempPulseColor1.multiplyScalar( scalar );
 				this.tempPulseColor2.multiplyScalar( scalar );
 
