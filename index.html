@@ -198,10 +198,10 @@
     };
 
     let outlinePass_params_select = {
-      edgeStrength: 2.0,
-      edgeGlow: 0.5,
+      edgeStrength: 3.0,
+      edgeGlow: 1,
       edgeThickness: 1,
-      pulsePeriod: 4,
+      pulsePeriod: 3.5,
       rotate: false,
       usePatternTexture: false
     };
@@ -301,12 +301,12 @@
 
       var garments_obj = "./leggins/leggins_patch.obj";
       var garments_mtl = "./leggins/leggins_patch.obj.mtl";
-      var garments_mtl = "./leggins/patch.mtl"
-      var garments_obj = "./leggins/patch.obj"
-      var garments_mtl = "./obj/village1/village_final.mtl"
-      var garments_obj = "./obj/village1/village_final.obj"
-      var garments_mtl = "./obj/tower/tower1.mtl"
-      var garments_obj = "./obj/tower/tower1.obj"
+      var garments_mtl = "./leggins/patch_smooth.mtl"
+      var garments_obj = "./leggins/patch_smooth.obj"
+      // var garments_mtl = "./obj/village1/village_final.mtl"
+      // var garments_obj = "./obj/village1/village_final.obj"
+      // var garments_mtl = "./obj/tower/tower3.mtl"
+      // var garments_obj = "./obj/tower/tower3.obj"
       // var garments_mtl = "./obj/city2/city2.mtl"
       // var garments_obj = "./obj/city2/city2.obj"
       garment = obj_loader(garments_obj, garments_mtl, 1, true);
@@ -363,8 +363,8 @@
 
       outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch_select);
-      outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength;
-      outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness;
+      outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength * 1.5;
+      outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness * 1.5;
       outlinePass_patch_select.edgeGlow = outlinePass_params_select.edgeGlow;
       outlinePass_patch_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
       outlinePass_patch_select.visibleEdgeColor.set("#ffffff");
