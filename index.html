@@ -183,11 +183,27 @@
     let selected_obj_patch = new THREE.Mesh();
     let last_cover = [];
     let last_select = [];
-    var max_radius=0;
+    var max_radius = 0;
     let default_material = new THREE.MeshPhysicalMaterial({ color: 0xcccccc, emissive: 0x0, roughness: 0.5, metalness: 0, reflectivity: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.5 })
 
-
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
+
+    var garments_obj = "./leggins/leggins_patch.obj";
+    var garments_mtl = "./leggins/leggins_patch.obj.mtl";
+    var garments_mtl = "./leggins/patch.mtl"
+    var garments_obj = "./leggins/patch.obj"
+    var garments_mtl = "./obj/village1/village_final.mtl"
+    var garments_obj = "./obj/village1/village_final.obj"
+    var garments_mtl = "./obj/tower/tower3.mtl"
+    var garments_obj = "./obj/tower/tower3.obj"
+    // var garments_mtl = "./obj/city2/city2.mtl"
+    // var garments_obj = "./obj/city2/city2.obj"
+    // var garments_mtl = "./obj/S/S.mtl"
+    // var garments_obj = "./obj/S/S.obj"
+
+
+
+
 
     let outlinePass_params_cover = {
       edgeStrength: 2.0,
@@ -240,7 +256,7 @@
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x282828);
 
-      renderer = new THREE.WebGLRenderer({ antialias: true,logarithmicDepthBuffer: true });
+      renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.getElementById("container").appendChild(renderer.domElement);
@@ -286,7 +302,7 @@
       outlinePass_select.hiddenEdgeColor.set("#333333");
 
       effectFXAA = new ShaderPass(FXAAShader);
-      effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth/ window.devicePixelRatio, 1 / window.innerHeight/ window.devicePixelRatio);
+      effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
       composer.addPass(effectFXAA);
       composer.setSize(window.innerWidth, window.innerHeight);
       // controls
@@ -301,18 +317,6 @@
       controls.maxDistance = 200;
       controls.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
-      var garments_obj = "./leggins/leggins_patch.obj";
-      var garments_mtl = "./leggins/leggins_patch.obj.mtl";
-      var garments_mtl = "./leggins/patch.mtl"
-      var garments_obj = "./leggins/patch.obj"
-      var garments_mtl = "./obj/village1/village_final.mtl"
-      var garments_obj = "./obj/village1/village_final.obj"
-      var garments_mtl = "./obj/tower/tower3.mtl"
-      var garments_obj = "./obj/tower/tower3.obj"
-      // var garments_mtl = "./obj/city2/city2.mtl"
-      // var garments_obj = "./obj/city2/city2.obj"
-      var garments_mtl = "./obj/S/S.mtl"
-      var garments_obj = "./obj/S/S.obj"
       garment = obj_loader(garments_obj, garments_mtl, 1, true);
       scene.add(garment);
 
@@ -333,7 +337,7 @@
 
     function init_patch() {
       scene_patch = new THREE.Scene();
-      renderer_patch = new THREE.WebGLRenderer({ alpha: true, antialias: true,logarithmicDepthBuffer: true });
+      renderer_patch = new THREE.WebGLRenderer({ alpha: true, antialias: true, logarithmicDepthBuffer: true });
 
       renderer_patch.setPixelRatio(window.devicePixelRatio);
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
@@ -358,8 +362,8 @@
 
       outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch);
-      outlinePass_patch.edgeStrength = outlinePass_params_cover.edgeStrength*2;
-      outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness*1.5;
+      outlinePass_patch.edgeStrength = outlinePass_params_cover.edgeStrength * 2;
+      outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness * 1.5;
       outlinePass_patch.edgeGlow = outlinePass_params_cover.edgeGlow;
       outlinePass_patch.pulsePeriod = outlinePass_params_cover.pulsePeriod;
       outlinePass_patch.visibleEdgeColor.set("#aa5555")
@@ -367,15 +371,15 @@
 
       outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch_select);
-      outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength*2;
-      outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness*1.5;
+      outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength * 2;
+      outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness * 1.5;
       outlinePass_patch_select.edgeGlow = outlinePass_params_select.edgeGlow;
       outlinePass_patch_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
       outlinePass_patch_select.visibleEdgeColor.set("#ffffff");
       outlinePass_patch_select.hiddenEdgeColor.set("#333333");
 
       effectFXAA_patch = new ShaderPass(FXAAShader);
-      effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight/0.76/ window.devicePixelRatio);
+      effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.76 / window.devicePixelRatio);
       composer_patch.addPass(effectFXAA_patch);
       composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
 
@@ -526,13 +530,13 @@
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       composer.setSize(window.innerWidth, window.innerHeight);
-      effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth/ window.devicePixelRatio, 1 / window.innerHeight/ window.devicePixelRatio);
+      effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
 
       camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.76;
       camera_patch.updateProjectionMatrix();
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
       composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
-      effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width()/ window.devicePixelRatio, 1 / window.innerHeight/0.76/ window.devicePixelRatio);
+      effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.76 / window.devicePixelRatio);
 
       if (gui) {
         var width = Math.max(216, window.innerWidth * 0.2);
@@ -551,13 +555,13 @@
         let obj = document.getElementById("panel_box");
         pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
         pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-        if (event.clientX > obj.offsetLeft
-          && event.clientX < (obj.offsetLeft + obj.clientWidth)
-          && event.clientY > obj.offsetTop
-          && event.clientY < (obj.offsetTop + obj.clientHeight)) {
-          if (!mouse_down && cover) { cover_recovery(); }
-          return;
-        }
+        // if (event.clientX > obj.offsetLeft
+        //   && event.clientX < (obj.offsetLeft + obj.clientWidth)
+        //   && event.clientY > obj.offsetTop
+        //   && event.clientY < (obj.offsetTop + obj.clientHeight)) {
+        //   return;
+        // }
+        if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
           select_material(pointer, camera);
         }
@@ -600,177 +604,192 @@
     }
 
     function cover_material(cover_pointer, cover_camera) {
-      raycaster.setFromCamera(cover_pointer, cover_camera);
-      const intersects = raycaster.intersectObject(garment, true);
-      if (intersects.length > 0) {
-        // console.log(intersects[ 0 ].face)
-        // console.log(intersects[ 0 ].point)
-        var group_num = intersects[0].object.geometry.groups.length;
-        var vertice_index = intersects[0].face.a;
-        var i = 0;
-        var num = patch ? patch.children.length : 0;
-        if (group_num > 0) {
-          for (i = 0; i < group_num; i++) {
-            if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
-          }
-          if (last_cover.length != 2 || last_cover[1] != i || last_cover[0] != intersects[0].object) {
-            covered_obj.traverse(function (obj) {
-              if (obj.type === 'Mesh') {
-                obj.geometry.dispose();
-                obj.material.dispose();
-              }
-            })
-            scene.remove(covered_obj);
-            var this_scale = intersects[0].object.parent.scale;
-            var this_position = intersects[0].object.parent.position;
-            var g = individual(intersects[0].object.geometry, i)
-            covered_obj = new THREE.Mesh(g);
-            covered_obj.material.transparent = true;
-            covered_obj.material.opacity = 0;
-            covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-            covered_obj.position.set(this_position.x, this_position.y, this_position.z);
-            scene.add(covered_obj)
-            outlinePass.selectedObjects = [covered_obj];
-            last_cover = []
-            last_cover.push(intersects[0].object, i)
-
-            for (var x = 0; x < num; x++) {
-              if (patch && intersects[0].object.name == patch.children[x].name) {
-                covered_obj_patch.traverse(function (obj) {
-                  if (obj.type === 'Mesh') {
-                    obj.geometry.dispose();
-                    obj.material.dispose();
-                  }
-                })
-                scene_patch.remove(covered_obj_patch);
-                var this_scale = patch.children[x].children[i].scale;
-                var this_position = patch.children[x].children[i].position;
-                var g = patch.children[x].children[i].geometry
-                covered_obj_patch = new THREE.Mesh(g);
-                covered_obj_patch.material.transparent = true;
-                covered_obj_patch.material.opacity = 0;
-                covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
-                scene_patch.add(covered_obj_patch)
-                outlinePass_patch.selectedObjects = [covered_obj_patch];
-
-                break;
-              }
-            }
-          }
-        }
-        else {
-          if (last_cover.length != 1 || last_cover[0] != intersects[0].object) {
-            outlinePass.selectedObjects = [intersects[0].object];
-            last_cover = []
-            last_cover.push(intersects[0].object)
-
-            for (var x = 0; x < num; x++) {
-              if (patch && intersects[0].object.name == patch.children[x].name) {
-                outlinePass_patch.selectedObjects = [patch.children[x]];
-                break;
-              }
-            }
-          }
-        }
-      } else { cover_recovery() }
-    }
-
-
-    function select_material(cover_pointer, cover_camera) {
-      raycaster.setFromCamera(cover_pointer, cover_camera);
-      const intersects = raycaster.intersectObject(garment, true);
-      if (intersects.length > 0) {
-        // console.log(intersects[ 0 ].face)
-        // console.log(intersects[ 0 ].point)
-        //console.log(intersects[0].object)
-        var group_num = intersects[0].object.geometry.groups.length;
-        var vertice_index = intersects[0].face.a;
-        var i = 0;
-        var num = patch ? patch.children.length : 0;
-        if (group_num > 0) {
-          for (i = 0; i < group_num; i++) {
-            if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
-          }
-          if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
-            selected = [intersects[0].object.material, i]
-            selected_obj.traverse(function (obj) {
-              if (obj.type === 'Mesh') {
-                obj.geometry.dispose();
-                obj.material.dispose();
-              }
-            })
-            scene.remove(selected_obj);
-            var this_scale = intersects[0].object.parent.scale;
-            var this_position = intersects[0].object.parent.position;
-            var g = individual(intersects[0].object.geometry, i)
-            selected_obj = new THREE.Mesh(g);
-            selected_obj.material.transparent = true;
-            selected_obj.material.opacity = 0;
-            selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-            selected_obj.position.set(this_position.x, this_position.y, this_position.z);
-            scene.add(selected_obj)
-            outlinePass_select.selectedObjects = [selected_obj];
-            last_select = []
-            last_select.push(intersects[0].object, i)
-
-            for (var x = 0; x < num; x++) {
-              if (patch && intersects[0].object.name == patch.children[x].name) {
-                selected_patch = [patch.children[x].material, i];
-
-                selected_obj_patch.traverse(function (obj) {
-                  if (obj.type === 'Mesh') {
-                    obj.geometry.dispose();
-                    obj.material.dispose();
-                  }
-                })
-                scene_patch.remove(selected_obj_patch);
-                var this_scale = patch.children[x].children[i].scale;
-                var this_position = patch.children[x].children[i].position;
-                var g = patch.children[x].children[i].geometry
-                selected_obj_patch = new THREE.Mesh(g);
-                selected_obj_patch.material.transparent = true;
-                selected_obj_patch.material.opacity = 0;
-                selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
-                scene_patch.add(selected_obj_patch)
-                outlinePass_patch_select.selectedObjects = [selected_obj_patch];
-                break;
-              }
-            }
-          }
-        }
-        else {
-          if (last_select.length != 1 || last_select[0] != intersects[0].object) {
-            selected = [intersects[0].object];
-            outlinePass_select.selectedObjects = [intersects[0].object];
-            last_select = []
-            last_select.push(intersects[0].object)
-
-            for (var x = 0; x < num; x++) {
-              if (patch && intersects[0].object.name == patch.children[x].name) {
-                patch.children[x].material = patch.children[x].material.clone();
-                selected_patch = [patch.children[x]];
-                outlinePass_patch_select.selectedObjects = [patch.children[x]];
-                break;
-              }
-            }
-          }
-        }//console.log(selected)
-      }
-    }
-
-    function mouseMove(event) {
       let obj = document.getElementById("panel_box");
-      pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-      pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
       if (event.clientX > obj.offsetLeft
         && event.clientX < (obj.offsetLeft + obj.clientWidth)
         && event.clientY > obj.offsetTop
         && event.clientY < (obj.offsetTop + obj.clientHeight)) {
-        if (!mouse_down && cover) { cover_recovery(); }
         return;
+      } else {
+        raycaster.setFromCamera(cover_pointer, cover_camera);
+        const intersects = raycaster.intersectObject(garment, true);
+        if (intersects.length > 0) {
+          // console.log(intersects[ 0 ].face)
+          // console.log(intersects[ 0 ].point)
+          var group_num = intersects[0].object.geometry.groups.length;
+          var vertice_index = intersects[0].face.a;
+          var i = 0;
+          var num = patch ? patch.children.length : 0;
+          if (group_num > 0) {
+            for (i = 0; i < group_num; i++) {
+              if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
+            }
+            if (last_cover.length != 2 || last_cover[1] != i || last_cover[0] != intersects[0].object) {
+              covered_obj.traverse(function (obj) {
+                if (obj.type === 'Mesh') {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                }
+              })
+              scene.remove(covered_obj);
+              var this_scale = intersects[0].object.parent.scale;
+              var this_position = intersects[0].object.parent.position;
+              var g = individual(intersects[0].object.geometry, i)
+              covered_obj = new THREE.Mesh(g);
+              covered_obj.material.transparent = true;
+              covered_obj.material.opacity = 0;
+              covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+              covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+              scene.add(covered_obj)
+              outlinePass.selectedObjects = [covered_obj];
+              last_cover = []
+              last_cover.push(intersects[0].object, i)
+
+              for (var x = 0; x < num; x++) {
+                if (patch && intersects[0].object.name == patch.children[x].name) {
+                  covered_obj_patch.traverse(function (obj) {
+                    if (obj.type === 'Mesh') {
+                      obj.geometry.dispose();
+                      obj.material.dispose();
+                    }
+                  })
+                  scene_patch.remove(covered_obj_patch);
+                  var this_scale = patch.children[x].children[i].scale;
+                  var this_position = patch.children[x].children[i].position;
+                  var g = patch.children[x].children[i].geometry
+                  covered_obj_patch = new THREE.Mesh(g);
+                  covered_obj_patch.material.transparent = true;
+                  covered_obj_patch.material.opacity = 0;
+                  covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                  covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+                  scene_patch.add(covered_obj_patch)
+                  outlinePass_patch.selectedObjects = [covered_obj_patch];
+
+                  break;
+                }
+              }
+            }
+          }
+          else {
+            if (last_cover.length != 1 || last_cover[0] != intersects[0].object) {
+              outlinePass.selectedObjects = [intersects[0].object];
+              last_cover = []
+              last_cover.push(intersects[0].object)
+
+              for (var x = 0; x < num; x++) {
+                if (patch && intersects[0].object.name == patch.children[x].name) {
+                  outlinePass_patch.selectedObjects = [patch.children[x]];
+                  break;
+                }
+              }
+            }
+          }
+        } else { cover_recovery() }
       }
+    }
+
+
+    function select_material(cover_pointer, cover_camera) {
+      let obj = document.getElementById("panel_box");
+      if (event.clientX > obj.offsetLeft
+        && event.clientX < (obj.offsetLeft + obj.clientWidth)
+        && event.clientY > obj.offsetTop
+        && event.clientY < (obj.offsetTop + obj.clientHeight)) {
+        return;
+      } else {
+        raycaster.setFromCamera(cover_pointer, cover_camera);
+        const intersects = raycaster.intersectObject(garment, true);
+        if (intersects.length > 0) {
+          // console.log(intersects[ 0 ].face)
+          // console.log(intersects[ 0 ].point)
+          //console.log(intersects[0].object)
+          var group_num = intersects[0].object.geometry.groups.length;
+          var vertice_index = intersects[0].face.a;
+          var i = 0;
+          var num = patch ? patch.children.length : 0;
+          if (group_num > 0) {
+            for (i = 0; i < group_num; i++) {
+              if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
+            }
+            if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
+              selected = [intersects[0].object.material, i]
+              selected_obj.traverse(function (obj) {
+                if (obj.type === 'Mesh') {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                }
+              })
+              scene.remove(selected_obj);
+              var this_scale = intersects[0].object.parent.scale;
+              var this_position = intersects[0].object.parent.position;
+              var g = individual(intersects[0].object.geometry, i)
+              selected_obj = new THREE.Mesh(g);
+              selected_obj.material.transparent = true;
+              selected_obj.material.opacity = 0;
+              selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+              selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+              scene.add(selected_obj)
+              outlinePass_select.selectedObjects = [selected_obj];
+              last_select = []
+              last_select.push(intersects[0].object, i)
+
+              for (var x = 0; x < num; x++) {
+                if (patch && intersects[0].object.name == patch.children[x].name) {
+                  selected_patch = [patch.children[x].material, i];
+
+                  selected_obj_patch.traverse(function (obj) {
+                    if (obj.type === 'Mesh') {
+                      obj.geometry.dispose();
+                      obj.material.dispose();
+                    }
+                  })
+                  scene_patch.remove(selected_obj_patch);
+                  var this_scale = patch.children[x].children[i].scale;
+                  var this_position = patch.children[x].children[i].position;
+                  var g = patch.children[x].children[i].geometry
+                  selected_obj_patch = new THREE.Mesh(g);
+                  selected_obj_patch.material.transparent = true;
+                  selected_obj_patch.material.opacity = 0;
+                  selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                  selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+                  scene_patch.add(selected_obj_patch)
+                  outlinePass_patch_select.selectedObjects = [selected_obj_patch];
+                  break;
+                }
+              }
+            }
+          }
+          else {
+            if (last_select.length != 1 || last_select[0] != intersects[0].object) {
+              selected = [intersects[0].object];
+              outlinePass_select.selectedObjects = [intersects[0].object];
+              last_select = []
+              last_select.push(intersects[0].object)
+
+              for (var x = 0; x < num; x++) {
+                if (patch && intersects[0].object.name == patch.children[x].name) {
+                  patch.children[x].material = patch.children[x].material.clone();
+                  selected_patch = [patch.children[x]];
+                  outlinePass_patch_select.selectedObjects = [patch.children[x]];
+                  break;
+                }
+              }
+            }
+          }//console.log(selected)
+        }
+      }
+    }
+
+    function mouseMove(event) {
+      pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+      pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+      // if (event.clientX > obj.offsetLeft
+      //   && event.clientX < (obj.offsetLeft + obj.clientWidth)
+      //   && event.clientY > obj.offsetTop
+      //   && event.clientY < (obj.offsetTop + obj.clientHeight)) {
+      //   return;
+      // }
+      if (!mouse_down && cover) { cover_recovery(); }
       if (drawing) {
       }
       else if (cover) {
@@ -1100,9 +1119,9 @@
 
 
     function patch_loader(garment, uv, scale, num, double = false) {
-      max_radius=0;
-      var first=false;
-      var max_height=0;
+      max_radius = 0;
+      var first = false;
+      var max_height = 0;
       var newobj = obj3D.clone();
       var last_x = -Infinity;
       var last_y = 4;
@@ -1114,11 +1133,11 @@
           //var individual = seperateGroups_garmentToPatch(patch);
           var group_3d = new THREE.Group();
           for (var individual_i = 0; individual_i < patch.groups.length; individual_i++) {
-        if(last_x>scale*5){
-          last_x=-Infinity;
-          last_y-= max_height*1.5;
-          max_height=0
-        }
+            if (last_x > scale * 5) {
+              last_x = -Infinity;
+              last_y -= max_height * 1.5;
+              max_height = 0
+            }
             var individual_patch = individual_garmentToPatch(patch, individual_i)
             var vertices = [];
             var normals = [];
@@ -1151,32 +1170,35 @@
             var x_min = individual_patch.boundingBox.min.x;
             var y_min = individual_patch.boundingBox.min.y;
             var z_min = individual_patch.boundingBox.min.z;
-            var radius_x = (x_max-x_min);
-            var radius_y=(y_max-y_min);
-            max_radius = max_radius < radius_x*scale ? radius_x*scale : max_radius;
-            max_radius = max_radius < radius_y*scale ? radius_y*scale : max_radius;
-            max_height=max_height < radius_y*scale ? radius_y*scale : max_height;
-            if(!first){
-              last_x=(-radius_x/2)* scale
-              last_y=(radius_y/2)* scale
-              first=(-radius_x/2)* scale;
+            var radius_x = (x_max - x_min);
+            var radius_y = (y_max - y_min);
+            max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
+            max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
+            max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
+            if (!first) {
+              last_x = (-radius_x / 2) * scale
+              last_y = (radius_y / 2) * scale
+              first = (-radius_x / 2) * scale;
             }
             last_x = last_x == -Infinity ? first : last_x;
-            patch_map.position.set(last_x-x_min*scale,last_y-y_max*scale, 0);
+            patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
             //patch_map.rotateZ(Math.PI)
-            last_x += (radius_x)*1.5 * scale;
+            last_x += (radius_x) * 1.5 * scale;
             patch_map.scale.set(scale, scale, scale);
             group_3d.add(patch_map);
+          }
+          if (garment.children[0].children[x].name == "" || garment.children[0].children[x].name == null) {
+            garment.children[0].children[x].name = randomString();
           }
           group_3d.name = garment.children[0].children[x].name;
           newobj.add(group_3d)
         }
         else {
-        if(last_x>scale*5){
-          last_x=-Infinity;
-          last_y-= max_height*1.5;
-          max_height=0
-        }
+          if (last_x > scale * 5) {
+            last_x = -Infinity;
+            last_y -= max_height * 1.5;
+            max_height = 0
+          }
           var vertices = [];
           var normals = [];
           for (var i = 0; i < uv[x].length; i++) {
@@ -1206,42 +1228,54 @@
           patch.deleteAttribute("normal");
           patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
           var patch_map = new THREE.Mesh(patch, patch_mtl);
+          if (garment.children[0].children[x].name == "" || garment.children[0].children[x].name == null) {
+            garment.children[0].children[x].name = randomString();
+          }
           patch_map.name = garment.children[0].children[x].name;
 
 
           patch.computeBoundingBox();
-            var x_max = patch.boundingBox.max.x;
-            var y_max = patch.boundingBox.max.y;
-            var z_max = patch.boundingBox.max.z;
-            var x_min = patch.boundingBox.min.x;
-            var y_min = patch.boundingBox.min.y;
-            var z_min = patch.boundingBox.min.z;
-            var radius_x = (x_max-x_min);
-            var radius_y=(y_max-y_min);
-            max_radius = max_radius < radius_x*scale ? radius_x*scale : max_radius;
-            max_radius = max_radius < radius_y*scale ? radius_y*scale : max_radius;
-            max_height=max_height < radius_y*scale ? radius_y*scale : max_height;
-            if(!first){
-              last_x=(-radius_x/2)* scale
-              last_y=(radius_y/2)* scale
-              first=(-radius_x/2)* scale;
-            }
-            last_x = last_x == -Infinity ? first* scale : last_x;
-            patch_map.position.set(last_x-x_min*scale,last_y-y_max*scale, 0);
-            //patch_map.rotateZ(Math.PI)
-            last_x += radius_x*1.5 * scale;
-            patch_map.scale.set(scale, scale, scale);
+          var x_max = patch.boundingBox.max.x;
+          var y_max = patch.boundingBox.max.y;
+          var z_max = patch.boundingBox.max.z;
+          var x_min = patch.boundingBox.min.x;
+          var y_min = patch.boundingBox.min.y;
+          var z_min = patch.boundingBox.min.z;
+          var radius_x = (x_max - x_min);
+          var radius_y = (y_max - y_min);
+          max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
+          max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
+          max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
+          if (!first) {
+            last_x = (-radius_x / 2) * scale
+            last_y = (radius_y / 2) * scale
+            first = (-radius_x / 2) * scale;
+          }
+          last_x = last_x == -Infinity ? first * scale : last_x;
+          patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
+          //patch_map.rotateZ(Math.PI)
+          last_x += radius_x * 1.5 * scale;
+          patch_map.scale.set(scale, scale, scale);
           newobj.add(patch_map);
         }
       }
       if (max_radius > 1) { max_radius /= Math.sqrt(max_radius) }
       newobj.traverse(function (child) {
-        if(child.geometry){
-          child.scale.set(child.scale.x*(scale/max_radius),child.scale.y*(scale/max_radius),child.scale.z*(scale/max_radius))
-          child.position.set(child.position.x*(scale/max_radius),child.position.y*(scale/max_radius),child.position.z*(scale/max_radius))
+        if (child.geometry) {
+          child.scale.set(child.scale.x * (scale / max_radius), child.scale.y * (scale / max_radius), child.scale.z * (scale / max_radius))
+          child.position.set(child.position.x * (scale / max_radius), child.position.y * (scale / max_radius), child.position.z * (scale / max_radius))
         }
       })
       return newobj
+    }
+
+    function randomString(e) {
+      e = e || 32;
+      var t = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
+        a = t.length,
+        n = "";
+      for (i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
+      return n
     }
   </script>
 </body>
