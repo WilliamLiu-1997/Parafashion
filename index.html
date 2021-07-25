@@ -94,10 +94,11 @@
   <div id="alert_container"></div>
   <div id="panel_box" class="panel_box">
 
-    <div class="btn-group" style="width: 100%;">
+    <div id="patch_btn" class="btn-group" style="width: 100%;">
       <button id="hide-patches" type="button" class="btn btn-default" data-toggle="collapse"
         data-target="#panel-patches" style="
           background-color: rgba(182, 182, 182, 0.75);
+          font-size:15px;
           color: #fff;
           padding: 2px;
           width:90%;
@@ -106,6 +107,7 @@
       </button>
       <button id="scale-patches" type="button" class="btn btn-default" style="
           background-color: rgba(182, 182, 182, 0.75);
+          font-size:15px;
           color: #fff;
           padding: 2px;
           width:10%;
@@ -173,6 +175,7 @@
     let patch_panel_width = $("#container_patch").css("width");
     let raycaster = new THREE.Raycaster();
     let pointer = new THREE.Vector2();
+    let pointer_patch = new THREE.Vector2();
     let color = new THREE.Color();
     let original_material = [];
     let selected = [], selected_patch = [];
@@ -182,7 +185,9 @@
     let selected_obj = new THREE.Mesh();
     let selected_obj_patch = new THREE.Mesh();
     let last_cover = [];
+    let last_cover_patch = [];
     let last_select = [];
+    let last_select_patch = [];
     var max_radius = 0;
     let default_material = new THREE.MeshPhysicalMaterial({ color: 0xcccccc, emissive: 0x0, roughness: 0.5, metalness: 0, reflectivity: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.5 })
 
@@ -555,6 +560,8 @@
         let obj = document.getElementById("panel_box");
         pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
         pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+        pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
+        pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
         // if (event.clientX > obj.offsetLeft
         //   && event.clientX < (obj.offsetLeft + obj.clientWidth)
         //   && event.clientY > obj.offsetTop
@@ -563,7 +570,7 @@
         // }
         if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
-          select_material(pointer, camera);
+          select_material(pointer, camera, pointer_patch, camera_patch);
         }
         cover = false;
       }
@@ -590,26 +597,113 @@
       }
     }
 
+    function mouseMove(event) {
+      let obj = document.getElementById("panel_box");
+      pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+      pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+      pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
+      pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
+      if (!mouse_down && cover) { cover_recovery(); }
+      if (drawing) {
+      }
+      else if (cover) {
+        cover_material(pointer, camera, pointer_patch, camera_patch);
+      }
+    }
+
 
     function cover_recovery() {
       outlinePass.selectedObjects = []
       outlinePass_patch.selectedObjects = []
       last_cover = []
+      last_cover_patch = []
     }
 
     function select_recovery() {
       outlinePass_select.selectedObjects = []
       outlinePass_patch_select.selectedObjects = []
       last_select = []
+      last_select_patch = []
     }
 
-    function cover_material(cover_pointer, cover_camera) {
+    function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch) {
       let obj = document.getElementById("panel_box");
       if (event.clientX > obj.offsetLeft
         && event.clientX < (obj.offsetLeft + obj.clientWidth)
         && event.clientY > obj.offsetTop
         && event.clientY < (obj.offsetTop + obj.clientHeight)) {
-        return;
+
+        raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
+        const intersects = raycaster.intersectObject(patch, true);
+        if (intersects.length > 0) {
+          // console.log(intersects[ 0 ].face)
+          // console.log(intersects[ 0 ].point)
+          if (intersects[0].object.parent instanceof THREE.Group) {
+            var i = 0;
+            for (i = 0; i < intersects[0].object.parent.children.length; i++) {
+              if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
+            }
+            if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
+              covered_obj_patch.traverse(function (obj) {
+                if (obj.type === 'Mesh') {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                }
+              })
+              covered_obj.traverse(function (obj) {
+                if (obj.type === 'Mesh') {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                }
+              })
+              scene_patch.remove(covered_obj_patch);
+              scene.remove(covered_obj);
+              var this_scale = intersects[0].object.scale;
+              var this_position = intersects[0].object.position;
+              var g = intersects[0].object.geometry
+              covered_obj_patch = new THREE.Mesh(g);
+              covered_obj_patch.material.transparent = true;
+              covered_obj_patch.material.opacity = 0;
+              covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
+              covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+              scene_patch.add(covered_obj_patch)
+              outlinePass_patch.selectedObjects = [covered_obj_patch];
+              last_cover_patch = []
+              last_cover_patch.push(intersects[0].object)
+
+              garment.traverse(function (obj) {
+                if (obj.type === "Mesh") {
+                  if (obj.name == intersects[0].object.parent.name) {
+                    var this_scale = obj.parent.scale;
+                    var this_position = obj.parent.position;
+                    var g = individual(obj.geometry, i)
+                    covered_obj = new THREE.Mesh(g);
+                    covered_obj.material.transparent = true;
+                    covered_obj.material.opacity = 0;
+                    covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                    covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+                    scene.add(covered_obj)
+                    outlinePass.selectedObjects = [covered_obj];
+                  }
+                }
+              })
+            }
+          }
+          else {
+            if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
+              outlinePass_patch.selectedObjects = [intersects[0].object];
+              last_cover_patch = []
+              last_cover_patch.push(intersects[0].object)
+              garment.traverse(function (obj) {
+                if (obj.type === "Mesh" && obj.name == intersects[0].object.name) {
+                  outlinePass.selectedObjects = [obj];
+                }
+              })
+            }
+          }
+        } else { cover_recovery() }
+
+
       } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         const intersects = raycaster.intersectObject(garment, true);
@@ -624,7 +718,7 @@
             for (i = 0; i < group_num; i++) {
               if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
             }
-            if (last_cover.length != 2 || last_cover[1] != i || last_cover[0] != intersects[0].object) {
+            if (last_cover.length != 2 || last_cover[1] != i || (last_cover[0] != intersects[0].object)) {
               covered_obj.traverse(function (obj) {
                 if (obj.type === 'Mesh') {
                   obj.geometry.dispose();
@@ -671,7 +765,7 @@
             }
           }
           else {
-            if (last_cover.length != 1 || last_cover[0] != intersects[0].object) {
+            if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
               outlinePass.selectedObjects = [intersects[0].object];
               last_cover = []
               last_cover.push(intersects[0].object)
@@ -689,13 +783,88 @@
     }
 
 
-    function select_material(cover_pointer, cover_camera) {
+    function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch) {
       let obj = document.getElementById("panel_box");
       if (event.clientX > obj.offsetLeft
         && event.clientX < (obj.offsetLeft + obj.clientWidth)
         && event.clientY > obj.offsetTop
         && event.clientY < (obj.offsetTop + obj.clientHeight)) {
-        return;
+        //***************************************************************************************************************************************
+        raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
+        const intersects = raycaster.intersectObject(patch, true);
+        if (intersects.length > 0) {
+          // console.log(intersects[ 0 ].face)
+          // console.log(intersects[ 0 ].point)
+          if (intersects[0].object.parent instanceof THREE.Group) {
+            var i = 0;
+            for (i = 0; i < intersects[0].object.parent.children.length; i++) {
+              if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
+            }
+            if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
+              selected_patch = [intersects[0].object];
+              selected_obj_patch.traverse(function (obj) {
+                if (obj.type === 'Mesh') {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                }
+              })
+              selected_obj.traverse(function (obj) {
+                if (obj.type === 'Mesh') {
+                  obj.geometry.dispose();
+                  obj.material.dispose();
+                }
+              })
+              scene_patch.remove(selected_obj_patch);
+              scene.remove(selected_obj);
+              var this_scale = intersects[0].object.scale;
+              var this_position = intersects[0].object.position;
+              var g = intersects[0].object.geometry
+              selected_obj_patch = new THREE.Mesh(g);
+              selected_obj_patch.material.transparent = true;
+              selected_obj_patch.material.opacity = 0;
+              selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
+              selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+              scene_patch.add(selected_obj_patch)
+              outlinePass_patch_select.selectedObjects = [selected_obj_patch];
+              last_select_patch = []
+              last_select_patch.push(intersects[0].object)
+
+              garment.traverse(function (obj) {
+                if (obj.type === "Mesh") {
+                  if (obj.name == intersects[0].object.parent.name) {
+                    selected = [obj,i]
+                    var this_scale = obj.parent.scale;
+                    var this_position = obj.parent.position;
+                    var g = individual(obj.geometry, i)
+                    selected_obj = new THREE.Mesh(g);
+                    selected_obj.material.transparent = true;
+                    selected_obj.material.opacity = 0;
+                    selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                    selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+                    scene.add(selected_obj)
+                    outlinePass_select.selectedObjects = [selected_obj];
+                  }
+                }
+              })
+            }
+          }
+          else {
+            if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
+              outlinePass_patch_select.selectedObjects = [intersects[0].object];
+              last_select_patch = []
+              last_select_patch.push(intersects[0].object)
+              selected_patch = [intersects[0].object];
+              garment.traverse(function (obj) {
+                if (obj.type === "Mesh" && obj.name == intersects[0].object.name) {
+                  outlinePass_select.selectedObjects = [obj];
+                  selected = [obj];
+                }
+              })
+            }
+          }
+        } else { cover_recovery() }
+
+        //*****************************************************************************************************************************************
       } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         const intersects = raycaster.intersectObject(garment, true);
@@ -712,7 +881,7 @@
               if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
             }
             if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
-              selected = [intersects[0].object.material, i]
+              selected = [intersects[0].object, i]
               selected_obj.traverse(function (obj) {
                 if (obj.type === 'Mesh') {
                   obj.geometry.dispose();
@@ -735,7 +904,7 @@
 
               for (var x = 0; x < num; x++) {
                 if (patch && intersects[0].object.name == patch.children[x].name) {
-                  selected_patch = [patch.children[x].material, i];
+                  selected_patch = [patch.children[x].children[i]];
 
                   selected_obj_patch.traverse(function (obj) {
                     if (obj.type === 'Mesh') {
@@ -780,22 +949,6 @@
       }
     }
 
-    function mouseMove(event) {
-      pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-      pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-      // if (event.clientX > obj.offsetLeft
-      //   && event.clientX < (obj.offsetLeft + obj.clientWidth)
-      //   && event.clientY > obj.offsetTop
-      //   && event.clientY < (obj.offsetTop + obj.clientHeight)) {
-      //   return;
-      // }
-      if (!mouse_down && cover) { cover_recovery(); }
-      if (drawing) {
-      }
-      else if (cover) {
-        cover_material(pointer, camera);
-      }
-    }
 
     function individual(bufGeom, ig) {
 
@@ -1185,11 +1338,10 @@
             //patch_map.rotateZ(Math.PI)
             last_x += (radius_x) * 1.5 * scale;
             patch_map.scale.set(scale, scale, scale);
+            patch_map.name = randomString();
             group_3d.add(patch_map);
           }
-          if (garment.children[0].children[x].name == "" || garment.children[0].children[x].name == null) {
-            garment.children[0].children[x].name = randomString();
-          }
+          garment.children[0].children[x].name = randomString();
           group_3d.name = garment.children[0].children[x].name;
           newobj.add(group_3d)
         }
@@ -1228,9 +1380,7 @@
           patch.deleteAttribute("normal");
           patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
           var patch_map = new THREE.Mesh(patch, patch_mtl);
-          if (garment.children[0].children[x].name == "" || garment.children[0].children[x].name == null) {
-            garment.children[0].children[x].name = randomString();
-          }
+          garment.children[0].children[x].name = randomString();
           patch_map.name = garment.children[0].children[x].name;
 
 
@@ -1271,10 +1421,10 @@
 
     function randomString(e) {
       e = e || 32;
-      var t = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
+      let t = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
         a = t.length,
         n = "";
-      for (i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
+      for (let i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
       return n
     }
   </script>
