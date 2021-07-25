@@ -199,8 +199,8 @@
     var garments_obj = "./leggins/patch.obj"
     var garments_mtl = "./obj/village1/village_final.mtl"
     var garments_obj = "./obj/village1/village_final.obj"
-    var garments_mtl = "./obj/tower/tower3.mtl"
-    var garments_obj = "./obj/tower/tower3.obj"
+    // var garments_mtl = "./obj/tower/tower3.mtl"
+    // var garments_obj = "./obj/tower/tower3.obj"
     // var garments_mtl = "./obj/city2/city2.mtl"
     // var garments_obj = "./obj/city2/city2.obj"
     // var garments_mtl = "./obj/S/S.mtl"
@@ -216,7 +216,9 @@
       edgeThickness: 1,
       pulsePeriod: 0,
       rotate: false,
-      usePatternTexture: false
+      usePatternTexture: false,
+      visibleEdgeColor:"#aa5555",
+      hiddenEdgeColor:"#221111"
     };
 
     let outlinePass_params_select = {
@@ -225,7 +227,9 @@
       edgeThickness: 1,
       pulsePeriod: 3.5,
       rotate: false,
-      usePatternTexture: false
+      usePatternTexture: false,
+      visibleEdgeColor:"#ffffff",
+      hiddenEdgeColor:"#333333"
     };
 
     let texture_map_params = {
@@ -235,7 +239,7 @@
       repeatY: 1,
       rotation: 0,
       centerX: 0.5,
-      centerY: 0.5
+      centerY: 0.5,
     };
 
     let texture_normalMap_params = {
@@ -274,7 +278,7 @@
         0.01,
         1000
       );
-      camera.position.set(0, 0, 10);
+      camera.position.set(0, 0, 2);
 
       cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
 
@@ -294,8 +298,8 @@
       outlinePass.edgeThickness = outlinePass_params_cover.edgeThickness;
       outlinePass.edgeGlow = outlinePass_params_cover.edgeGlow;
       outlinePass.pulsePeriod = outlinePass_params_cover.pulsePeriod;
-      outlinePass.visibleEdgeColor.set("#aa5555");
-      outlinePass.hiddenEdgeColor.set("#221111");
+      outlinePass.visibleEdgeColor.set(outlinePass_params_cover.visibleEdgeColor);
+      outlinePass.hiddenEdgeColor.set(outlinePass_params_cover.hiddenEdgeColor);
 
       outlinePass_select = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
       composer.addPass(outlinePass_select);
@@ -303,8 +307,8 @@
       outlinePass_select.edgeThickness = outlinePass_params_select.edgeThickness;
       outlinePass_select.edgeGlow = outlinePass_params_select.edgeGlow;
       outlinePass_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
-      outlinePass_select.visibleEdgeColor.set("#ffffff");
-      outlinePass_select.hiddenEdgeColor.set("#333333");
+      outlinePass_select.visibleEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
+      outlinePass_select.hiddenEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
 
       effectFXAA = new ShaderPass(FXAAShader);
       effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
@@ -319,7 +323,7 @@
       controls.rotateSpeed = 0.2;
       controls.screenSpacePanning = false;
       controls.minDistance = 0.1;
-      controls.maxDistance = 200;
+      controls.maxDistance = 50;
       controls.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
       garment = obj_loader(garments_obj, garments_mtl, 1, true);
@@ -328,8 +332,8 @@
       scene.add(covered_obj);
 
 
-      const helper = new THREE.GridHelper(1000, 200);
-      helper.position.y = -2.5;
+      const helper = new THREE.GridHelper(500, 500);
+      helper.position.y = -0.5;
       helper.material.opacity = 0.1;
       helper.material.transparent = true;
       scene.add(helper);
@@ -351,11 +355,12 @@
         45,
         $("#container_patch").width() / window.innerHeight / 0.76,
         0.01,
-        10000
+        1000
       );
-      camera_patch.position.set(0, 0, 10);
+      camera_patch.position.set(0, 0, 1);
 
       cameralight_patch = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
+      cameralight_patch.position.set(0,0.5,0)
       camera_patch.add(cameralight_patch);
       scene_patch.add(camera_patch);
       env_light_patch = new THREE.AmbientLight(0x303030);
@@ -371,8 +376,8 @@
       outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness * 1.5;
       outlinePass_patch.edgeGlow = outlinePass_params_cover.edgeGlow;
       outlinePass_patch.pulsePeriod = outlinePass_params_cover.pulsePeriod;
-      outlinePass_patch.visibleEdgeColor.set("#aa5555")
-      outlinePass_patch.hiddenEdgeColor.set("#221111")
+      outlinePass_patch.visibleEdgeColor.set(outlinePass_params_cover.visibleEdgeColor);
+      outlinePass_patch.hiddenEdgeColor.set(outlinePass_params_cover.hiddenEdgeColor);
 
       outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch_select);
@@ -380,8 +385,8 @@
       outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness * 1.5;
       outlinePass_patch_select.edgeGlow = outlinePass_params_select.edgeGlow;
       outlinePass_patch_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
-      outlinePass_patch_select.visibleEdgeColor.set("#ffffff");
-      outlinePass_patch_select.hiddenEdgeColor.set("#333333");
+      outlinePass_patch_select.visibleEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
+      outlinePass_patch_select.hiddenEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
 
       effectFXAA_patch = new ShaderPass(FXAAShader);
       effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.76 / window.devicePixelRatio);
@@ -394,7 +399,7 @@
       controls_patch.dampingFactor = 0.1;
       controls_patch.rotateSpeed = 0.2;
       controls_patch.screenSpacePanning = false;
-      controls_patch.minDistance = 0.1;
+      controls_patch.minDistance = 0.01;
       controls_patch.maxDistance = 1000;
       controls_patch.enableRotate = false;
 
@@ -476,7 +481,7 @@
         }
         if (lack || all_empty) { $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete!&nbsp;&nbsp;</div>'); }
 
-        patch = patch_loader(garment, uvs, 3, num, false);
+        patch = patch_loader(garment, uvs, 0.5, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
         controls_patch.maxDistance = max_radius * 50;
@@ -1209,9 +1214,9 @@
                 }
               }
             })
-            var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min) / 5;
+            var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
-            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 2.5, -(z_min + z_max) / 2 / scale_value);
+            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
             root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
             newobj.add(root);
           },
@@ -1247,9 +1252,9 @@
                   }
                 }
               })
-              var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min) / 5;
+              var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
               if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
-              root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 2.5, -(z_min + z_max) / 2 / scale_value);
+              root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
               root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
               newobj.add(root);
             },
