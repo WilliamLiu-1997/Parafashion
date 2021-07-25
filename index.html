@@ -57,7 +57,7 @@
   div.panel_box {
     position: absolute;
     top: 10%;
-    width: 20%;
+    width: 25%;
     min-width: 216px;
     height: 80%;
     z-index: 2;
@@ -133,7 +133,7 @@
         $("#hide-patches").text("Show Patches");
         $("#scale-patches").css({ "color": "#aaa" });
         if ($("#scale-patches").text() == "<") {
-          $(".panel_box").animate({ width: '20%' }, 300, scale_icon());
+          $(".panel_box").animate({ width: '25%' }, 300, scale_icon());
         }
       });
     }
@@ -142,7 +142,7 @@
         $(".panel_box").animate({ width: '80%' }, 300, scale_icon());
       }
       else if ($("#hide-patches").text() != "Show Patches" && $("#scale-patches").text() == "<") {
-        $(".panel_box").animate({ width: '20%' }, 300, scale_icon());
+        $(".panel_box").animate({ width: '25%' }, 300, scale_icon());
       }
     }
     function scale_icon() {
@@ -166,6 +166,7 @@
 
     let camera, cameralight, controls, scene, renderer, garment, gui, gui_values, env_light, gui_options, stats;
     let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
+    var max_radius = 0;
     let drawing = false, cut = false, cover = true;
     let obj3D = new THREE.Object3D();
     let progress_obj = -2, progress_mtl = -2;
@@ -287,6 +288,7 @@
       effectFXAA = new ShaderPass(FXAAShader);
       effectFXAA.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
       composer.addPass(effectFXAA);
+      composer.setSize(window.innerWidth, window.innerHeight);
       // controls
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -303,12 +305,14 @@
       var garments_mtl = "./leggins/leggins_patch.obj.mtl";
       var garments_mtl = "./leggins/patch_smooth.mtl"
       var garments_obj = "./leggins/patch_smooth.obj"
-      var garments_mtl = "./obj/village1/village_final.mtl"
-      var garments_obj = "./obj/village1/village_final.obj"
+      // var garments_mtl = "./obj/village1/village_final.mtl"
+      // var garments_obj = "./obj/village1/village_final.obj"
       var garments_mtl = "./obj/tower/tower3.mtl"
       var garments_obj = "./obj/tower/tower3.obj"
       // var garments_mtl = "./obj/city2/city2.mtl"
       // var garments_obj = "./obj/city2/city2.obj"
+      // var garments_mtl = "./obj/S/S.mtl"
+      // var garments_obj = "./obj/S/S.obj"
       garment = obj_loader(garments_obj, garments_mtl, 1, true);
       scene.add(garment);
 
@@ -338,7 +342,7 @@
         45,
         $("#container_patch").width() / window.innerHeight / 0.76,
         0.01,
-        2000
+        10000
       );
       camera_patch.position.set(0, 0, 10);
 
@@ -354,8 +358,8 @@
 
       outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch);
-      outlinePass_patch.edgeStrength = outlinePass_params_cover.edgeStrength * 1.5;
-      outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness * 1.5;
+      outlinePass_patch.edgeStrength = outlinePass_params_cover.edgeStrength*1.5;
+      outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness*1.5;
       outlinePass_patch.edgeGlow = outlinePass_params_cover.edgeGlow;
       outlinePass_patch.pulsePeriod = outlinePass_params_cover.pulsePeriod;
       outlinePass_patch.visibleEdgeColor.set("#aa5555")
@@ -363,16 +367,17 @@
 
       outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch_select);
-      outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength * 1.5;
-      outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness * 1.5;
+      outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength*1.5;
+      outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness*1.5;
       outlinePass_patch_select.edgeGlow = outlinePass_params_select.edgeGlow;
       outlinePass_patch_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
       outlinePass_patch_select.visibleEdgeColor.set("#ffffff");
       outlinePass_patch_select.hiddenEdgeColor.set("#333333");
 
       effectFXAA_patch = new ShaderPass(FXAAShader);
-      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / $("#container_patch").width(), 0.1 / window.innerHeight / 0.76);
+      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
       composer_patch.addPass(effectFXAA_patch);
+      composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
 
       controls_patch = new THREE.OrbitControls(camera_patch, renderer_patch.domElement);
 
@@ -463,8 +468,10 @@
         if (lack || all_empty) { $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete!&nbsp;&nbsp;</div>'); }
 
         patch = patch_loader(garment, uvs, 3, num, false);
-        patch.name = "patch"
-        scene_patch.add(patch)
+        patch.name = "patch";
+        scene_patch.add(patch);
+        controls_patch.maxDistance = max_radius * 50;
+        camera_patch.far = max_radius * 100;
 
         document.addEventListener("mousemove", mouseMove, false);
 
@@ -487,7 +494,7 @@
 
         gui.add(gui_options, 'Reset_Camera');
         gui.add(gui_options, 'Unselect');
-
+        onWindowResize();
       }
       if (progress_obj + progress_mtl == -2) {
         garment.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
@@ -525,7 +532,7 @@
       camera_patch.updateProjectionMatrix();
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
       composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
-      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / $("#container_patch").width(), 0.1 / window.innerHeight / 0.76);
+      effectFXAA_patch.uniforms['resolution'].value.set(0.1 / window.innerWidth, 0.1 / window.innerHeight);
 
       if (gui) {
         var width = Math.max(216, window.innerWidth * 0.2);
@@ -616,7 +623,7 @@
             scene.remove(covered_obj);
             var this_scale = intersects[0].object.parent.scale;
             var this_position = intersects[0].object.parent.position;
-            var g = separateGroups(intersects[0].object.geometry, i)
+            var g = individual(intersects[0].object.geometry, i)
             covered_obj = new THREE.Mesh(g);
             covered_obj.material.transparent = true;
             covered_obj.material.opacity = 0;
@@ -636,9 +643,9 @@
                   }
                 })
                 scene_patch.remove(covered_obj_patch);
-                var this_scale = patch.children[x].scale;
-                var this_position = patch.children[x].position;
-                var g = separateGroups(patch.children[x].geometry, i)
+                var this_scale = patch.children[x].children[i].scale;
+                var this_position = patch.children[x].children[i].position;
+                var g = patch.children[x].children[i].geometry
                 covered_obj_patch = new THREE.Mesh(g);
                 covered_obj_patch.material.transparent = true;
                 covered_obj_patch.material.opacity = 0;
@@ -676,6 +683,7 @@
       if (intersects.length > 0) {
         // console.log(intersects[ 0 ].face)
         // console.log(intersects[ 0 ].point)
+        console.log(intersects[0].object)
         var group_num = intersects[0].object.geometry.groups.length;
         var vertice_index = intersects[0].face.a;
         var i = 0;
@@ -695,7 +703,7 @@
             scene.remove(selected_obj);
             var this_scale = intersects[0].object.parent.scale;
             var this_position = intersects[0].object.parent.position;
-            var g = separateGroups(intersects[0].object.geometry, i)
+            var g = individual(intersects[0].object.geometry, i)
             selected_obj = new THREE.Mesh(g);
             selected_obj.material.transparent = true;
             selected_obj.material.opacity = 0;
@@ -717,9 +725,9 @@
                   }
                 })
                 scene_patch.remove(selected_obj_patch);
-                var this_scale = patch.children[x].scale;
-                var this_position = patch.children[x].position;
-                var g = separateGroups(patch.children[x].geometry, i)
+                var this_scale = patch.children[x].children[i].scale;
+                var this_position = patch.children[x].children[i].position;
+                var g = patch.children[x].children[i].geometry
                 selected_obj_patch = new THREE.Mesh(g);
                 selected_obj_patch.material.transparent = true;
                 selected_obj_patch.material.opacity = 0;
@@ -748,7 +756,7 @@
               }
             }
           }
-        }
+        }//console.log(selected)
       }
     }
 
@@ -770,14 +778,12 @@
       }
     }
 
-    function separateGroups(bufGeom, ig) {
+    function individual(bufGeom, ig) {
 
       var groups = bufGeom.groups;
-
       var origVerts = bufGeom.getAttribute('position').array;
       var origNormals = bufGeom.getAttribute('normal').array;
       var origUVs = bufGeom.getAttribute('uv').array;
-
       var group = groups[ig];
 
       var destNumVerts = group.count;
@@ -785,13 +791,15 @@
       var newBufGeom = new THREE.BufferGeometry();
       var newPositions = new Float32Array(destNumVerts * 3);
       var newNormals = new Float32Array(destNumVerts * 3);
-      var newUVs = new Float32Array(destNumVerts * 3);
+      var newUVs = new Float32Array(destNumVerts * 2);
 
       for (var iv = 0; iv < destNumVerts; iv++) {
 
         var indexOrig = 3 * (group.start + iv);
         var indexDest = 3 * iv;
 
+        var indexOrigUV = 2 * (group.start + iv);
+        var indexDestUV = 2 * iv;
         newPositions[indexDest] = origVerts[indexOrig];
         newPositions[indexDest + 1] = origVerts[indexOrig + 1];
         newPositions[indexDest + 2] = origVerts[indexOrig + 2];
@@ -800,17 +808,158 @@
         newNormals[indexDest + 1] = origNormals[indexOrig + 1];
         newNormals[indexDest + 2] = origNormals[indexOrig + 2];
 
-        newUVs[indexDest] = origUVs[indexOrig];
-        newUVs[indexDest + 1] = origUVs[indexOrig + 1];
-        newUVs[indexDest + 2] = origUVs[indexOrig + 2];
+        newUVs[indexDestUV] = origUVs[indexOrigUV];
+        newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
 
       }
 
       newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
       newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
-      newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 3));
+      newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
 
       return newBufGeom;
+
+    }
+
+    function individual_garmentToPatch(bufGeom, ig) {
+
+      var groups = bufGeom.groups;
+      var origVerts = bufGeom.getAttribute('position').array;
+      var origNormals = bufGeom.getAttribute('normal').array;
+      var origUVs = bufGeom.getAttribute('uv').array;
+      var group = groups[ig];
+
+      var destNumVerts = group.count;
+
+      var newBufGeom = new THREE.BufferGeometry();
+      var newPositions = new Float32Array(destNumVerts * 3);
+      var newNormals = new Float32Array(destNumVerts * 3);
+      var newUVs = new Float32Array(destNumVerts * 2);
+
+      for (var iv = 0; iv < destNumVerts; iv++) {
+
+        var indexOrig = 3 * (group.start + iv);
+        var indexDest = 3 * iv;
+
+        var indexOrigUV = 2 * (group.start + iv);
+        var indexDestUV = 2 * iv;
+        newPositions[indexDest] = origUVs[indexOrigUV];
+        newPositions[indexDest + 1] = origUVs[indexOrigUV + 1];
+        newPositions[indexDest + 2] = 0;
+
+        newNormals[indexDest] = origNormals[indexOrig];
+        newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+        newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+
+        newUVs[indexDestUV] = origUVs[indexOrigUV];
+        newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
+
+      }
+
+      newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+      newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+      newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+
+      return newBufGeom;
+
+    }
+
+
+    function seperateGroups(bufGeom) {
+      var outGeometries = [];
+      var groups = bufGeom.groups;
+
+      var origVerts = bufGeom.getAttribute('position').array;
+      var origNormals = bufGeom.getAttribute('normal').array;
+      var origUVs = bufGeom.getAttribute('uv').array;
+      for (var ig = 0, ng = groups.length; ig < ng; ig++) {
+        var group = groups[ig];
+
+        var destNumVerts = group.count;
+
+        var newBufGeom = new THREE.BufferGeometry();
+        var newPositions = new Float32Array(destNumVerts * 3);
+        var newNormals = new Float32Array(destNumVerts * 3);
+        var newUVs = new Float32Array(destNumVerts * 2);
+
+        for (var iv = 0; iv < destNumVerts; iv++) {
+
+          var indexOrig = 3 * (group.start + iv);
+          var indexDest = 3 * iv;
+
+          var indexOrigUV = 2 * (group.start + iv);
+          var indexDestUV = 2 * iv;
+
+          newPositions[indexDest] = origVerts[indexOrig];
+          newPositions[indexDest + 1] = origVerts[indexOrig + 1];
+          newPositions[indexDest + 2] = origVerts[indexOrig + 2];
+
+          newNormals[indexDest] = origNormals[indexOrig];
+          newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+          newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+
+          newUVs[indexDestUV] = origUVs[indexOrigUV];
+          newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
+
+        }
+
+        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+
+        outGeometries.push(newBufGeom);
+
+      }
+      return outGeometries;
+
+    }
+
+    function seperateGroups_garmentToPatch(bufGeom) {
+      var outGeometries = [];
+      var groups = bufGeom.groups;
+
+      var origVerts = bufGeom.getAttribute('position').array;
+      var origNormals = bufGeom.getAttribute('normal').array;
+      var origUVs = bufGeom.getAttribute('uv').array;
+      for (var ig = 0, ng = groups.length; ig < ng; ig++) {
+        var group = groups[ig];
+
+        var destNumVerts = group.count;
+
+        var newBufGeom = new THREE.BufferGeometry();
+        var newPositions = new Float32Array(destNumVerts * 3);
+        var newNormals = new Float32Array(destNumVerts * 3);
+        var newUVs = new Float32Array(destNumVerts * 2);
+
+        for (var iv = 0; iv < destNumVerts; iv++) {
+
+          var indexOrig = 3 * (group.start + iv);
+          var indexDest = 3 * iv;
+
+          var indexOrigUV = 2 * (group.start + iv);
+          var indexDestUV = 2 * iv;
+
+          newPositions[indexDest] = origUVs[indexOrigUV];
+          newPositions[indexDest + 1] = origUVs[indexOrigUV + 1];
+          newPositions[indexDest + 2] = 0;
+
+          newNormals[indexDest] = origNormals[indexOrig];
+          newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+          newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+
+          newUVs[indexDestUV] = origUVs[indexOrigUV];
+          newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
+
+        }
+
+        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+
+        outGeometries.push(newBufGeom);
+
+      }
+      return outGeometries;
 
     }
 
@@ -854,7 +1003,7 @@
       var newmtl = new MTLLoader();
       if (double) {
         newmtl.setMaterialOptions({ side: THREE.DoubleSide });
-        default_material.side=THREE.DoubleSide;
+        default_material.side = THREE.DoubleSide;
       }
       if (!url_mtl) {
         progress_mtl = 100
@@ -865,13 +1014,13 @@
             var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
             root.traverse(function (child) {
               if (child.geometry) {
-                child.material=[]
-                if(child.geometry.groups.length>0){
-                  for(var group_i=0;group_i<child.geometry.groups.length;group_i++){
+                child.material = []
+                if (child.geometry.groups.length > 0) {
+                  for (var group_i = 0; group_i < child.geometry.groups.length; group_i++) {
                     child.material.push(default_material.clone());
                   }
                 }
-                else{child.material=default_material.clone();}
+                else { child.material = default_material.clone(); }
                 original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
                 child.castShadow = true;
                 child.receiveShadow = true;
@@ -951,53 +1100,141 @@
 
 
     function patch_loader(garment, uv, scale, num, double = false) {
+      var first=false;
+      var patches_num=0
+      var max_height=0;
       var newobj = obj3D.clone();
-      var last_x = 0;
+      var last_x = -Infinity;
+      var last_y = 4;
       for (var x = 0; x < num; x++) {
-        var patch = Array.isArray(garment.children[0].children[x].geometry) ? array_clone(garment.children[0].children[x].geometry, true) : garment.children[0].children[x].geometry.clone();
+        var patch = garment.children[0].children[x].geometry.clone();
         var patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
 
-        var vertices = [];
-        var normals = [];
-        for (var i = 0; i < uv[x].length; i++) {
-          if ((i + 1) % 2 == 0) {
-            var vertice = new THREE.Vector3();
-            vertice.set(uv[x][i - 1], uv[x][i], 0);
-            vertices.push(vertice);
+        if (patch.groups && patch.groups.length > 0) {
+          //var individual = seperateGroups_garmentToPatch(patch);
+          var group_3d = new THREE.Group();
+          for (var individual_i = 0; individual_i < patch.groups.length; individual_i++) {
+        if(patches_num%5==0){
+          last_x=-Infinity;
+          last_y-= max_height*1.5;
+          max_height=0
+        }
+            patches_num++;
+            var individual_patch = individual_garmentToPatch(patch, individual_i)
+            var vertices = [];
+            var normals = [];
+            var individual_uv = individual_patch.attributes.uv.array;
+            for (var i = 0; i < individual_uv.length; i++) {
+              if ((i + 1) % 6 == 0) {
+                var x1 = individual_uv[i - 5]
+                var y1 = individual_uv[i - 4]
+                var x2 = individual_uv[i - 3]
+                var y2 = individual_uv[i - 2]
+                var x3 = individual_uv[i - 1]
+                var y3 = individual_uv[i]
+                var a = y3 - y1
+                var b = x1 - x3
+                var c = x3 * y1 - x1 * y3
+                if (a * x2 + b * y2 + c >= 0) {
+                  normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
+                } else {
+                  normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
+                }
+              }
+            }
+            individual_patch.deleteAttribute("normal");
+            individual_patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
+            var patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
+            individual_patch.computeBoundingBox();
+            var x_max = individual_patch.boundingBox.max.x;
+            var y_max = individual_patch.boundingBox.max.y;
+            var z_max = individual_patch.boundingBox.max.z;
+            var x_min = individual_patch.boundingBox.min.x;
+            var y_min = individual_patch.boundingBox.min.y;
+            var z_min = individual_patch.boundingBox.min.z;
+            var radius_x = (x_max-x_min);
+            var radius_y=(y_max-y_min);
+            max_radius = max_radius < radius_x*scale ? radius_x*scale : max_radius;
+            max_radius = max_radius < radius_y*scale ? radius_y*scale : max_radius;
+            max_height=max_height < radius_y*scale ? radius_y*scale : max_height;
+            if(!first){
+              last_x=(-radius_x/2)* scale
+              last_y=(radius_y/2)* scale
+              first=(-radius_x/2)* scale;
+            }
+            last_x = last_x == -Infinity ? first : last_x;
+            patch_map.position.set(last_x-x_min*scale,last_y-y_max*scale, 0);
+            //patch_map.rotateZ(Math.PI)
+            last_x += (radius_x)*1.5 * scale;
+            patch_map.scale.set(scale, scale, scale);
+            group_3d.add(patch_map);
           }
-          if ((i + 1) % 6 == 0) {
-            var x1 = uv[x][i - 5]
-            var y1 = uv[x][i - 4]
-            var x2 = uv[x][i - 3]
-            var y2 = uv[x][i - 2]
-            var x3 = uv[x][i - 1]
-            var y3 = uv[x][i]
-            var a = y3 - y1
-            var b = x1 - x3
-            var c = x3 * y1 - x1 * y3
-            if (a * x2 + b * y2 + c >= 0) {
-              normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
-            } else {
-              normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
+          group_3d.name = garment.children[0].children[x].name;
+          newobj.add(group_3d)
+        }
+        else {
+        if(patches_num%5==0){
+          last_x=-Infinity;
+          last_y-= max_height*1.5;
+          max_height=0
+        }
+          patches_num++;
+          var vertices = [];
+          var normals = [];
+          for (var i = 0; i < uv[x].length; i++) {
+            if ((i + 1) % 2 == 0) {
+              var vertice = new THREE.Vector3();
+              vertice.set(uv[x][i - 1], uv[x][i], 0);
+              vertices.push(vertice);
+            }
+            if ((i + 1) % 6 == 0) {
+              var x1 = uv[x][i - 5]
+              var y1 = uv[x][i - 4]
+              var x2 = uv[x][i - 3]
+              var y2 = uv[x][i - 2]
+              var x3 = uv[x][i - 1]
+              var y3 = uv[x][i]
+              var a = y3 - y1
+              var b = x1 - x3
+              var c = x3 * y1 - x1 * y3
+              if (a * x2 + b * y2 + c >= 0) {
+                normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
+              } else {
+                normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
+              }
             }
           }
+          patch.setFromPoints(vertices);
+          patch.deleteAttribute("normal");
+          patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
+          var patch_map = new THREE.Mesh(patch, patch_mtl);
+          patch_map.name = garment.children[0].children[x].name;
+
+
+          patch.computeBoundingBox();
+            var x_max = patch.boundingBox.max.x;
+            var y_max = patch.boundingBox.max.y;
+            var z_max = patch.boundingBox.max.z;
+            var x_min = patch.boundingBox.min.x;
+            var y_min = patch.boundingBox.min.y;
+            var z_min = patch.boundingBox.min.z;
+            var radius_x = (x_max-x_min);
+            var radius_y=(y_max-y_min);
+            max_radius = max_radius < radius_x*scale ? radius_x*scale : max_radius;
+            max_radius = max_radius < radius_y*scale ? radius_y*scale : max_radius;
+            max_height=max_height < radius_y*scale ? radius_y*scale : max_height;
+            if(!first){
+              last_x=(-radius_x/2)* scale
+              last_y=(radius_y/2)* scale
+              first=(-radius_x/2)* scale;
+            }
+            last_x = last_x == -Infinity ? first* scale : last_x;
+            patch_map.position.set(last_x-x_min*scale,last_y-y_max*scale, 0);
+            //patch_map.rotateZ(Math.PI)
+            last_x += radius_x*1.5 * scale;
+            patch_map.scale.set(scale, scale, scale);
+          newobj.add(patch_map);
         }
-        patch.setFromPoints(vertices);
-        patch.deleteAttribute("normal");
-        patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
-        var patch_map = new THREE.Mesh(patch, patch_mtl);
-        patch_map.name = garment.children[0].children[x].name;
-
-        patch.computeBoundingSphere();
-        var radius = patch.boundingSphere.radius * 2;
-
-        last_x = last_x == 0 ? -radius * scale : last_x;
-        patch_map.position.set(radius / 2 * scale + last_x, -patch.boundingSphere.center.y * scale, 0);
-        //patch_map.rotateZ(Math.PI)
-        last_x += radius * 1.5 * scale;
-        patch_map.scale.set(scale, scale, scale);
-
-        newobj.add(patch_map);
       }
       return newobj
     }
