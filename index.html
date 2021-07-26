@@ -222,25 +222,15 @@
     const env1_refre = new THREE.CubeTextureLoader().load(urls1);
     env1_refre.mapping = THREE.CubeRefractionMapping;
 
-    const path2 = "./three.js/examples/textures/cube/SwedishRoyalCastle/";
-    const urls2 = [
-      path2 + 'px' + format, path2 + 'nx' + format,
-      path2 + 'py' + format, path2 + 'ny' + format,
-      path2 + 'pz' + format, path2 + 'nz' + format
-    ];
-    const env2 = new THREE.CubeTextureLoader().load(urls2);
-    const env2_refre = new THREE.CubeTextureLoader().load(urls2);
-    env2_refre.mapping = THREE.CubeRefractionMapping;
+    const env2 = new THREE.TextureLoader().load('./texture/11.jpg');
+    env2.mapping = THREE.EquirectangularReflectionMapping;
+    const env2_refre = new THREE.TextureLoader().load('./texture/11.jpg');
+    env2_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-    const path3 = "./three.js/examples/textures/cube/pisa/";
-    const urls3 = [
-      path3 + 'px' + format_png, path3 + 'nx' + format_png,
-      path3 + 'py' + format_png, path3 + 'ny' + format_png,
-      path3 + 'pz' + format_png, path3 + 'nz' + format_png
-    ];
-    const env3 = new THREE.CubeTextureLoader().load(urls3);
-    const env3_refre = new THREE.CubeTextureLoader().load(urls3);
-    env3_refre.mapping = THREE.CubeRefractionMapping;
+    const env3 = new THREE.TextureLoader().load('./texture/7.jpg');
+    env3.mapping = THREE.EquirectangularReflectionMapping;
+    const env3_refre = new THREE.TextureLoader().load('./texture/7.jpg');
+    env3_refre.mapping = THREE.EquirectangularRefractionMapping;
 
     const path4 = "./three.js/examples/textures/cube/skyboxsun25deg/";
     const urls4 = [
@@ -267,9 +257,9 @@
     const env6_refre = new THREE.TextureLoader().load('./three.js/examples/textures/2294472375_24a3b8ef46_o.jpg');
     env6_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-    const env7 = new THREE.TextureLoader().load('./three.js/examples/textures/equirectangular.png');
+    const env7 = new THREE.TextureLoader().load('./texture/9.jpg');
     env7.mapping = THREE.EquirectangularReflectionMapping;
-    const env7_refre = new THREE.TextureLoader().load('./three.js/examples/textures/equirectangular.png');
+    const env7_refre = new THREE.TextureLoader().load('./texture/9.jpg');
     env7_refre.mapping = THREE.EquirectangularRefractionMapping;
 
     const path8 = "./three.js/examples/textures/cube/Park3Med/";
@@ -302,10 +292,20 @@
     const env12_refre = new THREE.TextureLoader().load('./texture/3.jpg');
     env12_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-    const env13 = new THREE.TextureLoader().load('./texture/5.jpg');
+    const env13 = new THREE.TextureLoader().load('./texture/10.jpg');
     env13.mapping = THREE.EquirectangularReflectionMapping;
-    const env13_refre = new THREE.TextureLoader().load('./texture/5.jpg');
+    const env13_refre = new THREE.TextureLoader().load('./texture/10.jpg');
     env13_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const env14 = new THREE.TextureLoader().load('./texture/6.jpg');
+    env14.mapping = THREE.EquirectangularReflectionMapping;
+    const env14_refre = new THREE.TextureLoader().load('./texture/6.jpg');
+    env14_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const env15 = new THREE.TextureLoader().load('./texture/8.jpg');
+    env15.mapping = THREE.EquirectangularReflectionMapping;
+    const env15_refre = new THREE.TextureLoader().load('./texture/8.jpg');
+    env15_refre.mapping = THREE.EquirectangularRefractionMapping;
 
     let outlinePass_params_cover = {
       edgeStrength: 2.0,
@@ -381,7 +381,7 @@
 
 
     var environment = {
-      Room: env7, Park: env1, Palace: env2, Alley: env3, Sky: env4, Bridge: env5, Slum: env6, None: null, Snow: env8, Apartment:env12,Street: env10,Church:env11,Restaurant:env9,Warehouse:env13
+      Square: env7, Park: env1, Outdoor: env2, Alley: env3, Sky: env4, Bridge: env5, Slum: env6, None: null, Snow: env8, LivingRoom:env12,Street: env10,Church:env11,Restaurant:env9,EmptyPavilion:env13,BathRoom:env14,Town:env15
     }
     gui_options = {
       Reset_Camera: function () {
@@ -430,7 +430,7 @@
       gui.add(gui_options, 'Reset_Camera').name("Reset Camera");
       gui.add(gui_options, 'Unselect');
       gui.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-      gui.add(gui_options, "env", ["None", "Sky", "Room", "Park", "Snow", "Bridge", "Palace", "Slum", "Warehouse", "Alley","Apartment", 'Street',"Restaurant",'Church']).name("Environment").onChange(() => Display(environment[gui_options.env]))
+      gui.add(gui_options, "env", ["None", "Sky", "Alley","LivingRoom","BathRoom", 'Street','Town',"Restaurant",'Church', "Slum", "Park", "Snow", "Bridge", "Square", "Outdoor", "EmptyPavilion"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
     }
 
     init();
