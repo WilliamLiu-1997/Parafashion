@@ -98,7 +98,7 @@
       <button id="hide-patches" type="button" class="btn btn-default" data-toggle="collapse"
         data-target="#panel-patches" style="
           background-color: rgba(182, 182, 182, 0.75);
-          font-size:15px;
+          font-size:10px;
           color: #fff;
           padding: 2px;
           width:90%;
@@ -107,7 +107,7 @@
       </button>
       <button id="scale-patches" type="button" class="btn btn-default" style="
           background-color: rgba(182, 182, 182, 0.75);
-          font-size:15px;
+          font-size:10px;
           color: #fff;
           padding: 2px;
           width:10%;
@@ -122,7 +122,7 @@
   </div>
   <div id="info">
     <p>
-      Parafashion<br />
+      <font size='3'>Parafashion</font><br />
     </p>
   </div>
   <script>
@@ -130,13 +130,13 @@
       $("#panel-patches").on("show.bs.collapse", function () {
         $("#hide-patches").text("Hide Patches");
         $("#scale-patches").css({ "color": "#fff" });
+        $(".panel_box").animate({ width: '25%',minWidth:"216px"  }, scale_icon());
       });
       $("#panel-patches").on("hide.bs.collapse", function () {
         $("#hide-patches").text("Show Patches");
         $("#scale-patches").css({ "color": "#aaa" });
-        if ($("#scale-patches").text() == "<") {
-          $(".panel_box").animate({ width: '25%' }, 300, scale_icon());
-        }
+        $(".panel_box").animate({ width: '5%',minWidth:"120px" });
+        if($("#scale-patches").text() == "<")scale_icon()
       });
     }
     function scalePatches() {
@@ -168,10 +168,11 @@
 
     let camera, cameralight, controls, scene, renderer, garment, gui, gui_values, env_light, gui_options, stats;
     let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
+    let obj_vertices_count=0;
+    let planeGeometry, planeMaterial, plane, directionalLight;
     let drawing = false, cut = false, cover = true;
     let obj3D = new THREE.Object3D();
     let progress_obj = -2, progress_mtl = -2;
-    let position_folder = false;
     let patch_panel_width = $("#container_patch").css("width");
     let raycaster = new THREE.Raycaster();
     let pointer = new THREE.Vector2();
@@ -189,7 +190,7 @@
     let last_select = [];
     let last_select_patch = [];
     var max_radius = 0;
-    let default_material = new THREE.MeshPhongMaterial({ color: 0xaaaaaa, emissive: 0x0})
+    let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3 })
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -197,6 +198,8 @@
     var garments_mtl = "./leggins/leggins_patch.obj.mtl";
     var garments_mtl = "./leggins/patch.mtl"
     var garments_obj = "./leggins/patch.obj"
+    var garments_mtl = "./leggins/patch_smooth.mtl"
+    var garments_obj = "./leggins/patch_smooth.obj"
     var garments_mtl = "./obj/village1/village_final.mtl"
     var garments_obj = "./obj/village1/village_final.obj"
     var garments_mtl = "./obj/tower/tower3.mtl"
@@ -207,8 +210,102 @@
     // var garments_obj = "./obj/S/S.obj"
 
 
+    const format = '.jpg';
+    const format_png = '.png';
+    const path1 = "./three.js/examples/textures/cube/Park2/";
+    const urls1 = [
+      path1 + 'posx' + format, path1 + 'negx' + format,
+      path1 + 'posy' + format, path1 + 'negy' + format,
+      path1 + 'posz' + format, path1 + 'negz' + format
+    ];
+    const env1 = new THREE.CubeTextureLoader().load(urls1);
+    const env1_refre = new THREE.CubeTextureLoader().load(urls1);
+    env1_refre.mapping = THREE.CubeRefractionMapping;
 
+    const path2 = "./three.js/examples/textures/cube/SwedishRoyalCastle/";
+    const urls2 = [
+      path2 + 'px' + format, path2 + 'nx' + format,
+      path2 + 'py' + format, path2 + 'ny' + format,
+      path2 + 'pz' + format, path2 + 'nz' + format
+    ];
+    const env2 = new THREE.CubeTextureLoader().load(urls2);
+    const env2_refre = new THREE.CubeTextureLoader().load(urls2);
+    env2_refre.mapping = THREE.CubeRefractionMapping;
 
+    const path3 = "./three.js/examples/textures/cube/pisa/";
+    const urls3 = [
+      path3 + 'px' + format_png, path3 + 'nx' + format_png,
+      path3 + 'py' + format_png, path3 + 'ny' + format_png,
+      path3 + 'pz' + format_png, path3 + 'nz' + format_png
+    ];
+    const env3 = new THREE.CubeTextureLoader().load(urls3);
+    const env3_refre = new THREE.CubeTextureLoader().load(urls3);
+    env3_refre.mapping = THREE.CubeRefractionMapping;
+
+    const path4 = "./three.js/examples/textures/cube/skyboxsun25deg/";
+    const urls4 = [
+      path4 + 'px' + format, path4 + 'nx' + format,
+      path4 + 'py' + format, path4 + 'ny' + format,
+      path4 + 'pz' + format, path4 + 'nz' + format
+    ];
+    const env4 = new THREE.CubeTextureLoader().load(urls4);
+    const env4_refre = new THREE.CubeTextureLoader().load(urls4);
+    env4_refre.mapping = THREE.CubeRefractionMapping;
+
+    const path5 = "./three.js/examples/textures/cube/Bridge2/";
+    const urls5 = [
+      path5 + 'posx' + format, path5 + 'negx' + format,
+      path5 + 'posy' + format, path5 + 'negy' + format,
+      path5 + 'posz' + format, path5 + 'negz' + format
+    ];
+    const env5 = new THREE.CubeTextureLoader().load(urls5);
+    const env5_refre = new THREE.CubeTextureLoader().load(urls5);
+    env5_refre.mapping = THREE.CubeRefractionMapping;
+
+    const env6 = new THREE.TextureLoader().load('./three.js/examples/textures/2294472375_24a3b8ef46_o.jpg');
+    env6.mapping = THREE.EquirectangularReflectionMapping;
+    const env6_refre = new THREE.TextureLoader().load('./three.js/examples/textures/2294472375_24a3b8ef46_o.jpg');
+    env6_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const env7 = new THREE.TextureLoader().load('./three.js/examples/textures/equirectangular.png');
+    env7.mapping = THREE.EquirectangularReflectionMapping;
+    const env7_refre = new THREE.TextureLoader().load('./three.js/examples/textures/equirectangular.png');
+    env7_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const path8 = "./three.js/examples/textures/cube/Park3Med/";
+    const urls8 = [
+      path8 + 'px' + format, path8 + 'nx' + format,
+      path8 + 'py' + format, path8 + 'ny' + format,
+      path8 + 'pz' + format, path8 + 'nz' + format
+    ];
+    const env8 = new THREE.CubeTextureLoader().load(urls8);
+    const env8_refre = new THREE.CubeTextureLoader().load(urls8);
+    env8_refre.mapping = THREE.CubeRefractionMapping;
+
+    const env9 = new THREE.TextureLoader().load('./texture/4.jpg');
+    env9.mapping = THREE.EquirectangularReflectionMapping;
+    const env9_refre = new THREE.TextureLoader().load('./texture/4.jpg');
+    env9_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const env10 = new THREE.TextureLoader().load('./texture/1.jpg');
+    env10.mapping = THREE.EquirectangularReflectionMapping;
+    const env10_refre = new THREE.TextureLoader().load('./texture/1.jpg');
+    env10_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const env11 = new THREE.TextureLoader().load('./texture/2.jpg');
+    env11.mapping = THREE.EquirectangularReflectionMapping;
+    const env11_refre = new THREE.TextureLoader().load('./texture/2.jpg');
+    env11_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const env12 = new THREE.TextureLoader().load('./texture/3.jpg');
+    env12.mapping = THREE.EquirectangularReflectionMapping;
+    const env12_refre = new THREE.TextureLoader().load('./texture/3.jpg');
+    env12_refre.mapping = THREE.EquirectangularRefractionMapping;
+
+    const env13 = new THREE.TextureLoader().load('./texture/5.jpg');
+    env13.mapping = THREE.EquirectangularReflectionMapping;
+    const env13_refre = new THREE.TextureLoader().load('./texture/5.jpg');
+    env13_refre.mapping = THREE.EquirectangularRefractionMapping;
 
     let outlinePass_params_cover = {
       edgeStrength: 2.0,
@@ -232,7 +329,8 @@
       hiddenEdgeColor: "#333333"
     };
 
-    let texture_map_params = {
+
+    var texture_map_params = {
       offsetX: 0,
       offsetY: 0,
       repeatX: 1,
@@ -242,7 +340,7 @@
       centerY: 0.5,
     };
 
-    let texture_normalMap_params = {
+    var texture_normalMap_params = {
       offsetX: 0,
       offsetY: 0,
       repeatX: 1,
@@ -252,8 +350,92 @@
       centerY: 0.5
     };
 
+    var materialClasses = {
+      'LineBasicMaterial': THREE.LineBasicMaterial,
+      'LineDashedMaterial': THREE.LineDashedMaterial,
+      'MeshBasicMaterial': THREE.MeshBasicMaterial,
+      'MeshDepthMaterial': THREE.MeshDepthMaterial,
+      'MeshNormalMaterial': THREE.MeshNormalMaterial,
+      'MeshLambertMaterial': THREE.MeshLambertMaterial,
+      'MeshMatcapMaterial': THREE.MeshMatcapMaterial,
+      'MeshPhongMaterial': THREE.MeshPhongMaterial,
+      'MeshToonMaterial': THREE.MeshToonMaterial,
+      'MeshStandardMaterial': THREE.MeshStandardMaterial,
+      'MeshPhysicalMaterial': THREE.MeshPhysicalMaterial,
+      'RawShaderMaterial': THREE.RawShaderMaterial,
+      'ShaderMaterial': THREE.ShaderMaterial,
+      'ShadowMaterial': THREE.ShadowMaterial,
+      'SpriteMaterial': THREE.SpriteMaterial,
+      'PointsMaterial': THREE.PointsMaterial
+    }
+    gui_values = new (function () {
+      this.garnment_x = 0;
+      this.garnment_y = 0;
+      this.garnment_z = 0;
+      this.patch_x = 0;
+      this.patch_y = 0;
+      this.patch_z = 0;
+      this.garnment_scale = 1;
+      this.patch_scale = 1;
+    })();
+
+
+    var environment = {
+      Room: env7, Park: env1, Palace: env2, Alley: env3, Sky: env4, Bridge: env5, Slum: env6, None: null, Snow: env8, Apartment:env12,Street: env10,Church:env11,Restaurant:env9,Warehouse:env13
+    }
+    gui_options = {
+      Reset_Camera: function () {
+        controls.reset();
+        controls_patch.reset();
+        gui_values.garnment_x = 0;
+        gui_values.garnment_y = 0;
+        gui_values.garnment_z = 0;
+        gui_values.patch_x = 0;
+        gui_values.patch_y = 0;
+        gui_values.patch_z = 0;
+        gui_values.garnment_scale = 1;
+        gui_values.patch_scale = 1;
+        if (gui) { gui.updateDisplay() }
+      },
+      Unselect: function () {
+        select_recovery();
+        cover_recovery();
+        if (gui) { gui.updateDisplay() }
+      },
+      env: "None",
+      Rotate:false,
+      material_class: "MeshPhysicalMaterial"
+    }
+
+
+    function GUI_init() {
+      gui = new GUI({ autoPlace: false, scrollable: true })
+
+      document.getElementById('my-gui-container').appendChild(gui.domElement);
+
+      //   var position_folder = gui.addFolder("Position and Scale")
+      //   position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
+      //   position_folder.add(gui_values, "garnment_y", -10, 10, 0.01)
+      //   position_folder.add(gui_values, "garnment_z", -10, 10, 0.01)
+      //   position_folder.add(gui_values, "garnment_scale", 0.1, 10, 0.01)
+      //   position_folder.add(gui_values, "patch_x", -10, 10, 0.01)
+      //   position_folder.add(gui_values, "patch_y", -10, 10, 0.01)
+      //   position_folder.add(gui_values, "patch_z", -10, 10, 0.01)
+      //   position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.01)
+      //   position_folder.open()
+
+      var material_folder = gui.addFolder("Material")
+
+
+      gui.add(gui_options, 'Reset_Camera').name("Reset Camera");
+      gui.add(gui_options, 'Unselect');
+      gui.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
+      gui.add(gui_options, "env", ["None", "Sky", "Room", "Park", "Snow", "Bridge", "Palace", "Slum", "Warehouse", "Alley","Apartment", 'Street',"Restaurant",'Church']).name("Environment").onChange(() => Display(environment[gui_options.env]))
+    }
+
     init();
     init_patch();
+    GUI_init();
     animate();
 
 
@@ -263,12 +445,19 @@
         $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
       }
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x202020);
+      scene.background = new THREE.Color(0x303030);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       document.getElementById("container").appendChild(renderer.domElement);
+      //**********************************************************
+      // var editor = new Editor();
+      // window.editor = editor;
+      // var sidebar = new Sidebar( editor );
+      // document.body.appendChild( sidebar.dom );
+      // console.log(sidebar.dom)
+      //**********************************************************
       stats = new Stats();
       document.getElementById("container").appendChild(stats.dom);
 
@@ -284,8 +473,9 @@
 
       camera.add(cameralight);
       scene.add(camera);
-      env_light = new THREE.AmbientLight(0x282828);
+      env_light = new THREE.AmbientLight(0xffffff,0.2);
       scene.add(env_light);
+
 
       // postprocessing
       composer = new EffectComposer(renderer);
@@ -321,6 +511,7 @@
       controls.enableDamping = true;
       controls.dampingFactor = 0.1;
       controls.rotateSpeed = 0.2;
+      controls.autoRotateSpeed = 0.2;
       controls.screenSpacePanning = false;
       controls.minDistance = 0.1;
       controls.maxDistance = 50;
@@ -332,11 +523,29 @@
       scene.add(covered_obj);
 
 
-      const helper = new THREE.GridHelper(500, 500);
+      const helper = new THREE.GridHelper(200, 200);
       helper.position.y = -0.5;
-      helper.material.opacity = 0.1;
+      helper.material.opacity = 0.25;
       helper.material.transparent = true;
       scene.add(helper);
+
+
+
+
+      directionalLight = new THREE.DirectionalLight(0xffffff, 0.2);
+      directionalLight.position.set(-500, 500, -500);
+      directionalLight.castShadow = true;
+      directionalLight.shadow.camera.near = 0.01;
+      directionalLight.shadow.camera.far = 1500;
+      directionalLight.shadow.camera.left = -45;
+      directionalLight.shadow.camera.right = 45;
+      directionalLight.shadow.camera.top = 90;
+      directionalLight.shadow.camera.bottom = -90;
+      directionalLight.shadow.mapSize.width = 2048;
+      directionalLight.shadow.mapSize.height = 2048;
+
+
+
       //
       window.addEventListener("resize", onWindowResize);
       window.addEventListener("mousedown", onmouseDown, false);
@@ -363,7 +572,7 @@
       cameralight_patch.position.set(0, 0.5, 0)
       camera_patch.add(cameralight_patch);
       scene_patch.add(camera_patch);
-      env_light_patch = new THREE.AmbientLight(0x303030);
+      env_light_patch = new THREE.AmbientLight(0xffffff,0.2);
       scene_patch.add(env_light_patch);
 
       composer_patch = new EffectComposer(renderer_patch);
@@ -413,37 +622,6 @@
 
       scene_patch.add(covered_obj_patch);
 
-      gui_values = new (function () {
-        this.garnment_x = 0;
-        this.garnment_y = 0;
-        this.garnment_z = 0;
-        this.patch_x = 0;
-        this.patch_y = 0;
-        this.patch_z = 0;
-        this.garnment_scale = 1;
-        this.patch_scale = 1;
-      })();
-
-      gui_options = {
-        Reset_Camera: function () {
-          controls.reset();
-          controls_patch.reset();
-          gui_values.garnment_x = 0;
-          gui_values.garnment_y = 0;
-          gui_values.garnment_z = 0;
-          gui_values.patch_x = 0;
-          gui_values.patch_y = 0;
-          gui_values.patch_z = 0;
-          gui_values.garnment_scale = 1;
-          gui_values.patch_scale = 1;
-          if (gui) { gui.updateDisplay() }
-        },
-        Unselect: function () {
-          select_recovery();
-          if (gui) { gui.updateDisplay() }
-        }
-      }
-
     }
 
 
@@ -489,25 +667,7 @@
 
         document.addEventListener("mousemove", mouseMove, false);
 
-        gui = new GUI({ width: Math.max(200, window.innerWidth * 0.2), autoPlace: false, scrollable: true })
-
-        document.getElementById('my-gui-container').appendChild(gui.domElement);
-
-        // if (!position_folder) {
-        //   position_folder = gui.addFolder("Position and Scale")
-        //   position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
-        //   position_folder.add(gui_values, "garnment_y", -10, 10, 0.01)
-        //   position_folder.add(gui_values, "garnment_z", -10, 10, 0.01)
-        //   position_folder.add(gui_values, "garnment_scale", 0.1, 10, 0.01)
-        //   position_folder.add(gui_values, "patch_x", -10, 10, 0.01)
-        //   position_folder.add(gui_values, "patch_y", -10, 10, 0.01)
-        //   position_folder.add(gui_values, "patch_z", -10, 10, 0.01)
-        //   position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.01)
-        //   position_folder.open()
-        // }
-
-        gui.add(gui_options, 'Reset_Camera');
-        gui.add(gui_options, 'Unselect');
+$("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color='#a0a0a0'>Vertices: "+obj_vertices_count+"</font></p>")
         onWindowResize();
       }
       else if (progress_obj + progress_mtl == -2) {
@@ -523,12 +683,12 @@
       controls.update();
       controls_patch.update();
       render();
+      stats.end();
     }
 
     function render() {
       composer.render();
       composer_patch.render();
-      stats.end();
     }
 
 
@@ -548,11 +708,11 @@
       composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
       effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.76 / window.devicePixelRatio);
 
-      if (gui) {
-        var width = Math.max(216, window.innerWidth * 0.2);
-        gui.domElement.style.width = width + 'px';
-        gui.__closeButton.style.width = width + 'px';
-      }
+      // if (gui) {
+      //   var width = Math.max(216, window.innerWidth * 0.2);
+      //   gui.domElement.style.width = width + 'px';
+      //   gui.__closeButton.style.width = width + 'px';
+      // }
     }
 
 
@@ -634,6 +794,10 @@
     }
 
     function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch) {
+      if (progress_obj + progress_mtl != -2) {
+        cover_recovery();
+        return;
+      }
       let obj = document.getElementById("panel_box");
       if (event.clientX > obj.offsetLeft
         && event.clientX < (obj.offsetLeft + obj.clientWidth)
@@ -791,6 +955,10 @@
 
 
     function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch) {
+      if (progress_obj + progress_mtl != -2) {
+        select_recovery();
+        return;
+      }
       let obj = document.getElementById("panel_box");
       if (event.clientX > obj.offsetLeft
         && event.clientX < (obj.offsetLeft + obj.clientWidth)
@@ -1162,6 +1330,116 @@
       return material;
     }
 
+    function Show(Rotate){
+      if(controls!==undefined){
+        controls.autoRotate=Rotate
+      }
+    }
+
+
+    function Display(show_env) {
+      if (show_env) {
+        if (plane !== undefined) {
+          plane.geometry.dispose()
+          plane.material.dispose()
+          scene.remove(plane)
+        }
+        if (directionalLight === undefined) {
+          return
+        }
+        scene.remove(directionalLight)
+        planeGeometry = new THREE.PlaneGeometry(500, 500);
+        planeGeometry.rotateX(- Math.PI / 2);
+        planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, side: THREE.DoubleSide });
+        scene.background = show_env;
+        plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.position.y = -0.5;
+        plane.receiveShadow = true;
+        scene.add(plane);
+        scene.add(directionalLight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        env_light.intensity = 1;
+        if (garment !== undefined) {
+          garment.traverse(function (child) {
+            if (child.material !== undefined) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) {
+                  if (m.envMap !== undefined) { m.envMap = show_env; }
+                })
+              } else {
+                if (child.material.envMap !== undefined) {
+                  child.material.envMap = show_env;
+                }
+              }
+            }
+          })
+        }
+        // if (patch !== undefined) {
+        // env_light_patch.intensity = 1;
+        // scene_patch.background = show_env;
+        //   patch.traverse(function (child) {
+        //     if (child.material !== undefined) {
+        //       if (Array.isArray(child.material)) {
+        //         child.material.forEach(function (m) {
+        //           if (m.envMap !== undefined) { m.envMap = show_env; }
+        //         })
+        //       } else {
+        //         if (child.material.envMap !== undefined) {
+        //           child.material.envMap = show_env;
+        //         }
+        //       }
+        //     }
+        //   })
+        // }
+      }
+      else {
+        if (plane !== undefined) {
+          plane.geometry.dispose()
+          plane.material.dispose()
+          scene.remove(plane)
+        }
+        if (directionalLight !== undefined) {
+          scene.remove(directionalLight)
+        }
+        scene.background = new THREE.Color(0x303030);
+        renderer.shadowMap.enabled = false;
+        env_light.intensity = 0.2;
+        if (garment !== undefined) {
+          garment.traverse(function (child) {
+            if (child.material !== undefined) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) {
+                  if (m.envMap !== undefined) {
+                    m.envMap = null;
+                  }
+                })
+              } else {
+                if (child.material.envMap !== undefined) { child.material.envMap = null; }
+              }
+            }
+          })
+        }
+        // if (patch !== undefined) {
+        // scene_patch.background = null;
+        // env_light_patch.intensity = 0.2;
+        //   patch.traverse(function (child) {
+        //     if (child.material !== undefined) {
+        //       if (Array.isArray(child.material)) {
+        //         child.material.forEach(function (m) {
+        //           if (m.envMap !== undefined) {
+        //             m.envMap = null;
+        //           }
+        //         })
+        //       } else {
+        //         if (child.material.envMap !== undefined) { child.material.envMap = null; }
+        //       }
+        //     }
+        //   })
+        // }
+      }
+    }
+
 
     function obj_loader(url_obj, url_mtl, scale, double = false) {
       const onProgress_obj = function (xhr) {
@@ -1193,6 +1471,7 @@
             var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
             root.traverse(function (child) {
               if (child.geometry) {
+                obj_vertices_count+=child.geometry.attributes.position.count;
                 child.material = []
                 if (child.geometry.groups.length > 0) {
                   for (var group_i = 0; group_i < child.geometry.groups.length; group_i++) {
@@ -1239,6 +1518,8 @@
                 var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                 root.traverse(function (child) {
                   if (child.geometry) {
+                    obj_vertices_count+=child.geometry.attributes.position.count;
+                    if(!Array.isArray(child.material)&&child.material.envMap!== undefined){child.material.envMap=null}
                     original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
                     child.castShadow = true;
                     child.receiveShadow = true;
@@ -1273,6 +1554,7 @@
     function array_clone(array, clone) {
       var result = []
       for (var i = 0; i < array.length; i++) {
+      if(array[i].envMap!== undefined){array[i].envMap=null}
         if (clone) result.push(array[i].clone())
         else result.push(array[i])
       }
@@ -1428,6 +1710,8 @@
       return newobj
     }
 
+
+
     function randomString(e) {
       e = e || 32;
       let t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
@@ -1435,6 +1719,10 @@
         n = "";
       for (let i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
       return n
+    }
+
+    function randomColor(){
+      return Math.random() * 0xffffff
     }
   </script>
 </body>
