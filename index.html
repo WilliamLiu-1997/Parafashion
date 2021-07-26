@@ -81,7 +81,7 @@
 
   #alert_container {
     position: absolute;
-    top: 0%;
+    top: 1%;
     left: 50%;
     transform: translate(-50%, 0);
     z-index: 99;
@@ -189,7 +189,7 @@
     let last_select = [];
     let last_select_patch = [];
     var max_radius = 0;
-    let default_material = new THREE.MeshPhysicalMaterial({ color: 0xcccccc, emissive: 0x0, roughness: 0.5, metalness: 0, reflectivity: 0.5, clearcoat: 0.5, clearcoatRoughness: 0.5 })
+    let default_material = new THREE.MeshPhongMaterial({ color: 0xaaaaaa, emissive: 0x0})
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -203,8 +203,8 @@
     var garments_obj = "./obj/tower/tower3.obj"
     // var garments_mtl = "./obj/city2/city2.mtl"
     // var garments_obj = "./obj/city2/city2.obj"
-    var garments_mtl = "./obj/S/S.mtl"
-    var garments_obj = "./obj/S/S.obj"
+    // var garments_mtl = "./obj/S/S.mtl"
+    // var garments_obj = "./obj/S/S.obj"
 
 
 
@@ -217,8 +217,8 @@
       pulsePeriod: 0,
       rotate: false,
       usePatternTexture: false,
-      visibleEdgeColor:"#aa5555",
-      hiddenEdgeColor:"#221111"
+      visibleEdgeColor: "#aa5555",
+      hiddenEdgeColor: "#221111"
     };
 
     let outlinePass_params_select = {
@@ -228,8 +228,8 @@
       pulsePeriod: 3.5,
       rotate: false,
       usePatternTexture: false,
-      visibleEdgeColor:"#ffffff",
-      hiddenEdgeColor:"#333333"
+      visibleEdgeColor: "#ffffff",
+      hiddenEdgeColor: "#333333"
     };
 
     let texture_map_params = {
@@ -360,7 +360,7 @@
       camera_patch.position.set(0, 0, 1);
 
       cameralight_patch = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
-      cameralight_patch.position.set(0,0.5,0)
+      cameralight_patch.position.set(0, 0.5, 0)
       camera_patch.add(cameralight_patch);
       scene_patch.add(camera_patch);
       env_light_patch = new THREE.AmbientLight(0x303030);
@@ -510,7 +510,7 @@
         gui.add(gui_options, 'Unselect');
         onWindowResize();
       }
-      if (progress_obj + progress_mtl == -2) {
+      else if (progress_obj + progress_mtl == -2) {
         garment.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
         patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
         garment.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
@@ -629,6 +629,8 @@
       outlinePass_patch_select.selectedObjects = []
       last_select = []
       last_select_patch = []
+      selected = []
+      selected_patch = []
     }
 
     function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch) {
@@ -837,7 +839,7 @@
               garment.traverse(function (obj) {
                 if (obj.type === "Mesh") {
                   if (obj.name == intersects[0].object.parent.name) {
-                    selected = [obj,i]
+                    selected = [obj, i]
                     var this_scale = obj.parent.scale;
                     var this_position = obj.parent.position;
                     var g = individual(obj.geometry, i)
@@ -867,7 +869,7 @@
               })
             }
           }
-        } else { cover_recovery() }
+        } //else { select_recovery() }
 
         //*****************************************************************************************************************************************
       } else {
@@ -949,8 +951,8 @@
                 }
               }
             }
-          }//console.log(selected)
-        }
+          }
+        } //else { select_recovery() }
       }
     }
 
@@ -1224,46 +1226,48 @@
         );
         return newobj;
       }
-      newmtl.load(
-        url_mtl,
-        (mtl) => {
-          mtl.preload();
-          var objLoader = new OBJLoader();
-          objLoader.setMaterials(mtl);
-          objLoader.load(
-            url_obj,
-            function (root) {
-              var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-              root.traverse(function (child) {
-                if (child.geometry) {
-                  original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
-                  child.castShadow = true;
-                  child.receiveShadow = true;
-                  child.geometry.computeFaceNormals();
-                  for (var i = 0; i < child.geometry.attributes.position.array.length; i++) {
-                    if ((i + 1) % 3 == 0) {
-                      x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
-                      x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
-                      y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
-                      y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
-                      z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
-                      z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
+      else {
+        newmtl.load(
+          url_mtl,
+          (mtl) => {
+            mtl.preload();
+            var objLoader = new OBJLoader();
+            objLoader.setMaterials(mtl);
+            objLoader.load(
+              url_obj,
+              function (root) {
+                var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
+                root.traverse(function (child) {
+                  if (child.geometry) {
+                    original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    child.geometry.computeFaceNormals();
+                    for (var i = 0; i < child.geometry.attributes.position.array.length; i++) {
+                      if ((i + 1) % 3 == 0) {
+                        x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
+                        x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
+                        y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
+                        y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
+                        z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
+                        z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
+                      }
                     }
                   }
-                }
-              })
-              var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-              if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
-              root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
-              root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
-              newobj.add(root);
-            },
-            onProgress_obj
-          );
-        },
-        onProgress_mtl
-      );
-      return newobj;
+                })
+                var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
+                if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
+                root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
+                root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
+                newobj.add(root);
+              },
+              onProgress_obj
+            );
+          },
+          onProgress_mtl
+        );
+        return newobj;
+      }
     }
 
     function array_clone(array, clone) {
@@ -1426,7 +1430,7 @@
 
     function randomString(e) {
       e = e || 32;
-      let t = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678",
+      let t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
         a = t.length,
         n = "";
       for (let i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
