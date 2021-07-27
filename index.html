@@ -77,6 +77,7 @@
     top: 10%;
     right: 0px;
     z-index: 1;
+    user-select: none;
   }
 
   #alert_container {
@@ -156,6 +157,7 @@
   <script src="js/OrbitControls.js"></script>
   <script type="module">
 
+    import { GUI } from './js/dat.gui.module.js';
     import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
     import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
     import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
@@ -163,14 +165,13 @@
     import { ShaderPass } from './three.js/examples/jsm/postprocessing/ShaderPass.js';
     import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
     import { FXAAShader } from './three.js/examples/jsm/shaders/FXAAShader.js';
-    import { GUI } from './three.js/examples/jsm/libs/dat.gui.module.js';
     import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
     let camera, cameralight, controls, scene, renderer, garment, gui, gui_values, env_light, gui_options, stats;
     let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
     let obj_vertices_count = 0;
     let planeGeometry, planeMaterial, plane, directionalLight, sphere;
-    let drawing = false, cut = false, cover = true;
+    let drawing = false, cover = true;
     let obj3D = new THREE.Object3D();
     let progress_obj = -2, progress_mtl = -2;
     let patch_panel_width = $("#container_patch").css("width");
@@ -190,9 +191,9 @@
     let last_select = [];
     let last_select_patch = [];
     var max_radius = 0;
-    var angle=0;
+    var angle = 0;
     let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3 })
-    let obj_size=1;
+    let obj_size = 1;
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -342,8 +343,8 @@
       centerY: 0.5,
     };
 
-    var Texture={
-      None:null,
+    var Texture = {
+      None: null,
     }
 
     var materialClasses = {
@@ -365,178 +366,178 @@
       //'PointsMaterial': THREE.PointsMaterial
     }
 
-    var Material={
-      opacity:1.0,
-      transparent:false,
-      side:"DoubleSide",
-      vertexColors:false,
-      visible:true,
+    var Material = {
+      opacity: 1.0,
+      transparent: false,
+      side: "DoubleSide",
+      vertexColors: false,
+      visible: true,
     }
 
-    var BasicMaterial={
-      alphaMap : "None",
-      color : 0xffffff,
-      map:"None",
-      morphTargets:false,
-      reflectivity:0.5,
-      specularMap : "None",
-      wireframe:false,
+    var BasicMaterial = {
+      alphaMap: "None",
+      color: 0xffffff,
+      map: "None",
+      morphTargets: false,
+      reflectivity: 0.5,
+      specularMap: "None",
+      wireframe: false,
     }
 
-    var DepthMaterial={
-      alphaMap : "None",
-      displacementMap : "None",
-      displacementBias:0.0,
-      map:"None",
-      morphTargets:false,
-      wireframe:false,
+    var DepthMaterial = {
+      alphaMap: "None",
+      displacementMap: "None",
+      displacementBias: 0.0,
+      map: "None",
+      morphTargets: false,
+      wireframe: false,
     }
 
-    var NormalMaterial={
-      bumpMap:"None",
-      bumpScale:1.0,
-      displacementMap : "None",
-      displacementScale:0.0,
-      displacementBias:0.0,
-      flatShading :false,
-      morphNormals:false,
-      morphTargets:false,
-      normalMap:"None",
-      normalScale:1,//vector2
-      wireframe:false,
+    var NormalMaterial = {
+      bumpMap: "None",
+      bumpScale: 1.0,
+      displacementMap: "None",
+      displacementScale: 0.0,
+      displacementBias: 0.0,
+      flatShading: false,
+      morphNormals: false,
+      morphTargets: false,
+      normalMap: "None",
+      normalScale: 1.0,//vector2
+      wireframe: false,
     }
 
-    var LambertMaterial={
-      alphaMap:"None",
-      color:0xffffff,
-      emissive :0x000000,
-      emissiveMap:"None",
-      emissiveIntensity:1.0,
-      map:"None",
-      morphNormals:false,
-      morphTargets:false,
-      reflectivity:0.5,
-      specularMap : "None",
-      wireframe:false,
+    var LambertMaterial = {
+      alphaMap: "None",
+      color: 0xffffff,
+      emissive: 0x000000,
+      emissiveMap: "None",
+      emissiveIntensity: 1.0,
+      map: "None",
+      morphNormals: false,
+      morphTargets: false,
+      reflectivity: 0.5,
+      specularMap: "None",
+      wireframe: false,
     }
 
-    var MatcapMaterial={
-      alphaMap:"None",
-      bumpMap:"None",
-      bumpScale:1.0,
-      color:0xffffff,
-      displacementMap : "None",
-      displacementScale:0.0,
-      displacementBias:0.0,
-      flatShading :false,
-      map:"None",
-      matcap:"None",
-      morphNormals:false,
-      morphTargets:false,
-      normalMap:"None",
-      normalScale:1,//vector2
+    var MatcapMaterial = {
+      alphaMap: "None",
+      bumpMap: "None",
+      bumpScale: 1.0,
+      color: 0xffffff,
+      displacementMap: "None",
+      displacementScale: 0.0,
+      displacementBias: 0.0,
+      flatShading: false,
+      map: "None",
+      matcap: "None",
+      morphNormals: false,
+      morphTargets: false,
+      normalMap: "None",
+      normalScale: 1.0,//vector2
     }
 
-    var PhongMaterial={
-      alphaMap:"None",
-      bumpMap:"None",
-      bumpScale:1.0,
-      color:0xffffff,
-      displacementMap : "None",
-      displacementScale:0.0,
-      displacementBias:0.0,
-      emissive :0x000000,
-      emissiveMap:"None",
-      emissiveIntensity:1.0,
-      flatShading :false,
-      map:"None",
-      morphNormals:false,
-      morphTargets:false,
-      normalMap:"None",
-      normalScale:1,//vector2
-      reflectivity:0.5,
-      shininess:30,
-      specular:0x111111,
-      specularMap : "None",
-      wireframe:false,
+    var PhongMaterial = {
+      alphaMap: "None",
+      bumpMap: "None",
+      bumpScale: 1.0,
+      color: 0xffffff,
+      displacementMap: "None",
+      displacementScale: 0.0,
+      displacementBias: 0.0,
+      emissive: 0x000000,
+      emissiveMap: "None",
+      emissiveIntensity: 1.0,
+      flatShading: false,
+      map: "None",
+      morphNormals: false,
+      morphTargets: false,
+      normalMap: "None",
+      normalScale: 1.0,//vector2
+      reflectivity: 0.5,
+      shininess: 30,//0 to 100
+      specular: 0x111111,
+      specularMap: "None",
+      wireframe: false,
     }
 
-    var StandardMaterial={
-      alphaMap:"None",
-      bumpMap:"None",
-      bumpScale:1.0,
-      color:0xffffff,
-      displacementMap : "None",
-      displacementScale:0.0,
-      displacementBias:0.0,
-      emissive :0x000000,
-      emissiveMap:"None",
-      emissiveIntensity:1.0,
-      flatShading :false,
-      map:"None",
-      metalness:0.0,
-      metalnessMap:"None",
-      morphNormals:false,
-      morphTargets:false,
-      normalMap:"None",
-      normalScale:1,//vector2
-      roughness:1,
-      roughnessMap:"None",
-      wireframe:false,
+    var StandardMaterial = {
+      alphaMap: "None",
+      bumpMap: "None",
+      bumpScale: 1.0,
+      color: 0xffffff,
+      displacementMap: "None",
+      displacementScale: 0.0,
+      displacementBias: 0.0,
+      emissive: 0x000000,
+      emissiveMap: "None",
+      emissiveIntensity: 1.0,
+      flatShading: false,
+      map: "None",
+      metalness: 0.0,
+      metalnessMap: "None",
+      morphNormals: false,
+      morphTargets: false,
+      normalMap: "None",
+      normalScale: 1.0,//vector2
+      roughness: 1.0,
+      roughnessMap: "None",
+      wireframe: false,
     }
 
-    var PhysicalMaterial={
-      alphaMap:"None",
-      bumpMap:"None",
-      bumpScale:1.0,
-      color:0xffffff,
-      displacementMap : "None",
-      displacementScale:0.0,
-      displacementBias:0.0,
-      emissive :0x000000,
-      emissiveMap:"None",
-      emissiveIntensity:1.0,
-      flatShading :false,
-      map:"None",
-      metalness:0.0,
-      metalnessMap:"None",
-      morphNormals:false,
-      morphTargets:false,
-      normalMap:"None",
-      normalScale:1,//vector2
-      roughness:1,
-      roughnessMap:"None",
-      wireframe:false,
-      clearcoat:0,
-      clearcoatMap:"None",
-      clearcoatNormalMap:"None",
-      clearcoatNormalScale:1,//vector2
-      clearcoatRoughness:0.0,
-      clearcoatRoughnessMap:"None",
-      ior:1.5,//1.0 to 2.333
-      reflectivity:0.5,
-      sheen:"None",//color
-      transmission:0.0,
-      transmissionMap:"None",
+    var PhysicalMaterial = {
+      alphaMap: "None",
+      bumpMap: "None",
+      bumpScale: 1.0,
+      color: 0xffffff,
+      displacementMap: "None",
+      displacementScale: 0.0,
+      displacementBias: 0.0,
+      emissive: 0x000000,
+      emissiveMap: "None",
+      emissiveIntensity: 1.0,
+      flatShading: false,
+      map: "None",
+      metalness: 0.0,
+      metalnessMap: "None",
+      morphNormals: false,
+      morphTargets: false,
+      normalMap: "None",
+      normalScale: 1.0,//vector2
+      roughness: 1.0,
+      roughnessMap: "None",
+      wireframe: false,
+      clearcoat: 0.0,
+      clearcoatMap: "None",
+      clearcoatNormalMap: "None",
+      clearcoatNormalScale: 1.0,//vector2
+      clearcoatRoughness: 0.0,
+      clearcoatRoughnessMap: "None",
+      ior: 1.5,//1.0 to 2.333
+      reflectivity: 0.5,
+      sheen: "None",//color
+      transmission: 0.0,
+      transmissionMap: "None",
     }
 
-    var ToonMaterial={
-      alphaMap:"None",
-      bumpMap:"None",
-      bumpScale:1.0,
-      color:0xffffff,
-      displacementMap : "None",
-      displacementScale:0.0,
-      displacementBias:0.0,
-      emissive :0x000000,
-      emissiveMap:"None",
-      emissiveIntensity:1.0,
-      map:"None",
-      morphNormals:false,
-      morphTargets:false,
-      normalMap:"None",
-      normalScale:1,//vector2
-      wireframe:false,
+    var ToonMaterial = {
+      alphaMap: "None",
+      bumpMap: "None",
+      bumpScale: 1.0,
+      color: 0xffffff,
+      displacementMap: "None",
+      displacementScale: 0.0,
+      displacementBias: 0.0,
+      emissive: 0x000000,
+      emissiveMap: "None",
+      emissiveIntensity: 1.0,
+      map: "None",
+      morphNormals: false,
+      morphTargets: false,
+      normalMap: "None",
+      normalScale: 1.0,//vector2
+      wireframe: false,
     }
 
 
@@ -577,12 +578,14 @@
       },
       env: "None",
       Rotate: false,
-      material_class: "MeshPhysicalMaterial"
+      Enable_Patch_Background:false,
+      material_class: "MeshPhysicalMaterial",
+      cut:false,
     }
 
 
     function GUI_init() {
-      gui = new GUI({ autoPlace: false, scrollable: true })
+      gui = new GUI({ width:300,autoPlace: false, scrollable: true })
 
       document.getElementById('my-gui-container').appendChild(gui.domElement);
 
@@ -597,14 +600,22 @@
       //   position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.01)
       //   position_folder.open()
 
+
+      var folder_control=gui.addFolder("Control")
+      folder_control.add(gui_options, 'Reset_Camera').name("Reset Camera");
+      folder_control.add(gui_options, 'Unselect');
+      folder_control.add(gui_options,'cut').name("Cut Garment").onChange(() =>Clean_Cover_select());
+      folder_control.open()
+      var folder_env=gui.addFolder("Environment")
+      folder_env.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
+      folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env],gui_options.Enable_Patch_Background));
+      folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "BathRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant", 'Church', "Gallery", "Square"]).name("Background").onChange(() => Display(environment[gui_options.env],gui_options.Enable_Patch_Background))
+      folder_env.open()
       var material_folder = gui.addFolder("Material")
-
-
-      gui.add(gui_options, 'Reset_Camera').name("Reset Camera");
-      gui.add(gui_options, 'Unselect');
-      gui.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-      gui.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom","BedRoom", "BathRoom", "PlayingRoom",  'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant", 'Church', "Gallery", "Square"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
-
+    }
+    function Clean_Cover_select(){
+      cover_recovery()
+      select_recovery()
     }
 
     init();
@@ -704,33 +715,33 @@
       helper.material.transparent = true;
       scene.add(helper);
 
-      const geometry = new THREE.SphereGeometry(0.1, 32, 32);
-      const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      sphere = new THREE.Mesh(geometry, material);
-      sphere.position.set(-100, 50, -100);
-      sphere.visible = false
-      scene.add(sphere);
+      // const geometry = new THREE.SphereGeometry(0.1, 32, 32);
+      // const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      // sphere = new THREE.Mesh(geometry, material);
+      // sphere.position.set(-100, 50, -100);
+      // sphere.visible = false
+      // scene.add(sphere);
 
 
-      directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-      directionalLight.position.set(-200, 100, -200);
-      directionalLight.castShadow = true;
-      directionalLight.shadow.camera.near = 0.01;
-      directionalLight.shadow.camera.far = 1500;
-      directionalLight.shadow.camera.left = -15;
-      directionalLight.shadow.camera.right = 15;
-      directionalLight.shadow.camera.top = 15;
-      directionalLight.shadow.camera.bottom = -15;
-      directionalLight.shadow.mapSize.width = 4096;
-      directionalLight.shadow.mapSize.height = 4096;
+      // directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      // directionalLight.position.set(-200, 100, -200);
+      // directionalLight.castShadow = true;
+      // directionalLight.shadow.camera.near = 0.01;
+      // directionalLight.shadow.camera.far = 1500;
+      // directionalLight.shadow.camera.left = -15;
+      // directionalLight.shadow.camera.right = 15;
+      // directionalLight.shadow.camera.top = 15;
+      // directionalLight.shadow.camera.bottom = -15;
+      // directionalLight.shadow.mapSize.width = 4096;
+      // directionalLight.shadow.mapSize.height = 4096;
 
-      planeGeometry = new THREE.PlaneGeometry(500, 500);
-        planeGeometry.rotateX(- Math.PI / 2);
-        planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, side: THREE.DoubleSide });
-        plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.position.y = -0.5;
-        plane.receiveShadow = true;
-        scene.add(plane);
+      // planeGeometry = new THREE.PlaneGeometry(200, 200);
+      // planeGeometry.rotateX(- Math.PI / 2);
+      // planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, side: THREE.DoubleSide });
+      // plane = new THREE.Mesh(planeGeometry, planeMaterial);
+      // plane.position.y = -0.5;
+      // plane.receiveShadow = true;
+      // scene.add(plane);
 
 
       //
@@ -850,8 +861,9 @@
         patch = patch_loader(garment, uvs, 0.5, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
-        controls_patch.maxDistance = max_radius * 50;
-        camera_patch.far = max_radius * 100;
+        controls_patch.maxDistance = max_radius * 20;
+        controls.maxDistance=Math.min(100,obj_size*20);
+        camera_patch.far = max_radius * 50;
 
 
 
@@ -868,22 +880,22 @@
         // patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
         // garment.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
         // patch.scale.set(gui_values.patch_scale, gui_values.patch_scale, gui_values.patch_scale)
-        
-      angle+=Math.PI*0.0005;
-      if(angle>Math.PI*2)angle=Math.PI*0.0005;
-      directionalLight.position.x = Math.sin(angle) * obj_size*10;
-      directionalLight.position.z = Math.cos(angle) * obj_size*10;
-      directionalLight.position.y =obj_size/2*10
-      directionalLight.shadow.camera.left = -obj_size*1;
-      directionalLight.shadow.camera.right = obj_size*1;
-      directionalLight.shadow.camera.top = obj_size*1;
-      directionalLight.shadow.camera.bottom = -obj_size*1;
-      sphere.position.x = Math.sin(angle) * obj_size*10;
-      sphere.position.z = Math.cos(angle) * obj_size*10;
-      sphere.position.y =obj_size/2*10
-      sphere.scale.set(obj_size,obj_size,obj_size)
-      
-      
+
+        // angle += Math.PI * 0.0005;
+        // if (angle > Math.PI * 2) angle = Math.PI * 0.0005;
+        // directionalLight.position.x = Math.sin(angle) * obj_size * 10;
+        // directionalLight.position.z = Math.cos(angle) * obj_size * 10;
+        // directionalLight.position.y = obj_size / 2 * 10
+        // directionalLight.shadow.camera.left = -obj_size * 1;
+        // directionalLight.shadow.camera.right = obj_size * 1;
+        // directionalLight.shadow.camera.top = obj_size * 1;
+        // directionalLight.shadow.camera.bottom = -obj_size * 1;
+        // sphere.position.x = Math.sin(angle) * obj_size * 10;
+        // sphere.position.z = Math.cos(angle) * obj_size * 10;
+        // sphere.position.y = obj_size / 2 * 10
+        // sphere.scale.set(obj_size, obj_size, obj_size)
+
+
       }
 
 
@@ -927,7 +939,7 @@
 
     function onmouseDown(event) {
       mouse_down = true;
-      if (event.button == 0 && cut) {
+      if (event.button == 0 && gui_options.cut) {
         drawing = true;
       }
       else if (event.button == 0) {
@@ -954,7 +966,7 @@
 
     function onmouseUp(event) {
       mouse_down = false;
-      if (event.button == 0 && cut) {
+      if (event.button == 0 && gui_options.cut) {
         drawing = false;
       }
       else if (event.button == 0) {
@@ -979,7 +991,7 @@
       pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
       if (!mouse_down && cover) { cover_recovery(); }
       if (drawing) {
-      }
+      }else if(gui_options.cut){}
       else if (cover) {
         cover_material(pointer, camera, pointer_patch, camera_patch);
       }
@@ -1550,14 +1562,14 @@
     }
 
 
-    function Display(show_env) {
+    function Display(show_env,patch_env) {
       if (show_env) {
-        sphere.visible = true
-        scene.remove(directionalLight)
+        // sphere.visible = true
+        // scene.remove(directionalLight)
+        // scene.add(directionalLight);
+        // renderer.shadowMap.enabled = true;
+        // renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         scene.background = show_env;
-        scene.add(directionalLight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         env_light.intensity = 1;
         if (garment !== undefined) {
           garment.traverse(function (child) {
@@ -1574,29 +1586,49 @@
             }
           })
         }
-        // if (patch !== undefined) {
-        // env_light_patch.intensity = 1;
-        // scene_patch.background = show_env;
-        //   patch.traverse(function (child) {
-        //     if (child.material !== undefined) {
-        //       if (Array.isArray(child.material)) {
-        //         child.material.forEach(function (m) {
-        //           if (m.envMap !== undefined) { m.envMap = show_env; }
-        //         })
-        //       } else {
-        //         if (child.material.envMap !== undefined) {
-        //           child.material.envMap = show_env;
-        //         }
-        //       }
-        //     }
-        //   })
-        // }
+        if(patch_env){
+        env_light_patch.intensity = 1;
+        scene_patch.background = show_env;
+        if (patch !== undefined) {
+          patch.traverse(function (child) {
+            if (child.material !== undefined) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) {
+                  if (m.envMap !== undefined) { m.envMap = show_env; }
+                })
+              } else {
+                if (child.material.envMap !== undefined) {
+                  child.material.envMap = show_env;
+                }
+              }
+            }
+          })
+        }
+        }else{
+        scene_patch.background = null;
+        env_light_patch.intensity = 0.2;
+          if (patch !== undefined) {
+          patch.traverse(function (child) {
+            if (child.material !== undefined) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) {
+                  if (m.envMap !== undefined) {
+                    m.envMap = null;
+                  }
+                })
+              } else {
+                if (child.material.envMap !== undefined) { child.material.envMap = null; }
+              }
+            }
+          })
+        }
+        }
       }
       else {
-        sphere.visible = false;
-        scene.remove(directionalLight)
+        // sphere.visible = false;
+        // scene.remove(directionalLight)
+        // renderer.shadowMap.enabled = false;
         scene.background = new THREE.Color(0x303030);
-        renderer.shadowMap.enabled = false;
         env_light.intensity = 0.2;
         if (garment !== undefined) {
           garment.traverse(function (child) {
@@ -1613,23 +1645,23 @@
             }
           })
         }
-        // if (patch !== undefined) {
-        // scene_patch.background = null;
-        // env_light_patch.intensity = 0.2;
-        //   patch.traverse(function (child) {
-        //     if (child.material !== undefined) {
-        //       if (Array.isArray(child.material)) {
-        //         child.material.forEach(function (m) {
-        //           if (m.envMap !== undefined) {
-        //             m.envMap = null;
-        //           }
-        //         })
-        //       } else {
-        //         if (child.material.envMap !== undefined) { child.material.envMap = null; }
-        //       }
-        //     }
-        //   })
-        // }
+        scene_patch.background = null;
+        env_light_patch.intensity = 0.2;
+        if (patch !== undefined) {
+          patch.traverse(function (child) {
+            if (child.material !== undefined) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) {
+                  if (m.envMap !== undefined) {
+                    m.envMap = null;
+                  }
+                })
+              } else {
+                if (child.material.envMap !== undefined) { child.material.envMap = null; }
+              }
+            }
+          })
+        }
       }
     }
 
@@ -1690,7 +1722,7 @@
             })
             var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
-                obj_size=Math.max(1,scale_value)
+            obj_size = Math.max(1, scale_value)
             root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
             root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
             newobj.add(root);
@@ -1732,7 +1764,7 @@
                 })
                 var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
                 if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
-                obj_size=Math.max(1,scale_value)
+                obj_size = Math.max(1, scale_value)
                 root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
                 root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                 newobj.add(root);
