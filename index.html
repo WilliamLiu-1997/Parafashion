@@ -190,7 +190,9 @@
     let last_select = [];
     let last_select_patch = [];
     var max_radius = 0;
+    var angle=0;
     let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3 })
+    let obj_size=1;
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -208,7 +210,7 @@
     // var garments_obj = "./obj/city2/city2.obj"
     // var garments_mtl = "./obj/S/S.mtl"
     // var garments_obj = "./obj/S/S.obj"
-
+    //garments_mtl=false
 
     const format = '.jpg';
     const format_png = '.png';
@@ -252,9 +254,9 @@
     const env5_refre = new THREE.CubeTextureLoader().load(urls5);
     env5_refre.mapping = THREE.CubeRefractionMapping;
 
-    const env6 = new THREE.TextureLoader().load('./three.js/examples/textures/2294472375_24a3b8ef46_o.jpg');
+    const env6 = new THREE.TextureLoader().load('./texture/5.jpg');
     env6.mapping = THREE.EquirectangularReflectionMapping;
-    const env6_refre = new THREE.TextureLoader().load('./three.js/examples/textures/2294472375_24a3b8ef46_o.jpg');
+    const env6_refre = new THREE.TextureLoader().load('./texture/5.jpg');
     env6_refre.mapping = THREE.EquirectangularRefractionMapping;
 
     const env7 = new THREE.TextureLoader().load('./texture/9.jpg');
@@ -381,20 +383,20 @@
 
 
     var environment = {
-      Square: env7, Park: env1, Outdoor: env2, Alley: env3, Sky: env4, Bridge: env5, Slum: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env9, EmptyPavilion: env13, BathRoom: env14, Town: env15
+      Square: env7, Park: env1, PlayingRoom: env2, Alley: env3, Sky: env4, Bridge: env5, Gallery: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env13, BedRoom: env9, BathRoom: env14, Town: env15
     }
     gui_options = {
       Reset_Camera: function () {
         controls.reset();
         controls_patch.reset();
-        gui_values.garnment_x = 0;
-        gui_values.garnment_y = 0;
-        gui_values.garnment_z = 0;
-        gui_values.patch_x = 0;
-        gui_values.patch_y = 0;
-        gui_values.patch_z = 0;
-        gui_values.garnment_scale = 1;
-        gui_values.patch_scale = 1;
+        // gui_values.garnment_x = 0;
+        // gui_values.garnment_y = 0;
+        // gui_values.garnment_z = 0;
+        // gui_values.patch_x = 0;
+        // gui_values.patch_y = 0;
+        // gui_values.patch_z = 0;
+        // gui_values.garnment_scale = 1;
+        // gui_values.patch_scale = 1;
         if (gui) { gui.updateDisplay() }
       },
       Unselect: function () {
@@ -430,7 +432,7 @@
       gui.add(gui_options, 'Reset_Camera').name("Reset Camera");
       gui.add(gui_options, 'Unselect');
       gui.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-      gui.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BathRoom", 'Street', 'Town', "Restaurant", 'Church', "Slum", "Park", "Snow", "Bridge", "Square", "Outdoor", "EmptyPavilion"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
+      gui.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom","BedRoom", "BathRoom", "PlayingRoom",  'Street', 'Town', "Restaurant", 'Church', "Gallery", "Park", "Snow", "Bridge", "Square"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
     }
 
     init();
@@ -511,7 +513,7 @@
       controls.enableDamping = true;
       controls.dampingFactor = 0.1;
       controls.rotateSpeed = 0.2;
-      controls.autoRotateSpeed = 0.2;
+      controls.autoRotateSpeed = 0.15;
       controls.screenSpacePanning = false;
       controls.minDistance = 0.1;
       controls.maxDistance = 50;
@@ -525,30 +527,37 @@
 
       const helper = new THREE.GridHelper(200, 200);
       helper.position.y = -0.5;
-      helper.material.opacity = 0.5;
+      helper.material.opacity = 0.25;
       helper.material.transparent = true;
       scene.add(helper);
 
-      const geometry = new THREE.SphereGeometry(1, 32, 32);
+      const geometry = new THREE.SphereGeometry(0.1, 32, 32);
       const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
       sphere = new THREE.Mesh(geometry, material);
-      sphere.position.set(-200, 100, -200);
+      sphere.position.set(-100, 50, -100);
       sphere.visible = false
       scene.add(sphere);
 
 
-      directionalLight = new THREE.DirectionalLight(0xffffff, 0.2);
+      directionalLight = new THREE.DirectionalLight(0xffffff, 1);
       directionalLight.position.set(-200, 100, -200);
       directionalLight.castShadow = true;
       directionalLight.shadow.camera.near = 0.01;
       directionalLight.shadow.camera.far = 1500;
-      directionalLight.shadow.camera.left = -45;
-      directionalLight.shadow.camera.right = 45;
-      directionalLight.shadow.camera.top = 60;
-      directionalLight.shadow.camera.bottom = -60;
-      directionalLight.shadow.mapSize.width = 2048;
-      directionalLight.shadow.mapSize.height = 2048;
+      directionalLight.shadow.camera.left = -15;
+      directionalLight.shadow.camera.right = 15;
+      directionalLight.shadow.camera.top = 15;
+      directionalLight.shadow.camera.bottom = -15;
+      directionalLight.shadow.mapSize.width = 4096;
+      directionalLight.shadow.mapSize.height = 4096;
 
+      planeGeometry = new THREE.PlaneGeometry(500, 500);
+        planeGeometry.rotateX(- Math.PI / 2);
+        planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, side: THREE.DoubleSide });
+        plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.position.y = -0.5;
+        plane.receiveShadow = true;
+        scene.add(plane);
 
 
       //
@@ -670,16 +679,37 @@
         controls_patch.maxDistance = max_radius * 50;
         camera_patch.far = max_radius * 100;
 
+
+
+
+
         document.addEventListener("mousemove", mouseMove, false);
 
         $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color='#a0a0a0'>Vertices: " + obj_vertices_count + "</font></p>")
+        Display(environment[gui_options.env]);
         onWindowResize();
       }
       else if (progress_obj + progress_mtl == -2) {
-        garment.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
-        patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
-        garment.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
-        patch.scale.set(gui_values.patch_scale, gui_values.patch_scale, gui_values.patch_scale)
+        // garment.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
+        // patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
+        // garment.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
+        // patch.scale.set(gui_values.patch_scale, gui_values.patch_scale, gui_values.patch_scale)
+        
+      angle+=Math.PI*0.0005;
+      if(angle>Math.PI*2)angle=Math.PI*0.0005;
+      directionalLight.position.x = Math.sin(angle) * obj_size*10;
+      directionalLight.position.z = Math.cos(angle) * obj_size*10;
+      directionalLight.position.y =obj_size/2*10
+      directionalLight.shadow.camera.left = -obj_size*1;
+      directionalLight.shadow.camera.right = obj_size*1;
+      directionalLight.shadow.camera.top = obj_size*1;
+      directionalLight.shadow.camera.bottom = -obj_size*1;
+      sphere.position.x = Math.sin(angle) * obj_size*10;
+      sphere.position.z = Math.cos(angle) * obj_size*10;
+      sphere.position.y =obj_size/2*10
+      sphere.scale.set(obj_size,obj_size,obj_size)
+      
+      
       }
 
 
@@ -1348,24 +1378,9 @@
 
     function Display(show_env) {
       if (show_env) {
-        if (plane !== undefined) {
-          plane.geometry.dispose()
-          plane.material.dispose()
-          scene.remove(plane)
-        }
-        if (directionalLight === undefined) {
-          return
-        }
         sphere.visible = true
         scene.remove(directionalLight)
-        planeGeometry = new THREE.PlaneGeometry(500, 500);
-        planeGeometry.rotateX(- Math.PI / 2);
-        planeMaterial = new THREE.ShadowMaterial({ opacity: 0.2, side: THREE.DoubleSide });
         scene.background = show_env;
-        plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.position.y = -0.5;
-        plane.receiveShadow = true;
-        scene.add(plane);
         scene.add(directionalLight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1404,15 +1419,8 @@
         // }
       }
       else {
-        if (plane !== undefined) {
-          plane.geometry.dispose()
-          plane.material.dispose()
-          scene.remove(plane)
-        }
-        if (directionalLight !== undefined) {
-          scene.remove(directionalLight)
-        }
-        sphere.visible = false
+        sphere.visible = false;
+        scene.remove(directionalLight)
         scene.background = new THREE.Color(0x303030);
         renderer.shadowMap.enabled = false;
         env_light.intensity = 0.2;
@@ -1481,7 +1489,7 @@
           function (root) {
             var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
             root.traverse(function (child) {
-              if (child.geometry) {
+              if (child.type === 'Mesh') {
                 obj_vertices_count += child.geometry.attributes.position.count;
                 child.material = []
                 if (child.geometry.groups.length > 0) {
@@ -1508,6 +1516,7 @@
             })
             var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
+                obj_size=Math.max(1,scale_value)
             root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
             root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
             newobj.add(root);
@@ -1528,7 +1537,7 @@
               function (root) {
                 var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                 root.traverse(function (child) {
-                  if (child.geometry) {
+                  if (child.type === 'Mesh') {
                     obj_vertices_count += child.geometry.attributes.position.count;
                     if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
                     original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
@@ -1549,6 +1558,7 @@
                 })
                 var scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
                 if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
+                obj_size=Math.max(1,scale_value)
                 root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
                 root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                 newobj.add(root);
@@ -1713,9 +1723,9 @@
       }
       if (max_radius > 1) { max_radius /= Math.sqrt(max_radius) }
       newobj.traverse(function (child) {
-        if (child.geometry) {
-          child.scale.set(child.scale.x * (scale / max_radius), child.scale.y * (scale / max_radius), child.scale.z * (scale / max_radius))
-          child.position.set(child.position.x * (scale / max_radius), child.position.y * (scale / max_radius), child.position.z * (scale / max_radius))
+        if (child.type === 'Mesh') {
+          child.scale.multiplyScalar(scale / max_radius)
+          child.position.multiplyScalar(scale / max_radius)
         }
       })
       return newobj
