@@ -432,7 +432,7 @@
       gui.add(gui_options, 'Reset_Camera').name("Reset Camera");
       gui.add(gui_options, 'Unselect');
       gui.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-      gui.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom","BedRoom", "BathRoom", "PlayingRoom",  'Street', 'Town', "Restaurant", 'Church', "Gallery", "Park", "Snow", "Bridge", "Square"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
+      gui.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom","BedRoom", "BathRoom", "PlayingRoom",  'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant", 'Church', "Gallery", "Square"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
     }
 
     init();
