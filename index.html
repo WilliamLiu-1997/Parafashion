@@ -98,7 +98,7 @@
       <button id="hide-patches" type="button" class="btn btn-default" data-toggle="collapse"
         data-target="#panel-patches" style="
           background-color: rgba(182, 182, 182, 0.75);
-          font-size:10px;
+          font-size:12px;
           color: #fff;
           padding: 2px;
           width:90%;
@@ -107,7 +107,7 @@
       </button>
       <button id="scale-patches" type="button" class="btn btn-default" style="
           background-color: rgba(182, 182, 182, 0.75);
-          font-size:10px;
+          font-size:12px;
           color: #fff;
           padding: 2px;
           width:10%;
@@ -130,13 +130,13 @@
       $("#panel-patches").on("show.bs.collapse", function () {
         $("#hide-patches").text("Hide Patches");
         $("#scale-patches").css({ "color": "#fff" });
-        $(".panel_box").animate({ width: '25%',minWidth:"216px"  }, scale_icon());
+        $(".panel_box").animate({ width: '25%', minWidth: "216px" }, scale_icon());
       });
       $("#panel-patches").on("hide.bs.collapse", function () {
         $("#hide-patches").text("Show Patches");
         $("#scale-patches").css({ "color": "#aaa" });
-        $(".panel_box").animate({ width: '5%',minWidth:"120px" });
-        if($("#scale-patches").text() == "<")scale_icon()
+        $(".panel_box").animate({ width: '5%', minWidth: "120px" });
+        if ($("#scale-patches").text() == "<") scale_icon()
       });
     }
     function scalePatches() {
@@ -168,8 +168,8 @@
 
     let camera, cameralight, controls, scene, renderer, garment, gui, gui_values, env_light, gui_options, stats;
     let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
-    let obj_vertices_count=0;
-    let planeGeometry, planeMaterial, plane, directionalLight;
+    let obj_vertices_count = 0;
+    let planeGeometry, planeMaterial, plane, directionalLight,sphere;
     let drawing = false, cut = false, cover = true;
     let obj3D = new THREE.Object3D();
     let progress_obj = -2, progress_mtl = -2;
@@ -381,7 +381,7 @@
 
 
     var environment = {
-      Square: env7, Park: env1, Outdoor: env2, Alley: env3, Sky: env4, Bridge: env5, Slum: env6, None: null, Snow: env8, LivingRoom:env12,Street: env10,Church:env11,Restaurant:env9,EmptyPavilion:env13,BathRoom:env14,Town:env15
+      Square: env7, Park: env1, Outdoor: env2, Alley: env3, Sky: env4, Bridge: env5, Slum: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env9, EmptyPavilion: env13, BathRoom: env14, Town: env15
     }
     gui_options = {
       Reset_Camera: function () {
@@ -403,7 +403,7 @@
         if (gui) { gui.updateDisplay() }
       },
       env: "None",
-      Rotate:false,
+      Rotate: false,
       material_class: "MeshPhysicalMaterial"
     }
 
@@ -430,7 +430,7 @@
       gui.add(gui_options, 'Reset_Camera').name("Reset Camera");
       gui.add(gui_options, 'Unselect');
       gui.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-      gui.add(gui_options, "env", ["None", "Sky", "Alley","LivingRoom","BathRoom", 'Street','Town',"Restaurant",'Church', "Slum", "Park", "Snow", "Bridge", "Square", "Outdoor", "EmptyPavilion"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
+      gui.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BathRoom", 'Street', 'Town', "Restaurant", 'Church', "Slum", "Park", "Snow", "Bridge", "Square", "Outdoor", "EmptyPavilion"]).name("Environment").onChange(() => Display(environment[gui_options.env]))
     }
 
     init();
@@ -473,7 +473,7 @@
 
       camera.add(cameralight);
       scene.add(camera);
-      env_light = new THREE.AmbientLight(0xffffff,0.2);
+      env_light = new THREE.AmbientLight(0xffffff, 0.2);
       scene.add(env_light);
 
 
@@ -525,22 +525,27 @@
 
       const helper = new THREE.GridHelper(200, 200);
       helper.position.y = -0.5;
-      helper.material.opacity = 0.25;
+      helper.material.opacity = 0.5;
       helper.material.transparent = true;
       scene.add(helper);
 
-
+      const geometry = new THREE.SphereGeometry(1, 32, 32);
+      const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      sphere = new THREE.Mesh(geometry, material);
+      sphere.position.set(-200, 100, -200);
+      sphere.visible=false
+      scene.add(sphere);
 
 
       directionalLight = new THREE.DirectionalLight(0xffffff, 0.2);
-      directionalLight.position.set(-500, 500, -500);
+      directionalLight.position.set(-200, 100, -200);
       directionalLight.castShadow = true;
       directionalLight.shadow.camera.near = 0.01;
       directionalLight.shadow.camera.far = 1500;
       directionalLight.shadow.camera.left = -45;
       directionalLight.shadow.camera.right = 45;
-      directionalLight.shadow.camera.top = 90;
-      directionalLight.shadow.camera.bottom = -90;
+      directionalLight.shadow.camera.top = 60;
+      directionalLight.shadow.camera.bottom = -60;
       directionalLight.shadow.mapSize.width = 2048;
       directionalLight.shadow.mapSize.height = 2048;
 
@@ -572,7 +577,7 @@
       cameralight_patch.position.set(0, 0.5, 0)
       camera_patch.add(cameralight_patch);
       scene_patch.add(camera_patch);
-      env_light_patch = new THREE.AmbientLight(0xffffff,0.2);
+      env_light_patch = new THREE.AmbientLight(0xffffff, 0.2);
       scene_patch.add(env_light_patch);
 
       composer_patch = new EffectComposer(renderer_patch);
@@ -667,7 +672,7 @@
 
         document.addEventListener("mousemove", mouseMove, false);
 
-$("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color='#a0a0a0'>Vertices: "+obj_vertices_count+"</font></p>")
+        $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color='#a0a0a0'>Vertices: " + obj_vertices_count + "</font></p>")
         onWindowResize();
       }
       else if (progress_obj + progress_mtl == -2) {
@@ -1002,6 +1007,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
               scene_patch.add(selected_obj_patch)
               outlinePass_patch_select.selectedObjects = [selected_obj_patch];
               last_select_patch = []
+              last_select = []
               last_select_patch.push(intersects[0].object)
 
               garment.traverse(function (obj) {
@@ -1027,6 +1033,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
             if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
               outlinePass_patch_select.selectedObjects = [intersects[0].object];
               last_select_patch = []
+              last_select = []
               last_select_patch.push(intersects[0].object)
               selected_patch = [intersects[0].object];
               garment.traverse(function (obj) {
@@ -1075,6 +1082,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
               scene.add(selected_obj)
               outlinePass_select.selectedObjects = [selected_obj];
               last_select = []
+              last_select_patch = []
               last_select.push(intersects[0].object, i)
 
               for (var x = 0; x < num; x++) {
@@ -1108,6 +1116,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
               selected = [intersects[0].object];
               outlinePass_select.selectedObjects = [intersects[0].object];
               last_select = []
+              last_select_patch = []
               last_select.push(intersects[0].object)
 
               for (var x = 0; x < num; x++) {
@@ -1330,9 +1339,9 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
       return material;
     }
 
-    function Show(Rotate){
-      if(controls!==undefined){
-        controls.autoRotate=Rotate
+    function Show(Rotate) {
+      if (controls !== undefined) {
+        controls.autoRotate = Rotate
       }
     }
 
@@ -1347,6 +1356,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
         if (directionalLight === undefined) {
           return
         }
+        sphere.visible=true
         scene.remove(directionalLight)
         planeGeometry = new THREE.PlaneGeometry(500, 500);
         planeGeometry.rotateX(- Math.PI / 2);
@@ -1402,6 +1412,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
         if (directionalLight !== undefined) {
           scene.remove(directionalLight)
         }
+        sphere.visible=false
         scene.background = new THREE.Color(0x303030);
         renderer.shadowMap.enabled = false;
         env_light.intensity = 0.2;
@@ -1471,7 +1482,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
             var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
             root.traverse(function (child) {
               if (child.geometry) {
-                obj_vertices_count+=child.geometry.attributes.position.count;
+                obj_vertices_count += child.geometry.attributes.position.count;
                 child.material = []
                 if (child.geometry.groups.length > 0) {
                   for (var group_i = 0; group_i < child.geometry.groups.length; group_i++) {
@@ -1518,8 +1529,8 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
                 var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                 root.traverse(function (child) {
                   if (child.geometry) {
-                    obj_vertices_count+=child.geometry.attributes.position.count;
-                    if(!Array.isArray(child.material)&&child.material.envMap!== undefined){child.material.envMap=null}
+                    obj_vertices_count += child.geometry.attributes.position.count;
+                    if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
                     original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
                     child.castShadow = true;
                     child.receiveShadow = true;
@@ -1554,7 +1565,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
     function array_clone(array, clone) {
       var result = []
       for (var i = 0; i < array.length; i++) {
-      if(array[i].envMap!== undefined){array[i].envMap=null}
+        if (array[i].envMap !== undefined) { array[i].envMap = null }
         if (clone) result.push(array[i].clone())
         else result.push(array[i])
       }
@@ -1721,7 +1732,7 @@ $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color=
       return n
     }
 
-    function randomColor(){
+    function randomColor() {
       return Math.random() * 0xffffff
     }
   </script>
