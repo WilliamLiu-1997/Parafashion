@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <title>Parafashion</title>
+  <link rel="shortcut icon" href="#" />
   <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" />
   <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
   <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -857,7 +858,7 @@
             uvs.push([]);
           }
         }
-        if (lack || all_empty) { $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete!&nbsp;&nbsp;</div>'); }
+        if (lack || all_empty) { $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 
         patch = patch_loader(garment, uvs, 0.5, num, false);
         patch.name = "patch";
