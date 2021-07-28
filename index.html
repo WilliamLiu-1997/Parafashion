@@ -128,30 +128,32 @@
     </p>
   </div>
   <script>
+    var render_patch_flag=true;
     function hidePatches() {
       $("#panel-patches").on("show.bs.collapse", function () {
         $("#hide-patches").text("Hide Patches");
         $("#scale-patches").css({ "color": "#fff" });
-        $(".panel_box").animate({ width: '25%', minWidth: "216px" }, scale_icon());
+        $(".panel_box").animate({ width: '25%', minWidth: "216px" });
+        $("#scale-patches").text(">");
+        render_patch_flag=true;
       });
       $("#panel-patches").on("hide.bs.collapse", function () {
         $("#hide-patches").text("Show Patches");
         $("#scale-patches").css({ "color": "#aaa" });
         $(".panel_box").animate({ width: '5%', minWidth: "120px" });
-        if ($("#scale-patches").text() == "<") scale_icon()
+        $("#scale-patches").text(">");
+        render_patch_flag=false;
       });
     }
     function scalePatches() {
       if ($("#hide-patches").text() != "Show Patches" && $("#scale-patches").text() != "<") {
-        $(".panel_box").animate({ width: '80%' }, 300, scale_icon());
+        $(".panel_box").animate({ width: '80%' }, 300);
+        $("#scale-patches").text("<");
       }
       else if ($("#hide-patches").text() != "Show Patches" && $("#scale-patches").text() == "<") {
-        $(".panel_box").animate({ width: '25%' }, 300, scale_icon());
+        $(".panel_box").animate({ width: '25%' }, 300);
+        $("#scale-patches").text(">");
       }
-    }
-    function scale_icon() {
-      if ($("#scale-patches").text() != "<") $("#scale-patches").text("<")
-      else $("#scale-patches").text(">")
     }
   </script>
   <script src="./three.js/build/three.js"></script>
@@ -903,15 +905,17 @@
 
 
       requestAnimationFrame(animate);
-      controls.update();
-      controls_patch.update();
       render();
       stats.end();
     }
 
     function render() {
+      controls.update();
       composer.render();
+      if(render_patch_flag){
+      controls_patch.update();
       composer_patch.render();
+      }
     }
 
 
@@ -925,12 +929,13 @@
       composer.setSize(window.innerWidth, window.innerHeight);
       effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
 
+      if(render_patch_flag){
       camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.76;
       camera_patch.updateProjectionMatrix();
       renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
       composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
       effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.76 / window.devicePixelRatio);
-
+      }
       // if (gui) {
       //   var width = Math.max(216, window.innerWidth * 0.2);
       //   gui.domElement.style.width = width + 'px';
