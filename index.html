@@ -182,7 +182,7 @@
     let pointer = new THREE.Vector2();
     let pointer_patch = new THREE.Vector2();
     let color = new THREE.Color();
-    let original_material = [];
+    let original=[];
     let selected = [], selected_patch = [];
     let mouse_down = false;
     let covered_obj = new THREE.Mesh();
@@ -197,6 +197,7 @@
     var angle = 0;
     let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3 })
     let obj_size = 1;
+    let custom_texture;
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -869,9 +870,11 @@
         controls.maxDistance=Math.min(100,obj_size*20);
         camera_patch.far = max_radius * 50;
 
-
-
-
+        for(var i=0;i<original.length;i++){
+          if(original[i].geometry.groups.length>0){
+            original[i].material=original[i].material.slice(0)
+          }
+        }
 
         document.addEventListener("mousemove", mouseMove, false);
 
@@ -1703,6 +1706,8 @@
             var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
             root.traverse(function (child) {
               if (child.type === 'Mesh') {
+                    child.name=randomString();
+                    original.push(child.clone())
                 obj_vertices_count += child.geometry.attributes.position.count;
                 child.material = []
                 if (child.geometry.groups.length > 0) {
@@ -1711,7 +1716,6 @@
                   }
                 }
                 else { child.material = default_material.clone(); }
-                original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
                 child.castShadow = true;
                 child.receiveShadow = true;
                 child.geometry.computeFaceNormals();
@@ -1751,9 +1755,10 @@
                 var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                 root.traverse(function (child) {
                   if (child.type === 'Mesh') {
+                    child.name=randomString();
+                    original.push(child.clone())
                     obj_vertices_count += child.geometry.attributes.position.count;
                     if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
-                    original_material.push(Array.isArray(child.material) ? array_clone(child.material, true) : child.material.clone())
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.geometry.computeFaceNormals();
@@ -1866,7 +1871,6 @@
             patch_map.name = randomString();
             group_3d.add(patch_map);
           }
-          garment.children[0].children[x].name = randomString();
           group_3d.name = garment.children[0].children[x].name;
           newobj.add(group_3d)
         }
@@ -1905,7 +1909,6 @@
           patch.deleteAttribute("normal");
           patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
           var patch_map = new THREE.Mesh(patch, patch_mtl);
-          garment.children[0].children[x].name = randomString();
           patch_map.name = garment.children[0].children[x].name;
 
 
