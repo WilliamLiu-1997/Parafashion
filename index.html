@@ -73,13 +73,14 @@
     outline-offset: 2px;
   }
 
-  #my-gui-container {
+  #gui_container {
     position: absolute;
     top: 10%;
     right: 0px;
     z-index: 1;
     user-select: none;
   }
+
 
   #alert_container {
     position: absolute;
@@ -92,7 +93,7 @@
 
 <body>
   <div id="container"></div>
-  <div id="my-gui-container"></div>
+  <div id="gui_container"></div>
   <div id="alert_container"></div>
   <div id="panel_box" class="panel_box">
 
@@ -591,7 +592,7 @@
     function GUI_init() {
       gui = new GUI({ width:300,autoPlace: false, scrollable: true })
 
-      document.getElementById('my-gui-container').appendChild(gui.domElement);
+      document.getElementById('gui_container').appendChild(gui.domElement);
 
       //   var position_folder = gui.addFolder("Position and Scale")
       //   position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
