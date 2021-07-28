@@ -609,7 +609,8 @@
       var folder_env=gui.addFolder("Environment")
       folder_env.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
       folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env],gui_options.Enable_Patch_Background));
-      folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "BathRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant", 'Church', "Gallery", "Square"]).name("Background").onChange(() => Display(environment[gui_options.env],gui_options.Enable_Patch_Background))
+      folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env],gui_options.Enable_Patch_Background))
+      // "BathRoom", 'Church', "Gallery", "Square"
       folder_env.open()
       var material_folder = gui.addFolder("Material")
     }
