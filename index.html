@@ -159,7 +159,7 @@
     <div id="patch_btn" class="btn-group" style="width: 100%;">
       <button id="hide-patches" type="button" class="btn btn-default" data-toggle="collapse"
         data-target="#panel-patches" style="
-          background-color: rgba(182, 182, 182, 0.75);
+          background-color: rgb(120,120,120);
           font-size:12px;
           color: #fff;
           padding: 2px;
@@ -168,7 +168,7 @@
         Hide Patches
       </button>
       <button id="scale-patches" type="button" class="btn btn-default" style="
-          background-color: rgba(182, 182, 182, 0.75);
+          background-color: rgb(120,120,120);
           font-size:12px;
           color: #fff;
           padding: 2px;
@@ -290,10 +290,11 @@
     let last_select_patch = [];
     var max_radius = 0;
     var angle = 0;
-    let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3 })
+    let default_texture = new THREE.TextureLoader().load("./texture/default.jpg");
+    let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3, map: default_texture.clone() })
     let obj_size = 1;
-    let vec3=new THREE.Vector3();
-    let vec2=new THREE.Vector2();
+    let vec3 = new THREE.Vector3();
+    let vec2 = new THREE.Vector2();
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -432,7 +433,7 @@
       hiddenEdgeColor: "#333333"
     };
 
-    var texture_wrap = { repeat: THREE.RepeatWrapping, mirror: THREE.MirroredRepeatWrapping ,clamp:THREE.ClampToEdgeWrapping}
+    var texture_wrap = { repeat: THREE.RepeatWrapping, mirror: THREE.MirroredRepeatWrapping, clamp: THREE.ClampToEdgeWrapping }
     var TextureParams = {
       wrap: "clamp",
       offsetX: 0,
@@ -453,7 +454,7 @@
       //'LineDashedMaterial': THREE.LineDashedMaterial,
       'MeshBasicMaterial': THREE.MeshBasicMaterial,
       'MeshDepthMaterial': THREE.MeshDepthMaterial,
-      'MeshNormalMaterial': THREE.MeshNormalMaterial,
+      //'MeshNormalMaterial': THREE.MeshNormalMaterial,
       'MeshLambertMaterial': THREE.MeshLambertMaterial,
       'MeshMatcapMaterial': THREE.MeshMatcapMaterial,
       'MeshPhongMaterial': THREE.MeshPhongMaterial,
@@ -477,16 +478,19 @@
 
     var BasicMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       color: 0xffffff,
       map: "None",
       morphTargets: false,
       reflectivity: 0.5,
       specularMap: "None",
+      specularWrap: "clamp",
       wireframe: false,
     }
 
     var DepthMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       displacementMap: "None",
       displacementBias: 0.0,
       map: "None",
@@ -494,149 +498,186 @@
       wireframe: false,
     }
 
-    var NormalMaterial = {
-      bumpMap: "None",
-      bumpScale: 1.0,
-      displacementMap: "None",
-      displacementScale: 0.0,
-      displacementBias: 0.0,
-      flatShading: false,
-      morphNormals: false,
-      morphTargets: false,
-      normalMap: "None",
-      normalScale: 1.0,//vector2
-      wireframe: false,
-    }
+    // var NormalMaterial = {
+    //   bumpMap: "None",
+    //   bumpScale: 1.0,
+    //   displacementMap: "None",
+    //   displacementScale: 0.0,
+    //   displacementBias: 0.0,
+    //   flatShading: false,
+    //   morphNormals: false,
+    //   morphTargets: false,
+    //   normalMap: "None",
+    //   normalScale: 1.0,//vector2
+    //   wireframe: false,
+    // }
 
     var LambertMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       color: 0xffffff,
       emissive: 0x000000,
       emissiveMap: "None",
+      emissiveWrap: "clamp",
       emissiveIntensity: 1.0,
       map: "None",
       morphNormals: false,
       morphTargets: false,
       reflectivity: 0.5,
       specularMap: "None",
+      specularWrap: "clamp",
       wireframe: false,
     }
 
     var MatcapMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       bumpMap: "None",
+      bumpWrap: "clamp",
       bumpScale: 1.0,
       color: 0xffffff,
       displacementMap: "None",
+      displacementWrap: "clamp",
       displacementScale: 0.0,
       displacementBias: 0.0,
       flatShading: false,
       map: "None",
       matcap: "None",
+      matcapWrap: "clamp",
       morphNormals: false,
       morphTargets: false,
       normalMap: "None",
+      normalWrap: "clamp",
       normalScale: 1.0,//vector2
     }
 
     var PhongMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       bumpMap: "None",
+      bumpWrap: "clamp",
       bumpScale: 1.0,
       color: 0xffffff,
       displacementMap: "None",
+      displacementWrap: "clamp",
       displacementScale: 0.0,
       displacementBias: 0.0,
       emissive: 0x000000,
       emissiveMap: "None",
+      emissiveWrap: "clamp",
       emissiveIntensity: 1.0,
       flatShading: false,
       map: "None",
       morphNormals: false,
       morphTargets: false,
       normalMap: "None",
+      normalWrap: "clamp",
       normalScale: 1.0,//vector2
       reflectivity: 0.5,
       shininess: 30,//0 to 100
       specular: 0x111111,
       specularMap: "None",
+      specularWrap: "clamp",
       wireframe: false,
     }
 
     var StandardMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       bumpMap: "None",
+      bumpWrap: "clamp",
       bumpScale: 1.0,
       color: 0xffffff,
       displacementMap: "None",
+      displacementWrap: "clamp",
       displacementScale: 0.0,
       displacementBias: 0.0,
       emissive: 0x000000,
       emissiveMap: "None",
+      emissiveWrap: "clamp",
       emissiveIntensity: 1.0,
       flatShading: false,
       map: "None",
       metalness: 0.0,
       metalnessMap: "None",
+      metalnessWrap: "clamp",
       morphNormals: false,
       morphTargets: false,
       normalMap: "None",
+      normalWrap: "clamp",
       normalScale: 1.0,//vector2
       roughness: 1.0,
       roughnessMap: "None",
+      roughnessWrap: "clamp",
       wireframe: false,
     }
 
     var PhysicalMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       bumpMap: "None",
+      bumpWrap: "clamp",
       bumpScale: 1.0,
       color: 0xffffff,
       displacementMap: "None",
+      displacementWrap: "clamp",
       displacementScale: 0.0,
       displacementBias: 0.0,
       emissive: 0x000000,
       emissiveMap: "None",
+      emissiveWrap: "clamp",
       emissiveIntensity: 1.0,
       flatShading: false,
       map: "None",
       metalness: 0.0,
       metalnessMap: "None",
+      metalnessWrap: "clamp",
       morphNormals: false,
       morphTargets: false,
       normalMap: "None",
+      normalWrap: "clamp",
       normalScale: 1.0,//vector2
       roughness: 1.0,
       roughnessMap: "None",
+      roughnessWrap: "clamp",
       wireframe: false,
       clearcoat: 0.0,
       clearcoatMap: "None",
+      clearcoatWrap: "clamp",
       clearcoatNormalMap: "None",
+      clearcoatNormalWrap: "clamp",
       clearcoatNormalScale: 1.0,//vector2
       clearcoatRoughness: 0.0,
       clearcoatRoughnessMap: "None",
+      clearcoatRoughnessWrap: "clamp",
       ior: 1.5,//1.0 to 2.333
       reflectivity: 0.5,
       sheen: "None",//color
       transmission: 0.0,
       transmissionMap: "None",
+      transmissionWrap: "clamp",
     }
 
     var ToonMaterial = {
       alphaMap: "None",
+      alphaWrap: "clamp",
       bumpMap: "None",
+      bumpWrap: "clamp",
       bumpScale: 1.0,
       color: 0xffffff,
       displacementMap: "None",
+      displacementWrap: "clamp",
       displacementScale: 0.0,
       displacementBias: 0.0,
       emissive: 0x000000,
       emissiveMap: "None",
+      emissiveWrap: "clamp",
       emissiveIntensity: 1.0,
       map: "None",
       morphNormals: false,
       morphTargets: false,
       normalMap: "None",
+      normalWrap: "clamp",
       normalScale: 1.0,//vector2
       wireframe: false,
     }
@@ -686,14 +727,14 @@
       material_folder.hide()
 
       var folder_custom_texture = gui.addFolder("Custom Texture")
-      folder_custom_texture.add(TextureParams, "wrap", ["clamp","repeat", "mirror"])
-      folder_custom_texture.add(TextureParams, "offsetX", -10,10, 0.01)
-      folder_custom_texture.add(TextureParams, "offsetY", -10,10, 0.01)
+      folder_custom_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      folder_custom_texture.add(TextureParams, "offsetX", -10, 10, 0.01)
+      folder_custom_texture.add(TextureParams, "offsetY", -10, 10, 0.01)
       folder_custom_texture.add(TextureParams, "repeatX", 0.1, 10, 0.1)
       folder_custom_texture.add(TextureParams, "repeatY", 0.1, 10, 0.1)
       folder_custom_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
-      folder_custom_texture.add(TextureParams, "centerX", -10,10, 0.01)
-      folder_custom_texture.add(TextureParams, "centerY", -10,10, 0.01)
+      folder_custom_texture.add(TextureParams, "centerX", -10, 10, 0.01)
+      folder_custom_texture.add(TextureParams, "centerY", -10, 10, 0.01)
     }
     function Clean_Cover_select() {
       cover_recovery()
@@ -943,8 +984,8 @@
         patch = patch_loader(garment, uvs, 0.5, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
-        controls_patch.maxDistance = max_radius * 20;
-        controls.maxDistance = Math.min(100, obj_size * 20);
+        controls_patch.maxDistance = max_radius * 8;
+        controls.maxDistance = Math.min(100, obj_size * 10);
         camera_patch.far = max_radius * 50;
 
         for (var i = 0; i < original.length; i++) {
@@ -1154,7 +1195,7 @@
               covered_obj_patch.material.transparent = true;
               covered_obj_patch.material.opacity = 0;
               covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+              covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.0001);
               scene_patch.add(covered_obj_patch)
               outlinePass_patch.selectedObjects = [covered_obj_patch];
               last_cover_patch = []
@@ -1170,7 +1211,7 @@
                     covered_obj.material.transparent = true;
                     covered_obj.material.opacity = 0;
                     covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                    covered_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+                    covered_obj.position.set(this_position.x, this_position.y, this_position.z);
                     scene.add(covered_obj)
                     outlinePass.selectedObjects = [covered_obj];
                   }
@@ -1222,7 +1263,7 @@
               covered_obj.material.transparent = true;
               covered_obj.material.opacity = 0;
               covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              covered_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+              covered_obj.position.set(this_position.x, this_position.y, this_position.z);
               scene.add(covered_obj)
               outlinePass.selectedObjects = [covered_obj];
               last_cover = []
@@ -1244,7 +1285,7 @@
                   covered_obj_patch.material.transparent = true;
                   covered_obj_patch.material.opacity = 0;
                   covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                  covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+                  covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.0001);
                   scene_patch.add(covered_obj_patch)
                   outlinePass_patch.selectedObjects = [covered_obj_patch];
 
@@ -1316,7 +1357,7 @@
               selected_obj_patch.material.transparent = true;
               selected_obj_patch.material.opacity = 0;
               selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+              selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.0001);
               scene_patch.add(selected_obj_patch)
               outlinePass_patch_select.selectedObjects = [selected_obj_patch];
               last_select_patch = []
@@ -1334,7 +1375,7 @@
                     selected_obj.material.transparent = true;
                     selected_obj.material.opacity = 0;
                     selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                    selected_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+                    selected_obj.position.set(this_position.x, this_position.y, this_position.z);
                     scene.add(selected_obj)
                     outlinePass_select.selectedObjects = [selected_obj];
                   }
@@ -1391,7 +1432,7 @@
               selected_obj.material.transparent = true;
               selected_obj.material.opacity = 0;
               selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              selected_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+              selected_obj.position.set(this_position.x, this_position.y, this_position.z);
               scene.add(selected_obj)
               outlinePass_select.selectedObjects = [selected_obj];
               last_select = []
@@ -1416,7 +1457,7 @@
                   selected_obj_patch.material.transparent = true;
                   selected_obj_patch.material.opacity = 0;
                   selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                  selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
+                  selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.0001);
                   scene_patch.add(selected_obj_patch)
                   outlinePass_patch_select.selectedObjects = [selected_obj_patch];
                   break;
@@ -1634,17 +1675,18 @@
 
 
     function updateUvTransform(material) {
-      if(!custom_texture)return
-      material.needsUpdate=true;
-      custom_texture.needsUpdate=true;
-      custom_texture.wrapS=texture_wrap[TextureParams.wrap];
-      custom_texture.wrapT=texture_wrap[TextureParams.wrap];
+      if (!custom_texture) return
+      let custom_texture = custom_texture.clone();
+      material.needsUpdate = true;
+      custom_texture.needsUpdate = true;
+      custom_texture.wrapS = texture_wrap[TextureParams.wrap];
+      custom_texture.wrapT = texture_wrap[TextureParams.wrap];
       custom_texture.offset.set(TextureParams.offsetX, TextureParams.offsetY);
       custom_texture.repeat.set(TextureParams.repeatX, TextureParams.repeatY);
       custom_texture.center.set(TextureParams.centerX, TextureParams.centerY);
       custom_texture.rotation = TextureParams.rotation;
 
-      material.map=custom_texture;
+      material.map = custom_texture;
     }
 
     function Show(Rotate) {
@@ -1841,6 +1883,7 @@
                     original.push(child.clone())
                     obj_vertices_count += child.geometry.attributes.position.count;
                     if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
+                    if (child.material.map === undefined) { child.material.map = default_texture.clone() }
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.geometry.computeFaceNormals();
@@ -1872,10 +1915,11 @@
       }
     }
 
-    function array_clone(array, clone) {
+    function array_default_material_clone(array, clone) {
       var result = []
       for (var i = 0; i < array.length; i++) {
         if (array[i].envMap !== undefined) { array[i].envMap = null }
+        if (array[i].map === undefined) { array[i].map = default_texture.clone() }
         if (clone) result.push(array[i].clone())
         else result.push(array[i])
       }
@@ -1892,7 +1936,7 @@
       var last_y = 4;
       for (var x = 0; x < num; x++) {
         var patch = garment.children[0].children[x].geometry.clone();
-        var patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
+        var patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_default_material_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
 
         if (patch.groups && patch.groups.length > 0) {
           //var individual = seperateGroups_garmentToPatch(patch);
