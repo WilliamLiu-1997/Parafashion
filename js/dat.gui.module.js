@@ -2553,24 +2553,24 @@ var GUI = function GUI( pars ) {
 
 		}
 		this.__closeButton = document.createElement( 'div' );
-		this.__closeButton.innerHTML = GUI.TEXT_CLOSED;
-		dom.addClass( this.__closeButton, GUI.CLASS_CLOSE_BUTTON );
-		if ( params.closeOnTop ) {
+		// this.__closeButton.innerHTML = GUI.TEXT_CLOSED;
+		// dom.addClass( this.__closeButton, GUI.CLASS_CLOSE_BUTTON );
+		// if ( params.closeOnTop ) {
 
-			dom.addClass( this.__closeButton, GUI.CLASS_CLOSE_TOP );
-			this.domElement.insertBefore( this.__closeButton, this.domElement.childNodes[ 0 ] );
+		// 	dom.addClass( this.__closeButton, GUI.CLASS_CLOSE_TOP );
+		// 	this.domElement.insertBefore( this.__closeButton, this.domElement.childNodes[ 0 ] );
 
-		} else {
+		// } else {
 
-			dom.addClass( this.__closeButton, GUI.CLASS_CLOSE_BOTTOM );
-			this.domElement.appendChild( this.__closeButton );
+		// 	dom.addClass( this.__closeButton, GUI.CLASS_CLOSE_BOTTOM );
+		// 	this.domElement.appendChild( this.__closeButton );
 
-		}
-		dom.bind( this.__closeButton, 'click', function () {
+		// }
+		// dom.bind( this.__closeButton, 'click', function () {
 
-			_this.closed = ! _this.closed;
+		// 	_this.closed = ! _this.closed;
 
-		} );
+		// } );
 
 	} else {
 
@@ -3480,6 +3480,7 @@ function addResizeHandle( gui ) {
 
 }
 function setWidth( gui, w ) {
+	w=Math.max(144,w)
 
 	gui.domElement.style.width = w + 'px';
 	if ( gui.__save_row && gui.autoPlace ) {

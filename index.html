@@ -30,10 +30,6 @@
     background-color: #F5F5F5;
   }
 
-  /* * {
-    font-family: "Comic Sans MS";
-  } */
-
   body {
     background-color: #000;
     color: #fff;
@@ -60,7 +56,7 @@
     top: 10%;
     width: 25%;
     min-width: 216px;
-    height: 80%;
+    /* height: 80%; */
     z-index: 2;
     text-align: center;
 
@@ -75,6 +71,7 @@
 
   #gui_container {
     position: absolute;
+    height: 80%;
     top: 10%;
     right: 0px;
     z-index: 1;
@@ -82,19 +79,81 @@
   }
 
 
-  #alert_container {
+  .alert_container {
     position: absolute;
     top: 1%;
     left: 50%;
     transform: translate(-50%, 0);
     z-index: 99;
   }
+
+  .tip {
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    color: rgb(228, 228, 228);
+  }
+
+  .up-area {
+    border: 1px dashed rgb(150, 150, 150);
+    width: 300px;
+    min-height: 50px;
+    line-height: 50px;
+    background-color: rgba(90, 90, 90, 0);
+  }
+
+  img {
+    max-width: 100%;
+    display: inline-block;
+  }
+
+  .texture_container {
+    max-height: 45%;
+    overflow-y: scroll;
+  }
 </style>
+
+<script src="./three.js/build/three.js"></script>
+<script src="js/OrbitControls.js"></script>
 
 <body>
   <div id="container"></div>
-  <div id="gui_container"></div>
-  <div id="alert_container"></div>
+  <div id="gui_container">
+    <button type="button" class=" btn-default" data-toggle="collapse" data-target="#texture_container" style="
+      background-color: rgb(120,120,120);
+      border: 1px solid  rgb(180, 180, 180);border-style:none none solid none;
+      font-size:12px;
+      color: #fff;
+      padding: 3px;
+      width:100%;
+    ">
+      Custom Texture
+    </button>
+    <div id="texture_container" class="texture_container panel-collapse collapse">
+      <div class="dragFile">
+        <div class="up-area">
+          <div class="tip">Click or Drag to upload a texture...</div>
+          <input type="file" style="display:none;" id="fileDrag" name="fileDragselect" multiple>
+          <div class="list-drag" style="text-align: center;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <button type="button" class=" btn-default" data-toggle="collapse" data-target="#gui_container_gui" style="
+      background-color: rgb(120,120,120);
+      border: 1px solid  rgb(180, 180, 180);border-style:none none solid none;
+      font-size:12px;
+      color: #fff;
+      padding: 3px;
+      width:100%;
+    ">
+      Controls
+    </button>
+    <div id="gui_container_gui" class="panel-collapse collapse in"></div>
+  </div>
+  <div id="alert_uv" class="alert_container"></div>
+  <div id="alert_size" class="alert_container"></div>
+  <div id="alert_img" class="alert_container"></div>
   <div id="panel_box" class="panel_box">
 
     <div id="patch_btn" class="btn-group" style="width: 100%;">
@@ -129,21 +188,21 @@
     </p>
   </div>
   <script>
-    var render_patch_flag=true;
+    var render_patch_flag = true;
     function hidePatches() {
       $("#panel-patches").on("show.bs.collapse", function () {
         $("#hide-patches").text("Hide Patches");
         $("#scale-patches").css({ "color": "#fff" });
         $(".panel_box").animate({ width: '25%', minWidth: "216px" });
         $("#scale-patches").text(">");
-        render_patch_flag=true;
+        render_patch_flag = true;
       });
       $("#panel-patches").on("hide.bs.collapse", function () {
         $("#hide-patches").text("Show Patches");
         $("#scale-patches").css({ "color": "#aaa" });
         $(".panel_box").animate({ width: '5%', minWidth: "120px" });
         $("#scale-patches").text(">");
-        render_patch_flag=false;
+        render_patch_flag = false;
       });
     }
     function scalePatches() {
@@ -156,9 +215,44 @@
         $("#scale-patches").text(">");
       }
     }
+
+    var url = ""
+    var custom_texture;
+    document.querySelector('.up-area').addEventListener('click', texture_click)
+    function texture_click() {
+      $('#fileDrag').click();
+    }
+    $('#fileDrag').change((event) => {
+      var files = event.target.files;
+      appendFile(files, '.list-drag');
+    })
+
+
+    const dragbox = document.querySelector('.dragFile');
+    dragbox.addEventListener('dragover', function (e) {
+      e.preventDefault();
+    }, false);
+    dragbox.addEventListener('drop', function (e) {
+      e.preventDefault();
+      var files = e.dataTransfer.files;
+      appendFile(files, '.list-drag')
+    }, false);
+
+    function appendFile(files, listName) {
+      for (file of files) {
+        var fileType = file.type.substr(file.type.lastIndexOf("/")).toUpperCase();
+        if (fileType != "/PNG" && fileType != "/JPG" && fileType != "/JPEG") {
+          $("#alert_img").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image file is acceptable!&nbsp;&nbsp;</div>');
+          return
+        }
+        url = window.URL.createObjectURL(file);
+        custom_texture = new THREE.TextureLoader().load(url);
+        let liStr = `<img src="${url}" alt="文件" />`;
+        $(listName).html(liStr);
+        $(".tip").hide();
+      }
+    }
   </script>
-  <script src="./three.js/build/three.js"></script>
-  <script src="js/OrbitControls.js"></script>
   <script type="module">
 
     import { GUI } from './js/dat.gui.module.js';
@@ -183,7 +277,7 @@
     let pointer = new THREE.Vector2();
     let pointer_patch = new THREE.Vector2();
     let color = new THREE.Color();
-    let original=[];
+    let original = [];
     let selected = [], selected_patch = [];
     let mouse_down = false;
     let covered_obj = new THREE.Mesh();
@@ -198,7 +292,8 @@
     var angle = 0;
     let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3 })
     let obj_size = 1;
-    let custom_texture;
+    let vec3=new THREE.Vector3();
+    let vec2=new THREE.Vector2();
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -337,8 +432,9 @@
       hiddenEdgeColor: "#333333"
     };
 
-
+    var texture_wrap = { repeat: THREE.RepeatWrapping, mirror: THREE.MirroredRepeatWrapping ,clamp:THREE.ClampToEdgeWrapping}
     var TextureParams = {
+      wrap: "clamp",
       offsetX: 0,
       offsetY: 0,
       repeatX: 1,
@@ -546,19 +642,6 @@
     }
 
 
-
-    gui_values = new (function () {
-      this.garnment_x = 0;
-      this.garnment_y = 0;
-      this.garnment_z = 0;
-      this.patch_x = 0;
-      this.patch_y = 0;
-      this.patch_z = 0;
-      this.garnment_scale = 1;
-      this.patch_scale = 1;
-    })();
-
-
     var environment = {
       Square: env7, Park: env1, PlayingRoom: env2, Alley: env3, Sky: env4, Bridge: env5, Gallery: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env13, BedRoom: env9, BathRoom: env14, Town: env15
     }
@@ -566,14 +649,6 @@
       Reset_Camera: function () {
         controls.reset();
         controls_patch.reset();
-        // gui_values.garnment_x = 0;
-        // gui_values.garnment_y = 0;
-        // gui_values.garnment_z = 0;
-        // gui_values.patch_x = 0;
-        // gui_values.patch_y = 0;
-        // gui_values.patch_z = 0;
-        // gui_values.garnment_scale = 1;
-        // gui_values.patch_scale = 1;
         if (gui) { gui.updateDisplay() }
       },
       Unselect: function () {
@@ -583,43 +658,44 @@
       },
       env: "None",
       Rotate: false,
-      Enable_Patch_Background:false,
+      Enable_Patch_Background: false,
       material_class: "MeshPhysicalMaterial",
-      cut:false,
+      cut: false,
     }
 
 
     function GUI_init() {
-      gui = new GUI({ width:300,autoPlace: false, scrollable: true })
+      gui = new GUI({ width: 300, autoPlace: false, scrollable: true })
 
-      document.getElementById('gui_container').appendChild(gui.domElement);
+      document.getElementById('gui_container_gui').appendChild(gui.domElement);
 
-      //   var position_folder = gui.addFolder("Position and Scale")
-      //   position_folder.add(gui_values, "garnment_x", -10, 10, 0.01)
-      //   position_folder.add(gui_values, "garnment_y", -10, 10, 0.01)
-      //   position_folder.add(gui_values, "garnment_z", -10, 10, 0.01)
-      //   position_folder.add(gui_values, "garnment_scale", 0.1, 10, 0.01)
-      //   position_folder.add(gui_values, "patch_x", -10, 10, 0.01)
-      //   position_folder.add(gui_values, "patch_y", -10, 10, 0.01)
-      //   position_folder.add(gui_values, "patch_z", -10, 10, 0.01)
-      //   position_folder.add(gui_values, "patch_scale", 0.1, 10, 0.01)
-      //   position_folder.open()
+      var folder_basic = gui.addFolder("Basic")
+      folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
+      folder_basic.add(gui_options, 'Unselect');
+      folder_basic.add(gui_options, 'cut').name("Cut Garment").onChange(() => Clean_Cover_select());
+      folder_basic.open()
 
-
-      var folder_control=gui.addFolder("Control")
-      folder_control.add(gui_options, 'Reset_Camera').name("Reset Camera");
-      folder_control.add(gui_options, 'Unselect');
-      folder_control.add(gui_options,'cut').name("Cut Garment").onChange(() =>Clean_Cover_select());
-      folder_control.open()
-      var folder_env=gui.addFolder("Environment")
+      var folder_env = gui.addFolder("Environment")
       folder_env.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-      folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env],gui_options.Enable_Patch_Background));
-      folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env],gui_options.Enable_Patch_Background))
+      folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background));
+      folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background))
       // "BathRoom", 'Church', "Gallery", "Square"
       folder_env.open()
+
       var material_folder = gui.addFolder("Material")
+      material_folder.hide()
+
+      var folder_custom_texture = gui.addFolder("Custom Texture")
+      folder_custom_texture.add(TextureParams, "wrap", ["clamp","repeat", "mirror"])
+      folder_custom_texture.add(TextureParams, "offsetX", -10,10, 0.01)
+      folder_custom_texture.add(TextureParams, "offsetY", -10,10, 0.01)
+      folder_custom_texture.add(TextureParams, "repeatX", 0.1, 10, 0.1)
+      folder_custom_texture.add(TextureParams, "repeatY", 0.1, 10, 0.1)
+      folder_custom_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      folder_custom_texture.add(TextureParams, "centerX", -10,10, 0.01)
+      folder_custom_texture.add(TextureParams, "centerY", -10,10, 0.01)
     }
-    function Clean_Cover_select(){
+    function Clean_Cover_select() {
       cover_recovery()
       select_recovery()
     }
@@ -633,7 +709,7 @@
     function init() {
 
       if (window.innerWidth < 1080) {
-        $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
+        $("#alert_size").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
       }
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x303030);
@@ -762,11 +838,11 @@
       renderer_patch = new THREE.WebGLRenderer({ alpha: true, antialias: true, logarithmicDepthBuffer: true });
 
       renderer_patch.setPixelRatio(window.devicePixelRatio);
-      renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
+      renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
       document.getElementById("container_patch").appendChild(renderer_patch.domElement);
       camera_patch = new THREE.PerspectiveCamera(
         45,
-        $("#container_patch").width() / window.innerHeight / 0.76,
+        $("#container_patch").width() / window.innerHeight / 0.78,
         0.01,
         1000
       );
@@ -783,7 +859,7 @@
       const renderPass_patch = new RenderPass(scene_patch, camera_patch);
       composer_patch.addPass(renderPass_patch);
 
-      outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
+      outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.78), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch);
       outlinePass_patch.edgeStrength = outlinePass_params_cover.edgeStrength * 2;
       outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness * 1.5;
@@ -792,7 +868,7 @@
       outlinePass_patch.visibleEdgeColor.set(outlinePass_params_cover.visibleEdgeColor);
       outlinePass_patch.hiddenEdgeColor.set(outlinePass_params_cover.hiddenEdgeColor);
 
-      outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.76), scene_patch, camera_patch);
+      outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.78), scene_patch, camera_patch);
       composer_patch.addPass(outlinePass_patch_select);
       outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength * 2;
       outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness * 1.5;
@@ -802,10 +878,10 @@
       outlinePass_patch_select.hiddenEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
 
       effectFXAA_patch = new ShaderPass(FXAAShader);
-      effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.76 / window.devicePixelRatio);
+      effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.78 / window.devicePixelRatio);
       composer_patch.addPass(effectFXAA_patch);
       composer_patch.setPixelRatio(window.devicePixelRatio);
-      composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
+      composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
 
       controls_patch = new THREE.OrbitControls(camera_patch, renderer_patch.domElement);
 
@@ -813,7 +889,7 @@
       controls_patch.dampingFactor = 0.1;
       controls_patch.rotateSpeed = 0.2;
       controls_patch.screenSpacePanning = false;
-      controls_patch.minDistance = 0.01;
+      controls_patch.minDistance = 0.02;
       controls_patch.maxDistance = 1000;
       controls_patch.enableRotate = false;
 
@@ -862,18 +938,18 @@
             uvs.push([]);
           }
         }
-        if (lack || all_empty) { $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
+        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 
         patch = patch_loader(garment, uvs, 0.5, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
         controls_patch.maxDistance = max_radius * 20;
-        controls.maxDistance=Math.min(100,obj_size*20);
+        controls.maxDistance = Math.min(100, obj_size * 20);
         camera_patch.far = max_radius * 50;
 
-        for(var i=0;i<original.length;i++){
-          if(original[i].geometry.groups.length>0){
-            original[i].material=original[i].material.slice(0)
+        for (var i = 0; i < original.length; i++) {
+          if (original[i].geometry.groups.length > 0) {
+            original[i].material = original[i].material.slice(0)
           }
         }
 
@@ -884,11 +960,6 @@
         onWindowResize();
       }
       else if (progress_obj + progress_mtl == -2) {
-        // garment.position.set(gui_values.garnment_x, gui_values.garnment_y, gui_values.garnment_z)
-        // patch.position.set(gui_values.patch_x, gui_values.patch_y, gui_values.patch_z)
-        // garment.scale.set(gui_values.garnment_scale, gui_values.garnment_scale, gui_values.garnment_scale)
-        // patch.scale.set(gui_values.patch_scale, gui_values.patch_scale, gui_values.patch_scale)
-
         // angle += Math.PI * 0.0005;
         // if (angle > Math.PI * 2) angle = Math.PI * 0.0005;
         // directionalLight.position.x = Math.sin(angle) * obj_size * 10;
@@ -903,10 +974,25 @@
         // sphere.position.y = obj_size / 2 * 10
         // sphere.scale.set(obj_size, obj_size, obj_size)
 
-
+        //****************************************************************************************
+        // if (url) {
+        //   if (selected.length == 2) {
+        //     selected[0].material[selected[1]]=selected[0].material[selected[1]].clone();
+        //     selected_patch[0].material=selected_patch[0].material.clone();
+        //     updateUvTransform(selected[0].material[selected[1]]);
+        //     updateUvTransform(selected_patch[0].material)
+        //   }          
+        //   else if (selected.length == 1) {
+        //     selected[0].material=selected[0].material.clone();
+        //     selected_patch[0].material=selected_patch[0].material.clone();
+        //     updateUvTransform(selected[0].material);
+        //     updateUvTransform(selected_patch[0].material)
+        //   }
+        // }
+        //****************************************************************************************
       }
 
-
+      $(".up-area").css({ "width": $(".dg.main").css("width") })
 
       requestAnimationFrame(animate);
       render();
@@ -916,29 +1002,29 @@
     function render() {
       controls.update();
       composer.render();
-      if(render_patch_flag){
-      controls_patch.update();
-      composer_patch.render();
+      if (render_patch_flag) {
+        controls_patch.update();
+        composer_patch.render();
       }
     }
 
 
     function onWindowResize() {
       if (window.innerWidth < 1080) {
-        $("#alert_container").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
-      } else { $("#alert_container").html("") }
+        $("#alert_size").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
+      } else { $("#alert_size").html("") }
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       composer.setSize(window.innerWidth, window.innerHeight);
       effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
 
-      if(render_patch_flag){
-      camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.76;
-      camera_patch.updateProjectionMatrix();
-      renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
-      composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.76);
-      effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.76 / window.devicePixelRatio);
+      if (render_patch_flag) {
+        camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.78;
+        camera_patch.updateProjectionMatrix();
+        renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
+        composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
+        effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.78 / window.devicePixelRatio);
       }
       // if (gui) {
       //   var width = Math.max(216, window.innerWidth * 0.2);
@@ -1002,7 +1088,7 @@
       pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
       if (!mouse_down && cover) { cover_recovery(); }
       if (drawing) {
-      }else if(gui_options.cut){}
+      } else if (gui_options.cut) { }
       else if (cover) {
         cover_material(pointer, camera, pointer_patch, camera_patch);
       }
@@ -1068,7 +1154,7 @@
               covered_obj_patch.material.transparent = true;
               covered_obj_patch.material.opacity = 0;
               covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+              covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
               scene_patch.add(covered_obj_patch)
               outlinePass_patch.selectedObjects = [covered_obj_patch];
               last_cover_patch = []
@@ -1084,7 +1170,7 @@
                     covered_obj.material.transparent = true;
                     covered_obj.material.opacity = 0;
                     covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                    covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+                    covered_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
                     scene.add(covered_obj)
                     outlinePass.selectedObjects = [covered_obj];
                   }
@@ -1136,7 +1222,7 @@
               covered_obj.material.transparent = true;
               covered_obj.material.opacity = 0;
               covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+              covered_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
               scene.add(covered_obj)
               outlinePass.selectedObjects = [covered_obj];
               last_cover = []
@@ -1158,7 +1244,7 @@
                   covered_obj_patch.material.transparent = true;
                   covered_obj_patch.material.opacity = 0;
                   covered_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                  covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+                  covered_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
                   scene_patch.add(covered_obj_patch)
                   outlinePass_patch.selectedObjects = [covered_obj_patch];
 
@@ -1230,7 +1316,7 @@
               selected_obj_patch.material.transparent = true;
               selected_obj_patch.material.opacity = 0;
               selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+              selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
               scene_patch.add(selected_obj_patch)
               outlinePass_patch_select.selectedObjects = [selected_obj_patch];
               last_select_patch = []
@@ -1248,7 +1334,7 @@
                     selected_obj.material.transparent = true;
                     selected_obj.material.opacity = 0;
                     selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                    selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+                    selected_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
                     scene.add(selected_obj)
                     outlinePass_select.selectedObjects = [selected_obj];
                   }
@@ -1305,7 +1391,7 @@
               selected_obj.material.transparent = true;
               selected_obj.material.opacity = 0;
               selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-              selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+              selected_obj.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
               scene.add(selected_obj)
               outlinePass_select.selectedObjects = [selected_obj];
               last_select = []
@@ -1330,7 +1416,7 @@
                   selected_obj_patch.material.transparent = true;
                   selected_obj_patch.material.opacity = 0;
                   selected_obj_patch.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                  selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z);
+                  selected_obj_patch.position.set(this_position.x, this_position.y, this_position.z + 0.000001);
                   scene_patch.add(selected_obj_patch)
                   outlinePass_patch_select.selectedObjects = [selected_obj_patch];
                   break;
@@ -1548,22 +1634,17 @@
 
 
     function updateUvTransform(material) {
+      if(!custom_texture)return
+      material.needsUpdate=true;
+      custom_texture.needsUpdate=true;
+      custom_texture.wrapS=texture_wrap[TextureParams.wrap];
+      custom_texture.wrapT=texture_wrap[TextureParams.wrap];
+      custom_texture.offset.set(TextureParams.offsetX, TextureParams.offsetY);
+      custom_texture.repeat.set(TextureParams.repeatX, TextureParams.repeatY);
+      custom_texture.center.set(TextureParams.centerX, TextureParams.centerY);
+      custom_texture.rotation = TextureParams.rotation;
 
-      var map = material.map;
-
-      map.offset.set(texture_map_params.offsetX, texture_map_params.offsetY);
-      map.repeat.set(texture_map_params.repeatX, texture_map_params.repeatY);
-      map.center.set(texture_map_params.centerX, texture_map_params.centerY);
-      map.rotation = texture_map_params.rotation;
-
-      var normal_map = material.normalMap;
-
-      normal_map.offset.set(texture_normalMap_params.offsetX, texture_normalMap_params.offsetY);
-      normal_map.repeat.set(texture_normalMap_params.repeatX, texture_normalMap_params.repeatY);
-      normal_map.center.set(texture_normalMap_params.centerX, texture_normalMap_params.centerY);
-      normal_map.rotation = texture_normalMap_params.rotation;
-
-      return material;
+      material.map=custom_texture;
     }
 
     function Show(Rotate) {
@@ -1573,7 +1654,7 @@
     }
 
 
-    function Display(show_env,patch_env) {
+    function Display(show_env, patch_env) {
       if (show_env) {
         // sphere.visible = true
         // scene.remove(directionalLight)
@@ -1597,42 +1678,42 @@
             }
           })
         }
-        if(patch_env){
-        env_light_patch.intensity = 1;
-        scene_patch.background = show_env;
-        if (patch !== undefined) {
-          patch.traverse(function (child) {
-            if (child.material !== undefined) {
-              if (Array.isArray(child.material)) {
-                child.material.forEach(function (m) {
-                  if (m.envMap !== undefined) { m.envMap = show_env; }
-                })
-              } else {
-                if (child.material.envMap !== undefined) {
-                  child.material.envMap = show_env;
+        if (patch_env) {
+          env_light_patch.intensity = 1;
+          scene_patch.background = show_env;
+          if (patch !== undefined) {
+            patch.traverse(function (child) {
+              if (child.material !== undefined) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach(function (m) {
+                    if (m.envMap !== undefined) { m.envMap = show_env; }
+                  })
+                } else {
+                  if (child.material.envMap !== undefined) {
+                    child.material.envMap = show_env;
+                  }
                 }
               }
-            }
-          })
-        }
-        }else{
-        scene_patch.background = null;
-        env_light_patch.intensity = 0.2;
+            })
+          }
+        } else {
+          scene_patch.background = null;
+          env_light_patch.intensity = 0.2;
           if (patch !== undefined) {
-          patch.traverse(function (child) {
-            if (child.material !== undefined) {
-              if (Array.isArray(child.material)) {
-                child.material.forEach(function (m) {
-                  if (m.envMap !== undefined) {
-                    m.envMap = null;
-                  }
-                })
-              } else {
-                if (child.material.envMap !== undefined) { child.material.envMap = null; }
+            patch.traverse(function (child) {
+              if (child.material !== undefined) {
+                if (Array.isArray(child.material)) {
+                  child.material.forEach(function (m) {
+                    if (m.envMap !== undefined) {
+                      m.envMap = null;
+                    }
+                  })
+                } else {
+                  if (child.material.envMap !== undefined) { child.material.envMap = null; }
+                }
               }
-            }
-          })
-        }
+            })
+          }
         }
       }
       else {
@@ -1707,8 +1788,8 @@
             var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
             root.traverse(function (child) {
               if (child.type === 'Mesh') {
-                    child.name=randomString();
-                    original.push(child.clone())
+                child.name = randomString();
+                original.push(child.clone())
                 obj_vertices_count += child.geometry.attributes.position.count;
                 child.material = []
                 if (child.geometry.groups.length > 0) {
@@ -1756,7 +1837,7 @@
                 var x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                 root.traverse(function (child) {
                   if (child.type === 'Mesh') {
-                    child.name=randomString();
+                    child.name = randomString();
                     original.push(child.clone())
                     obj_vertices_count += child.geometry.attributes.position.count;
                     if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }

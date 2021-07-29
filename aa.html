@@ -1,149 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
-	<title>Document</title>
-	<style type="text/css">
-		* {
-			box-sizing: border-box;
-		}
-		p a {
-			text-decoration: none;
-		}
-		.hidden {
-			display: none;
-		}
-		.dropArea {
-			display: flex;
-			align-content: flex-start;
-			flex-wrap: wrap;
-			position: relative;
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>文件上传</title>
+	<link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+	<style>
+		body,
+		html {
 			margin: 0 auto;
-			width: 900px;
-			height: 300px;
-			border: 5px dashed gray;
-			background-color: #e6e6e6;
-			overflow: hidden;
-			cursor: pointer;
-			box-sizing: content-box;
 		}
+
 		.tip {
-			position: absolute;
 			height: 100%;
 			width: 100%;
-			font-size: 2em;
+			font-size: 12px;
 			font-weight: bold;
-			text-align: center;
-			line-height: 300px;
 			color: gray;
 		}
-		.compress-list-item {
-			padding: 10px;
-			width: 33.33%;
-			height: 100px;
+
+		.up-area {
+			border: 2px dashed #ccc;
+			width: 200px;
+			min-height: 100px;
+			line-height: 100px;
+			background-color: #fff;
 		}
-		.compress-list-preview {
+
+		img {
 			width: 100%;
-			height: 100%;
-			background-size: 100% 100%;
 		}
 	</style>
 </head>
+
 <body>
-	<div class="demo">
-		<div class="hidden">
-			<input type="file" accept="image/*" multiple style="display: none;">
-		</div>
-		<div class="dropArea">
-			<div class="tip">点击或拖拽上传图片...（可多张）</div>
+
+
+	<div class="texture_container">
+		<!-- 拖拽图片到这来 -->
+		<div class="dragFile">
+			<div class="up-area">
+				<input type="file" style="display:none;" id="fileDrag" name="fileDragselect" multiple>
+				<div class="list-drag">
+				</div>
+			</div>
+			<div class="tip">Click or Drag to upload a texture...</div>
 		</div>
 	</div>
 
+
+
 	<script type="text/javascript">
-		const dropArea = document.querySelector('.dropArea');
-		const tip = document.querySelector('.tip');
-		const file = document.querySelector('input[type="file"]');
-
-		function ignoreDrag(e) {
-			e.preventDefault();	// 取消默认行为
-			// e.stopPropagation();	// 阻止冒泡
+		var url = ""
+		document.querySelector('.up-area').addEventListener('click', texture_click)
+		function texture_click() {
+			$('#fileDrag').click();
 		}
+		$('#fileDrag').change((event) => {
+			var files = event.target.files;
+			appendFile(files, '.list-drag');
+		})
 
-		function fileinfo() {
-			file.onchange = function() {
-				for (var i = 0; i < this.files.length; i++) {
-					// 隐藏提示文字
-					tip.style.display = 'none';
 
-					// 创建一个容器
-					var wrap = document.createElement('div');
-					wrap.className = 'compress-list-item';
-					dropArea.appendChild(wrap);
-
-					// 创建图片实例对象
-					var img = new Image();
-					// 内存生成 URL 实例
-					img_src = window.URL.createObjectURL(this.files[i]);
-					img.src = img_src;
-
-					// 创建背景缩略图
-					var item = document.createElement('div');
-					item.className = 'compress-list-preview';
-					item.style.backgroundImage = 'url(' + img_src + ')';
-					wrap.appendChild(item);
-
-					// 若背景图加载成功，则释放 URL 实例
-					img.onload = function() {
-						window.URL.revokeObjectURL(this.src);
-					}
-				}
-			}
-		}
-
-		// 事件监听
-		dropArea.addEventListener('dragenter', ignoreDrag, false);
-		dropArea.addEventListener('dragover', ignoreDrag, false);
-		dropArea.addEventListener('drop', function(e) {
-			ignoreDrag(e);
+		const dragbox = document.querySelector('.dragFile');
+		dragbox.addEventListener('dragover', function (e) {
+			e.preventDefault();
+		}, false);
+		dragbox.addEventListener('drop', function (e) {
+			e.preventDefault();
 			var files = e.dataTransfer.files;
-			for (var i = 0; i < files.length; i++) {
-				var type = files[i].type;
-				if (type.substring(0, 6) !== 'image/') continue;
-					// 隐藏提示文字
-					tip.style.display = 'none';
+			appendFile(files, '.list-drag')
+		}, false);
 
-					// 创建一个容器
-					var wrap = document.createElement('div');
-					wrap.className = 'compress-list-item';
-					dropArea.appendChild(wrap);
-
-					// 创建图片实例对象
-					var img = new Image();
-					// 内存生成 URL 实例
-					img_src = window.URL.createObjectURL(files[i]);
-					img.src = img_src;
-
-					// 创建背景缩略图
-					var item = document.createElement('div');
-					item.className = 'compress-list-preview';
-					item.style.backgroundImage = 'url(' + img_src + ')';
-					wrap.appendChild(item);
-
-					// 若背景图加载成功，则释放 URL 实例
-					img.onload = function() {
-						window.URL.revokeObjectURL(this.src);
-					}
+		function appendFile(files, listName) {
+			for (file of files) {
+				url = window.URL.createObjectURL(file);
+				let liStr = `<img src="${url}" alt="文件" />`;
+				$(listName).html(liStr);
 			}
-		}, false);
-		dropArea.addEventListener('click', function(e) {
-			// file模拟input点击事件
-			var evt = new MouseEvent('click', {
-				bubbles: false,
-				cancelable: true,
-				view: window
-			});
-			file.dispatchEvent(evt, fileinfo());
-		}, false);
+		}
 	</script>
+
 </body>
+
 </html>
