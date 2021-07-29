@@ -255,7 +255,7 @@
     var max_radius = 0;
     var angle = 0;
     let default_texture = new THREE.TextureLoader().load("./texture/default.jpg");
-    let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3, map: default_texture.clone() })
+    let default_material = new THREE.MeshPhongMaterial({ color: 0xa0a0a0, emissive: 0x0, reflectivity: 0.3})
     let obj_size = 1;
     let vec3 = new THREE.Vector3();
     let vec2 = new THREE.Vector2();
@@ -1634,17 +1634,17 @@
 
     function updateUvTransform(material) {
       if (!custom_texture) return
-      let custom_texture = custom_texture.clone();
+      let custom = custom_texture.clone();
       material.needsUpdate = true;
-      custom_texture.needsUpdate = true;
-      custom_texture.wrapS = texture_wrap[TextureParams.wrap];
-      custom_texture.wrapT = texture_wrap[TextureParams.wrap];
-      custom_texture.offset.set(TextureParams.offsetX, TextureParams.offsetY);
-      custom_texture.repeat.set(TextureParams.repeatX, TextureParams.repeatY);
-      custom_texture.center.set(TextureParams.centerX, TextureParams.centerY);
-      custom_texture.rotation = TextureParams.rotation;
+      custom.needsUpdate = true;
+      custom.wrapS = texture_wrap[TextureParams.wrap];
+      custom.wrapT = texture_wrap[TextureParams.wrap];
+      custom.offset.set(TextureParams.offsetX, TextureParams.offsetY);
+      custom.repeat.set(TextureParams.repeatX, TextureParams.repeatY);
+      custom.center.set(TextureParams.centerX, TextureParams.centerY);
+      custom.rotation = TextureParams.rotation;
 
-      material.map = custom_texture;
+      material.map = custom;
     }
 
     function Show(Rotate) {
@@ -1759,6 +1759,7 @@
 
 
     function obj_loader(url_obj, url_mtl, scale, double = false) {
+      original=[]
       const onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
           const percentComplete = (xhr.loaded / xhr.total) * 100;
@@ -1794,10 +1795,17 @@
                 child.material = []
                 if (child.geometry.groups.length > 0) {
                   for (var group_i = 0; group_i < child.geometry.groups.length; group_i++) {
-                    child.material.push(default_material.clone());
+                    let default_m=default_material.clone()
+                    default_m.map=new THREE.TextureLoader().load("./texture/default.jpg");
+                    default_m.color.set(randomColor())
+                    child.material.push(default_m);
                   }
                 }
-                else { child.material = default_material.clone(); }
+                else { 
+                    let default_m=default_material.clone()
+                    default_m.map=new THREE.TextureLoader().load("./texture/default.jpg");
+                    default_m.color.set(randomColor())
+                    child.material = default_m; }
                 child.castShadow = true;
                 child.receiveShadow = true;
                 child.geometry.computeFaceNormals();
@@ -1841,7 +1849,7 @@
                     original.push(child.clone())
                     obj_vertices_count += child.geometry.attributes.position.count;
                     if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
-                    if (child.material.map === undefined) { child.material.map = default_texture.clone() }
+                    if (child.material.map === undefined) { child.material.map = new THREE.TextureLoader().load("./texture/default.jpg"); }
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.geometry.computeFaceNormals();
@@ -1877,7 +1885,7 @@
       var result = []
       for (var i = 0; i < array.length; i++) {
         if (array[i].envMap !== undefined) { array[i].envMap = null }
-        if (array[i].map === undefined) { array[i].map = default_texture.clone() }
+        if (array[i].map === undefined) { array[i].map = new THREE.TextureLoader().load("./texture/default.jpg"); }
         if (clone) result.push(array[i].clone())
         else result.push(array[i])
       }
