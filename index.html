@@ -270,7 +270,7 @@
     let vec2 = new THREE.Vector2();
 
     var url = ""
-    var custom_texture,original_texture;
+    var custom_texture, original_texture;
 
     let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
 
@@ -496,7 +496,7 @@
         morphNormals: false,
         morphTargets: false,
         normalMap: "original",
-        normalScale: new THREE.Vector2(1,1),//vector2
+        normalScale: new THREE.Vector2(1, 1),//vector2
         reflectivity: 0.5,
         shininess: 30,//0 to 100
         specular: 0x111111,
@@ -514,7 +514,7 @@
         morphNormals: false,
         morphTargets: false,
         normalMap: "original",
-        normalScale: new THREE.Vector2(1,1),//vector2
+        normalScale: new THREE.Vector2(1, 1),//vector2
         alphaMap: "original",
       },
       'MeshToonMaterial': {
@@ -528,7 +528,7 @@
         morphNormals: false,
         morphTargets: false,
         normalMap: "original",
-        normalScale: new THREE.Vector2(1,1),//vector2
+        normalScale: new THREE.Vector2(1, 1),//vector2
         wireframe: false,
         alphaMap: "original",
       },
@@ -545,7 +545,7 @@
         morphNormals: false,
         morphTargets: false,
         normalMap: "original",
-        normalScale: new THREE.Vector2(1,1),//vector2
+        normalScale: new THREE.Vector2(1, 1),//vector2
         roughness: 1.0,
         wireframe: false,
         alphaMap: "original",
@@ -563,7 +563,7 @@
         morphNormals: false,
         morphTargets: false,
         normalMap: "original",
-        normalScale: new THREE.Vector2(1,1),//vector2
+        normalScale: new THREE.Vector2(1, 1),//vector2
         roughness: 1.0,
         wireframe: false,
         clearcoat: 0.0,
@@ -596,59 +596,59 @@
       vertexColors: false,
       visible: true,
     }
-    
-    var texture_wrap = { 
-      repeat: THREE.RepeatWrapping, 
-      mirror: THREE.MirroredRepeatWrapping, 
-      clamp: THREE.ClampToEdgeWrapping 
+
+    var texture_wrap = {
+      repeat: THREE.RepeatWrapping,
+      mirror: THREE.MirroredRepeatWrapping,
+      clamp: THREE.ClampToEdgeWrapping
     }
-    var TextureOffset={
-      offset:new THREE.Vector2(0,0),
-      repeat:new THREE.Vector2(1,1),
+    var TextureOffset = {
+      offset: new THREE.Vector2(0, 0),
+      repeat: new THREE.Vector2(1, 1),
     }
     var TextureParams = {
-      current:"map",
+      current: "map",
       wrap: "clamp",
       rotation: 0,
-      center: new THREE.Vector2(0.5,0.5),
+      center: new THREE.Vector2(0.5, 0.5),
     };
 
-    var Wrap={
-      clamp:THREE.ClampToEdgeWrapping,
-      repeat:THREE.RepeatWrapping,
-      mirror:THREE.MirroredRepeatWrapping,
+    var Wrap = {
+      clamp: THREE.ClampToEdgeWrapping,
+      repeat: THREE.RepeatWrapping,
+      mirror: THREE.MirroredRepeatWrapping,
     }
 
-    var Side={
-      FrontSide:THREE.FrontSide,
-      BackSide:THREE.BackSide,
-      DoubleSide:THREE.DoubleSide,
+    var Side = {
+      FrontSide: THREE.FrontSide,
+      BackSide: THREE.BackSide,
+      DoubleSide: THREE.DoubleSide,
     }
 
-    var Map={
-      None:null,
-      Original:original_texture,
-      Custom:custom_texture
+    var Map = {
+      None: null,
+      Original: original_texture,
+      Custom: custom_texture
     }
-    var folder_basic, folder_env, material_folder, folder_texture,custom_material;
+    var folder_basic, folder_env, material_folder, folder_texture, custom_material;
 
-    function get_wrap(wrap){
-      if(wrap===Wrap.clamp)return "clamp"
-      else if(wrap===Wrap.repeat)return "repeat"
-      else if(wrap===Wrap.mirror)return "mirror"
+    function get_wrap(wrap) {
+      if (wrap === Wrap.clamp) return "clamp"
+      else if (wrap === Wrap.repeat) return "repeat"
+      else if (wrap === Wrap.mirror) return "mirror"
       else return null
     }
 
-    function Obj_to_GUI(obj_material){
-      switch (Material.material){
+    function Obj_to_GUI(obj_material) {
+      switch (Material.material) {
         case "MeshBasicMaterial":
-          Materials.MeshBasicMaterial.color=obj_material.color.getHex()
-          Materials.MeshBasicMaterial.morphTargets=obj_material.morphTargets
-          Materials.MeshBasicMaterial.reflectivity=obj_material.reflectivity
-          Materials.MeshBasicMaterial.wireframe=obj_material.wireframe
-          Materials.MeshBasicMaterial.alphaWrap=get_wrap(obj_material.alphaWrap)
-          Materials.MeshBasicMaterial.mapWrap=get_wrap(obj_material.mapWrap)
-          Materials.MeshBasicMaterial.alphaWrap=get_wrap(obj_material.alphaWrap)
+          Materials.MeshBasicMaterial.color = obj_material.color.getHex()
+          Materials.MeshBasicMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshBasicMaterial.reflectivity = obj_material.reflectivity
+          Materials.MeshBasicMaterial.wireframe = obj_material.wireframe
+          Materials.MeshBasicMaterial.alphaWrap = get_wrap(obj_material.alphaWrap)
+          Materials.MeshBasicMaterial.mapWrap = get_wrap(obj_material.mapWrap)
+          Materials.MeshBasicMaterial.alphaWrap = get_wrap(obj_material.alphaWrap)
 
         // color: 0xffffff,
         // map: "original",
@@ -704,16 +704,16 @@
       material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"])
       material_folder.add(Material, "vertexColors")
       material_folder.add(Material, "visible")
-      material_folder.add(TextureOffset.offset, "x", -10, 10, 0.01).name("offset.x")
-      material_folder.add(TextureOffset.offset, "y", -10, 10, 0.01).name("offset.y")
-      material_folder.add(TextureOffset.repeat, "x", 0.1, 10, 0.1).name("repeat.x")
-      material_folder.add(TextureOffset.repeat, "y", 0.1, 10, 0.1).name("repeat.y")
+      material_folder.add(TextureOffset.offset, "x", -10, 10, 0.01).name("maps.offset.x")
+      material_folder.add(TextureOffset.offset, "y", -10, 10, 0.01).name("maps.offset.y")
+      material_folder.add(TextureOffset.repeat, "x", 0.1, 10, 0.1).name("maps.repeat.x")
+      material_folder.add(TextureOffset.repeat, "y", 0.1, 10, 0.1).name("maps.repeat.y")
       material_folder.open()
       material_folder.hide()
 
       folder_texture = material_folder.addFolder("Texture Transform")
-      folder_texture.add(TextureParams,"current",['map','alphaMap','bumpMap','normalMap','emissiveMap','specularMap'])
-      folder_texture.add(TextureParams, "wrap", ["clamp","repeat","mirror"])
+      folder_texture.add(TextureParams, "current", ['map', 'alphaMap', 'bumpMap', 'normalMap', 'emissiveMap', 'specularMap'])
+      folder_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
       folder_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
       folder_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
       folder_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
@@ -724,17 +724,17 @@
       Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01)
       Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "morphTargets")
       Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe")
-      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "alphaMap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "specularMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "alphaMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "specularMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshBasicMaterial.open()
 
 
       Material_Type_Folder.MeshDepthMaterial = material_folder.addFolder("Depth Material")
       Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "morphTargets")
       Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "wireframe")
-      Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "alphaMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshDepthMaterial.open()
 
 
@@ -744,12 +744,12 @@
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "morphNormals")
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "morphTargets")
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe")
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "alphaMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "emissive")
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveMap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "specularMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "specularMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshLambertMaterial.open()
 
 
@@ -761,18 +761,18 @@
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "morphTargets")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "flatShading")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe")
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "alphaMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "emissive")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveMap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "normalMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", -10, 10, 0.01)
       Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "specular")
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "specularMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "specularMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhongMaterial.open()
 
       Material_Type_Folder.MeshMatcapMaterial = material_folder.addFolder("Matcap Material")
@@ -780,13 +780,13 @@
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "morphNormals")
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "morphTargets")
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "flatShading")
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "alphaMap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "matcap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "normalMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "alphaMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "matcap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpScale", -10, 10, 0.01)
       Material_Type_Folder.MeshMatcapMaterial.open()
 
@@ -796,15 +796,15 @@
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "morphNormals")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "morphTargets")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe")
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "alphaMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "emissive")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveMap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "normalMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", -10, 10, 0.01)
       Material_Type_Folder.MeshToonMaterial.open()
 
@@ -817,15 +817,15 @@
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "morphTargets")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "flatShading")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe")
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "alphaMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "emissive")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveMap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "normalMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", -10, 10, 0.01)
       Material_Type_Folder.MeshStandardMaterial.open()
 
@@ -844,15 +844,15 @@
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "morphTargets")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe")
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "map", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "alphaMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "map", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "emissive")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveMap", ['None','original', 'Custom'])
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "normalMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpMap", ['None','original', 'Custom'])
+      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", -10, 10, 0.01)
       Material_Type_Folder.MeshPhysicalMaterial.open()
 
@@ -1469,7 +1469,7 @@
               })
             }
           }
-        } else { select_recovery() }
+        } else if (cover_pointer.x < 1 - ($('#gui_container').width() / window.innerWidth * 2)) { select_recovery() }
       } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         var intersects = raycaster.intersectObject(garment, true);
@@ -1551,7 +1551,7 @@
               }
             }
           }
-        } else { select_recovery() }
+        } else if (cover_pointer.x < 1 - ($('#gui_container').width() / window.innerWidth * 2)) { select_recovery() }
       }
     }
 
