@@ -669,8 +669,8 @@
           current_map = obj_material.map
           current_alphaMap = obj_material.alphaMap
           current_specularMap = obj_material.specularMap
-          liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
           $('.list-drag').html(liStr);
           $(".tip").hide();
           break;
@@ -682,8 +682,8 @@
           Materials.MeshDepthMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
           current_map = obj_material.map
           current_alphaMap = obj_material.alphaMap
-          liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
           $('.list-drag').html(liStr);
           $(".tip").hide();
           break;
@@ -704,8 +704,8 @@
           current_alphaMap = obj_material.alphaMap
           current_emissiveMap = obj_material.emissiveMap
           current_specularMap = obj_material.specularMap
-          liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
           $('.list-drag').html(liStr);
           $(".tip").hide();
           break;
@@ -735,8 +735,8 @@
             current_alphaMap = obj_material.alphaMap
             current_emissiveMap = obj_material.emissiveMap
             current_specularMap = obj_material.specularMap
-            liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
             $('.list-drag').html(liStr);
             $(".tip").hide();
             break;
@@ -758,8 +758,8 @@
             current_matcap = obj_material.matcap
             current_normalMap = obj_material.normalMap
             current_alphaMap = obj_material.alphaMap
-            liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
             $('.list-drag').html(liStr);
             $(".tip").hide();
             break;
@@ -783,8 +783,8 @@
             current_normalMap = obj_material.normalMap
             current_emissiveMap = obj_material.emissiveMap
             current_alphaMap = obj_material.alphaMap
-            liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
             $('.list-drag').html(liStr);
             $(".tip").hide();
             break;
@@ -811,8 +811,8 @@
             current_normalMap = obj_material.normalMap
             current_alphaMap = obj_material.alphaMap
             current_emissiveMap = obj_material.emissiveMap
-            liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
             $('.list-drag').html(liStr);
             $(".tip").hide();
             break;
@@ -845,8 +845,8 @@
             current_normalMap = obj_material.normalMap
             current_alphaMap = obj_material.alphaMap
             current_emissiveMap = obj_material.emissiveMap
-            liStr = obj_material.map.image;
-            url=""
+            url=obj_material.map.image.src
+            liStr = `<img src="${url}"/>`;
             $('.list-drag').html(liStr);
             $(".tip").hide();
             break;
@@ -1360,8 +1360,7 @@
         if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
           select_material(pointer, camera, pointer_patch, camera_patch);
-          load_material()
-
+          if (pointer.x < 1 - (($('#gui_container').width()+5) / window.innerWidth * 2))load_material()
         }
         cover = false;
       }
@@ -2378,7 +2377,7 @@
         }
         url = window.URL.createObjectURL(file);
         //custom_texture = textureloader.load(url);
-        let liStr = `<img src="${url}" alt="文件" />`;
+        let liStr = `<img src="${url}"/>`;
         $('.list-drag').html(liStr);
         $(".tip").hide();
       }
