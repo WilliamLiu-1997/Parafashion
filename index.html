@@ -592,6 +592,7 @@
       material: "MeshPhongMaterial",
       opacity: 1.0,
       transparent: false,
+      alphaTest: 0,
       side: "DoubleSide",
       vertexColors: false,
       visible: true,
@@ -630,7 +631,7 @@
       Original: original_texture,
       Custom: custom_texture
     }
-    var folder_basic, folder_env, material_folder, folder_texture, custom_material;
+    var folder_basic, folder_env, material_folder, folder_texture, custom_material, current_map, current_alphaMap, current_specularMap, current_normalMap, current_bumpMap, current_emissiveMap, current_matcap;
 
     function get_wrap(wrap) {
       if (wrap === Wrap.clamp) return "clamp"
@@ -640,24 +641,215 @@
     }
 
     function Obj_to_GUI(obj_material) {
+      if(obj_material.map===null)obj_material.map=textureloader.load("./texture/default.jpg");
+      Material.opacity = obj_material.opacity
+      Material.transparent = obj_material.transparent
+      Material.alphaTest = obj_material.alphaTest
+      Material.side = obj_material.side === THREE.FrontSide ? "FrontSide" : obj_material.side === THREE.BackSide ? "BackSide" : "DoubleSide"
+      Material.vertexColors = obj_material.vertexColors
+      Material.visible = obj_material.visible
+      TextureOffset.offset = obj_material.map.offset
+      TextureOffset.repeat = obj_material.map.repeat
+      TextureParams.current = "map"
+      TextureParams.wrap = obj_material.map.wrapS === THREE.ClampToEdgeWrapping ? "clamp" : obj_material.map.wrapS === THREE.MirroredRepeatWrapping ? "mirror" : "repeat"
+      TextureParams.rotation = obj_material.map.rotation
+      TextureParams.center = obj_material.map.center
+
+      let liStr
+
       switch (Material.material) {
         case "MeshBasicMaterial":
           Materials.MeshBasicMaterial.color = obj_material.color.getHex()
           Materials.MeshBasicMaterial.morphTargets = obj_material.morphTargets
           Materials.MeshBasicMaterial.reflectivity = obj_material.reflectivity
           Materials.MeshBasicMaterial.wireframe = obj_material.wireframe
-          Materials.MeshBasicMaterial.alphaWrap = get_wrap(obj_material.alphaWrap)
-          Materials.MeshBasicMaterial.mapWrap = get_wrap(obj_material.mapWrap)
-          Materials.MeshBasicMaterial.alphaWrap = get_wrap(obj_material.alphaWrap)
+          Materials.MeshBasicMaterial.map = obj_material.map !== null ? "original" : "None"
+          Materials.MeshBasicMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+          Materials.MeshBasicMaterial.specularMap = obj_material.specularMap !== null ? "original" : "None"
+          current_map = obj_material.map
+          current_alphaMap = obj_material.alphaMap
+          current_specularMap = obj_material.specularMap
+          liStr = obj_material.map.image;
+            url=""
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
 
-        // color: 0xffffff,
-        // map: "original",
-        // mapWrap: "clamp",
-        // morphTargets: false,
-        // reflectivity: 0.5,
-        // specularMap: "original",
-        // specularWrap: "clamp",
-        // wireframe: false,
+        case "MeshDepthMaterial":
+          Materials.MeshDepthMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshDepthMaterial.wireframe = obj_material.wireframe
+          Materials.MeshDepthMaterial.map = obj_material.map !== null ? "original" : "None"
+          Materials.MeshDepthMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+          current_map = obj_material.map
+          current_alphaMap = obj_material.alphaMap
+          liStr = obj_material.map.image;
+            url=""
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
+          
+        case "MeshLambertMaterial":
+          Materials.MeshLambertMaterial.color = obj_material.color.getHex()
+          Materials.MeshLambertMaterial.emissive = obj_material.emissive.getHex()
+          Materials.MeshLambertMaterial.emissiveIntensity = obj_material.emissiveIntensity
+          Materials.MeshLambertMaterial.morphNormals = obj_material.morphNormals
+          Materials.MeshLambertMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshLambertMaterial.reflectivity = obj_material.reflectivity
+          Materials.MeshLambertMaterial.wireframe = obj_material.wireframe
+          Materials.MeshLambertMaterial.map = obj_material.map !== null ? "original" : "None"
+          Materials.MeshLambertMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
+          Materials.MeshLambertMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+          Materials.MeshLambertMaterial.specularMap = obj_material.specularMap !== null ? "original" : "None"
+          current_map = obj_material.map
+          current_alphaMap = obj_material.alphaMap
+          current_emissiveMap = obj_material.emissiveMap
+          current_specularMap = obj_material.specularMap
+          liStr = obj_material.map.image;
+            url=""
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
+          
+          case "MeshPhongMaterial":
+            Materials.MeshPhongMaterial.color = obj_material.color.getHex()
+            Materials.MeshPhongMaterial.emissive = obj_material.emissive.getHex()
+            Materials.MeshPhongMaterial.specular = obj_material.specular.getHex()
+            Materials.MeshPhongMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            Materials.MeshPhongMaterial.bumpScale = obj_material.bumpScale
+            Materials.MeshPhongMaterial.flatShading = obj_material.flatShading
+            Materials.MeshPhongMaterial.morphNormals = obj_material.morphNormals
+            Materials.MeshPhongMaterial.morphTargets = obj_material.morphTargets
+            Materials.MeshPhongMaterial.normalScale = obj_material.normalScale
+            Materials.MeshPhongMaterial.reflectivity = obj_material.reflectivity
+            Materials.MeshPhongMaterial.shininess = obj_material.shininess
+            Materials.MeshPhongMaterial.wireframe = obj_material.wireframe
+            Materials.MeshPhongMaterial.map = obj_material.map !== null ? "original" : "None"
+            Materials.MeshPhongMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
+            Materials.MeshPhongMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
+            Materials.MeshPhongMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
+            Materials.MeshPhongMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+            Materials.MeshPhongMaterial.specularMap = obj_material.specularMap !== null ? "original" : "None"
+            current_map = obj_material.map
+            current_bumpMap = obj_material.bumpMap
+            current_normalMap = obj_material.normalMap
+            current_alphaMap = obj_material.alphaMap
+            current_emissiveMap = obj_material.emissiveMap
+            current_specularMap = obj_material.specularMap
+            liStr = obj_material.map.image;
+            url=""
+            $('.list-drag').html(liStr);
+            $(".tip").hide();
+            break;
+          
+          case "MeshMatcapMaterial":
+            Materials.MeshMatcapMaterial.color = obj_material.color.getHex()
+            Materials.MeshMatcapMaterial.bumpScale = obj_material.bumpScale
+            Materials.MeshMatcapMaterial.flatShading = obj_material.flatShading
+            Materials.MeshMatcapMaterial.morphNormals = obj_material.morphNormals
+            Materials.MeshMatcapMaterial.morphTargets = obj_material.morphTargets
+            Materials.MeshMatcapMaterial.normalScale = obj_material.normalScale
+            Materials.MeshMatcapMaterial.map = obj_material.map !== null ? "original" : "None"
+            Materials.MeshMatcapMaterial.matcap = obj_material.matcap !== null ? "original" : "None"
+            Materials.MeshMatcapMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
+            Materials.MeshMatcapMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
+            Materials.MeshMatcapMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+            current_map = obj_material.map
+            current_bumpMap = obj_material.bumpMap
+            current_matcap = obj_material.matcap
+            current_normalMap = obj_material.normalMap
+            current_alphaMap = obj_material.alphaMap
+            liStr = obj_material.map.image;
+            url=""
+            $('.list-drag').html(liStr);
+            $(".tip").hide();
+            break;
+          
+          case "MeshToonMaterial":
+            Materials.MeshToonMaterial.color = obj_material.color.getHex()
+            Materials.MeshToonMaterial.emissive = obj_material.emissive.getHex()
+            Materials.MeshToonMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            Materials.MeshToonMaterial.bumpScale = obj_material.bumpScale
+            Materials.MeshToonMaterial.morphNormals = obj_material.morphNormals
+            Materials.MeshToonMaterial.morphTargets = obj_material.morphTargets
+            Materials.MeshToonMaterial.normalScale = obj_material.normalScale
+            Materials.MeshToonMaterial.wireframe = obj_material.wireframe
+            Materials.MeshToonMaterial.map = obj_material.map !== null ? "original" : "None"
+            Materials.MeshToonMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
+            Materials.MeshToonMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
+            Materials.MeshToonMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
+            Materials.MeshToonMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+            current_map = obj_material.map
+            current_bumpMap = obj_material.bumpMap
+            current_normalMap = obj_material.normalMap
+            current_emissiveMap = obj_material.emissiveMap
+            current_alphaMap = obj_material.alphaMap
+            liStr = obj_material.map.image;
+            url=""
+            $('.list-drag').html(liStr);
+            $(".tip").hide();
+            break;
+          
+          case "MeshStandardMaterial":
+            Materials.MeshStandardMaterial.color = obj_material.color.getHex()
+            Materials.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
+            Materials.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            Materials.MeshStandardMaterial.bumpScale = obj_material.bumpScale
+            Materials.MeshStandardMaterial.flatShading = obj_material.flatShading
+            Materials.MeshStandardMaterial.morphNormals = obj_material.morphNormals
+            Materials.MeshStandardMaterial.morphTargets = obj_material.morphTargets
+            Materials.MeshStandardMaterial.normalScale = obj_material.normalScale
+            Materials.MeshStandardMaterial.metalness = obj_material.metalness
+            Materials.MeshStandardMaterial.roughness = obj_material.roughness
+            Materials.MeshStandardMaterial.wireframe = obj_material.wireframe
+            Materials.MeshStandardMaterial.map = obj_material.map !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+            current_map = obj_material.map
+            current_bumpMap = obj_material.bumpMap
+            current_normalMap = obj_material.normalMap
+            current_alphaMap = obj_material.alphaMap
+            current_emissiveMap = obj_material.emissiveMap
+            liStr = obj_material.map.image;
+            url=""
+            $('.list-drag').html(liStr);
+            $(".tip").hide();
+            break;
+          
+          case "MeshStandardMaterial":
+            Materials.MeshStandardMaterial.color = obj_material.color.getHex()
+            Materials.MeshStandardMaterial.sheen = obj_material.sheen.getHex()
+            Materials.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
+            Materials.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            Materials.MeshStandardMaterial.bumpScale = obj_material.bumpScale
+            Materials.MeshStandardMaterial.flatShading = obj_material.flatShading
+            Materials.MeshStandardMaterial.clearcoat = obj_material.clearcoat
+            Materials.MeshStandardMaterial.clearcoatRoughness = obj_material.clearcoatRoughness
+            Materials.MeshStandardMaterial.ior = obj_material.ior
+            Materials.MeshStandardMaterial.reflectivity = obj_material.reflectivity
+            Materials.MeshStandardMaterial.transmission = obj_material.transmission
+            Materials.MeshStandardMaterial.morphNormals = obj_material.morphNormals
+            Materials.MeshStandardMaterial.morphTargets = obj_material.morphTargets
+            Materials.MeshStandardMaterial.normalScale = obj_material.normalScale
+            Materials.MeshStandardMaterial.metalness = obj_material.metalness
+            Materials.MeshStandardMaterial.roughness = obj_material.roughness
+            Materials.MeshStandardMaterial.wireframe = obj_material.wireframe
+            Materials.MeshStandardMaterial.map = obj_material.map !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
+            Materials.MeshStandardMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
+            current_map = obj_material.map
+            current_bumpMap = obj_material.bumpMap
+            current_normalMap = obj_material.normalMap
+            current_alphaMap = obj_material.alphaMap
+            current_emissiveMap = obj_material.emissiveMap
+            liStr = obj_material.map.image;
+            url=""
+            $('.list-drag').html(liStr);
+            $(".tip").hide();
+            break;
       }
     }
 
@@ -668,6 +860,7 @@
         for (var eachtype of Object.keys(Material_Type_Folder)) { Material_Type_Folder[eachtype].hide() }
         Material_Type_Folder[Material.material].show()
         material_folder.show()
+        Obj_to_GUI(selected[0].material[selected[1]])
         gui.updateDisplay()
       }
       else if (selected.length == 1) {
@@ -675,6 +868,7 @@
         for (var eachtype of Object.keys(Material_Type_Folder)) { Material_Type_Folder[eachtype].hide() }
         Material_Type_Folder[Material.material].show()
         material_folder.show()
+        Obj_to_GUI(selected[0].material)
         gui.updateDisplay()
       }
     }
@@ -701,6 +895,7 @@
       material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
       material_folder.add(Material, "transparent")
       material_folder.add(Material, "opacity", 0, 1, 0.01)
+      material_folder.add(Material, "alphaTest", 0, 1, 0.01)
       material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"])
       material_folder.add(Material, "vertexColors")
       material_folder.add(Material, "visible")
@@ -712,7 +907,7 @@
       material_folder.hide()
 
       folder_texture = material_folder.addFolder("Texture Transform")
-      folder_texture.add(TextureParams, "current", ['map', 'alphaMap', 'bumpMap', 'normalMap', 'emissiveMap', 'specularMap'])
+      folder_texture.add(TextureParams, "current", ['map', 'alphaMap', 'bumpMap', 'normalMap', 'emissiveMap', 'specularMap', 'matcap'])
       folder_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
       folder_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
       folder_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
@@ -1166,6 +1361,7 @@
         if (cover) {
           select_material(pointer, camera, pointer_patch, camera_patch);
           load_material()
+
         }
         cover = false;
       }
@@ -1469,7 +1665,7 @@
               })
             }
           }
-        } else if (cover_pointer.x < 1 - ($('#gui_container').width() / window.innerWidth * 2)) { select_recovery() }
+        } else if (cover_pointer.x < 1 - (($('#gui_container').width()+5) / window.innerWidth * 2)) { select_recovery() }
       } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         var intersects = raycaster.intersectObject(garment, true);
@@ -1551,7 +1747,7 @@
               }
             }
           }
-        } else if (cover_pointer.x < 1 - ($('#gui_container').width() / window.innerWidth * 2)) { select_recovery() }
+        } else if (cover_pointer.x < 1 - (($('#gui_container').width()+5) / window.innerWidth * 2)) { select_recovery() }
       }
     }
 
@@ -1949,7 +2145,7 @@
                     original.push(child.clone())
                     obj_vertices_count += child.geometry.attributes.position.count;
                     if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
-                    if (child.material.map === undefined) { child.material.map = textureloader.load("./texture/default.jpg"); }
+                    if (child.material.map === null) { child.material.map = textureloader.load("./texture/default.jpg"); }
                     child.castShadow = true;
                     child.receiveShadow = true;
                     child.geometry.computeFaceNormals();
@@ -1985,7 +2181,7 @@
       var result = []
       for (var i = 0; i < array.length; i++) {
         if (array[i].envMap !== undefined) { array[i].envMap = null }
-        if (array[i].map === undefined) { array[i].map = textureloader.load("./texture/default.jpg"); }
+        if (array[i].map === null) { array[i].map = textureloader.load("./texture/default.jpg"); }
         if (clone) result.push(array[i].clone())
         else result.push(array[i])
       }
