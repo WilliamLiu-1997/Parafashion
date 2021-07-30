@@ -987,7 +987,7 @@ var Controller = function () {
 		this.property = property;
 		this.__onChange = undefined;
 		this.__onFinishChange = undefined;
-
+		this.forceUpdateDisplay = true;
 	}
 	createClass( Controller, [ {
 		key: 'onChange',
@@ -1413,7 +1413,7 @@ var OptionController = function ( _Controller ) {
 		key: 'updateDisplay',
 		value: function updateDisplay() {
 
-			if ( dom.isActive( this.__select ) ) return this;
+			if (dom.isActive(this.__select) && !this.forceUpdateDisplay) return this;
 			this.__select.value = this.getValue();
 			return get( OptionController.prototype.__proto__ || Object.getPrototypeOf( OptionController.prototype ), 'updateDisplay', this ).call( this );
 
@@ -2378,7 +2378,7 @@ var GUI = function GUI( pars ) {
 	params.resizable = Common.isUndefined( params.parent ) && params.resizable;
 	if ( params.autoPlace && Common.isUndefined( params.scrollable ) ) {
 
-		params.scrollable = true;
+		params.scrollable = false;
 
 	}
 	var useLocalStorage = SUPPORTS_LOCAL_STORAGE && localStorage.getItem( getLocalStorageHash( this, 'isLocal' ) ) === 'true';
@@ -2821,32 +2821,32 @@ Common.extend( GUI.prototype,
 		onResize: function onResize() {
 
 			var root = this.getRoot();
-			if ( root.scrollable ) {
+			// if ( root.scrollable ) {
 
-				var top = dom.getOffset( root.__ul ).top;
-				var h = 0;
-				Common.each( root.__ul.childNodes, function ( node ) {
+			// 	var top = dom.getOffset( root.__ul ).top;
+			// 	var h = 0;
+			// 	Common.each( root.__ul.childNodes, function ( node ) {
 
-					if ( ! ( root.autoPlace && node === root.__save_row ) ) {
+			// 		if ( ! ( root.autoPlace && node === root.__save_row ) ) {
 
-						h += dom.getHeight( node );
+			// 			h += dom.getHeight( node );
 
-					}
+			// 		}
 
-				} );
-				if ( window.innerHeight - top - CLOSE_BUTTON_HEIGHT < h ) {
+			// 	} );
+			// 	if ( window.innerHeight - top - CLOSE_BUTTON_HEIGHT < h ) {
 
-					dom.addClass( root.domElement, GUI.CLASS_TOO_TALL );
-					root.__ul.style.height = window.innerHeight - top - CLOSE_BUTTON_HEIGHT + 'px';
+			// 		dom.addClass( root.domElement, GUI.CLASS_TOO_TALL );
+			// 		root.__ul.style.height = window.innerHeight - top - CLOSE_BUTTON_HEIGHT + 'px';
 
-				} else {
+			// 	} else {
 
-					dom.removeClass( root.domElement, GUI.CLASS_TOO_TALL );
-					root.__ul.style.height = 'auto';
+			// 		dom.removeClass( root.domElement, GUI.CLASS_TOO_TALL );
+			// 		root.__ul.style.height = 'auto';
 
-				}
+			// 	}
 
-			}
+			// }
 			if ( root.__resize_handle ) {
 
 				Common.defer( function () {
@@ -3102,8 +3102,8 @@ function augmentController( gui, li, controller ) {
 			return controller;
 
 		},
-		listen: function listen() {
-
+		listen: function(forceUpdateDisplay) {
+			controller.forceUpdateDisplay = !!forceUpdateDisplay;
 			controller.__gui.listen( controller );
 			return controller;
 
