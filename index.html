@@ -444,125 +444,88 @@
       //'SpriteMaterial': THREE.SpriteMaterial,
       //'PointsMaterial': THREE.PointsMaterial
       //'MeshNormalMaterial': {
-      //   bumpMap: "original",
       //   bumpScale: 1.0,
-      //   displacementMap: "original",
       //   displacementScale: 1.0,
       //   displacementBias: 0.0,
       //   flatShading: false,
       //   morphNormals: false,
       //   morphTargets: false,
-      //   normalMap: "original",
       //   normalScale: 1.0,//vector2
       //   wireframe: false,
       // },
       'MeshBasicMaterial': {
         color: 0xffffff,
-        map: "original",
         morphTargets: false,
         reflectivity: 0.5,
-        alphaMap: "original",
-        specularMap: "original",
         wireframe: false,
       },
       'MeshDepthMaterial': {
-        map: "original",
         morphTargets: false,
         wireframe: false,
-        alphaMap: "original",
       },
       'MeshLambertMaterial': {
         color: 0xffffff,
         emissive: 0x000000,
-        emissiveMap: "original",
         emissiveIntensity: 1.0,
-        map: "original",
         morphNormals: false,
         morphTargets: false,
         reflectivity: 0.5,
-        specularMap: "original",
         wireframe: false,
-        alphaMap: "original",
       },
       'MeshPhongMaterial': {
-        bumpMap: "original",
         bumpScale: 1.0,
         color: 0xffffff,
         emissive: 0x000000,
-        emissiveMap: "original",
         emissiveIntensity: 1.0,
         flatShading: false,
-        map: "original",
         morphNormals: false,
         morphTargets: false,
-        normalMap: "original",
         normalScale: new THREE.Vector2(1, 1),//vector2
         reflectivity: 0.5,
         shininess: 30,//0 to 100
         specular: 0x111111,
-        specularMap: "original",
         wireframe: false,
-        alphaMap: "original",
       },
       'MeshMatcapMaterial': {
-        bumpMap: "original",
         bumpScale: 1.0,
         color: 0xffffff,
         flatShading: false,
-        map: "original",
-        matcap: "original",
         morphNormals: false,
         morphTargets: false,
-        normalMap: "original",
         normalScale: new THREE.Vector2(1, 1),//vector2
-        alphaMap: "original",
       },
       'MeshToonMaterial': {
-        bumpMap: "original",
         bumpScale: 1.0,
         color: 0xffffff,
         emissive: 0x000000,
-        emissiveMap: "original",
         emissiveIntensity: 1.0,
-        map: "original",
         morphNormals: false,
         morphTargets: false,
-        normalMap: "original",
         normalScale: new THREE.Vector2(1, 1),//vector2
         wireframe: false,
-        alphaMap: "original",
       },
       'MeshStandardMaterial': {
-        bumpMap: "original",
         bumpScale: 1.0,
         color: 0xffffff,
         emissive: 0x000000,
-        emissiveMap: "original",
         emissiveIntensity: 1.0,
         flatShading: false,
-        map: "original",
         metalness: 0.0,
         morphNormals: false,
         morphTargets: false,
-        normalMap: "original",
         normalScale: new THREE.Vector2(1, 1),//vector2
         roughness: 1.0,
         wireframe: false,
-        alphaMap: "original",
       },
       'MeshPhysicalMaterial': {
-        bumpMap: "original",
         bumpScale: 1.0,
         color: 0xffffff,
         emissive: 0x000000,
-        emissiveMap: "original",
         emissiveIntensity: 1.0,
         flatShading: false,
-        map: "original",
         metalness: 0.0,
         morphNormals: false,
         morphTargets: false,
-        normalMap: "original",
         normalScale: new THREE.Vector2(1, 1),//vector2
         roughness: 1.0,
         wireframe: false,
@@ -572,7 +535,6 @@
         reflectivity: 0.5,
         sheen: 0x000000,//color
         transmission: 0.0,
-        alphaMap: "original",
       },
     }
 
@@ -631,7 +593,7 @@
       Original: original_texture,
       Custom: custom_texture
     }
-    var folder_basic, folder_env, material_folder, folder_texture, custom_material, current_map, current_alphaMap, current_specularMap, current_normalMap, current_bumpMap, current_emissiveMap, current_matcap;
+    var folder_basic, folder_env, material_folder, folder_texture, custom_material, basic_texture, depth_texture, lambert_texture, phong_texture, matcap_texture, toon_texture, standard_texture, physical_texture;
 
     function get_wrap(wrap) {
       if (wrap === Wrap.clamp) return "clamp"
@@ -641,7 +603,7 @@
     }
 
     function Obj_to_GUI(obj_material) {
-      if(obj_material.map===null)obj_material.map=textureloader.load("./texture/default.jpg");
+      if (obj_material.map === null) obj_material.map = textureloader.load("./texture/default.jpg");
       Material.opacity = obj_material.opacity
       Material.transparent = obj_material.transparent
       Material.alphaTest = obj_material.alphaTest
@@ -663,14 +625,8 @@
           Materials.MeshBasicMaterial.morphTargets = obj_material.morphTargets
           Materials.MeshBasicMaterial.reflectivity = obj_material.reflectivity
           Materials.MeshBasicMaterial.wireframe = obj_material.wireframe
-          Materials.MeshBasicMaterial.map = obj_material.map !== null ? "original" : "None"
-          Materials.MeshBasicMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-          Materials.MeshBasicMaterial.specularMap = obj_material.specularMap !== null ? "original" : "None"
-          current_map = obj_material.map
-          current_alphaMap = obj_material.alphaMap
-          current_specularMap = obj_material.specularMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
           $('.list-drag').html(liStr);
           $(".tip").hide();
           break;
@@ -678,16 +634,12 @@
         case "MeshDepthMaterial":
           Materials.MeshDepthMaterial.morphTargets = obj_material.morphTargets
           Materials.MeshDepthMaterial.wireframe = obj_material.wireframe
-          Materials.MeshDepthMaterial.map = obj_material.map !== null ? "original" : "None"
-          Materials.MeshDepthMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-          current_map = obj_material.map
-          current_alphaMap = obj_material.alphaMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
           $('.list-drag').html(liStr);
           $(".tip").hide();
           break;
-          
+
         case "MeshLambertMaterial":
           Materials.MeshLambertMaterial.color = obj_material.color.getHex()
           Materials.MeshLambertMaterial.emissive = obj_material.emissive.getHex()
@@ -696,160 +648,100 @@
           Materials.MeshLambertMaterial.morphTargets = obj_material.morphTargets
           Materials.MeshLambertMaterial.reflectivity = obj_material.reflectivity
           Materials.MeshLambertMaterial.wireframe = obj_material.wireframe
-          Materials.MeshLambertMaterial.map = obj_material.map !== null ? "original" : "None"
-          Materials.MeshLambertMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
-          Materials.MeshLambertMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-          Materials.MeshLambertMaterial.specularMap = obj_material.specularMap !== null ? "original" : "None"
-          current_map = obj_material.map
-          current_alphaMap = obj_material.alphaMap
-          current_emissiveMap = obj_material.emissiveMap
-          current_specularMap = obj_material.specularMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
           $('.list-drag').html(liStr);
           $(".tip").hide();
           break;
-          
-          case "MeshPhongMaterial":
-            Materials.MeshPhongMaterial.color = obj_material.color.getHex()
-            Materials.MeshPhongMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshPhongMaterial.specular = obj_material.specular.getHex()
-            Materials.MeshPhongMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshPhongMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshPhongMaterial.flatShading = obj_material.flatShading
-            Materials.MeshPhongMaterial.morphNormals = obj_material.morphNormals
-            Materials.MeshPhongMaterial.morphTargets = obj_material.morphTargets
-            Materials.MeshPhongMaterial.normalScale = obj_material.normalScale
-            Materials.MeshPhongMaterial.reflectivity = obj_material.reflectivity
-            Materials.MeshPhongMaterial.shininess = obj_material.shininess
-            Materials.MeshPhongMaterial.wireframe = obj_material.wireframe
-            Materials.MeshPhongMaterial.map = obj_material.map !== null ? "original" : "None"
-            Materials.MeshPhongMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
-            Materials.MeshPhongMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
-            Materials.MeshPhongMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
-            Materials.MeshPhongMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-            Materials.MeshPhongMaterial.specularMap = obj_material.specularMap !== null ? "original" : "None"
-            current_map = obj_material.map
-            current_bumpMap = obj_material.bumpMap
-            current_normalMap = obj_material.normalMap
-            current_alphaMap = obj_material.alphaMap
-            current_emissiveMap = obj_material.emissiveMap
-            current_specularMap = obj_material.specularMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
-            $('.list-drag').html(liStr);
-            $(".tip").hide();
-            break;
-          
-          case "MeshMatcapMaterial":
-            Materials.MeshMatcapMaterial.color = obj_material.color.getHex()
-            Materials.MeshMatcapMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshMatcapMaterial.flatShading = obj_material.flatShading
-            Materials.MeshMatcapMaterial.morphNormals = obj_material.morphNormals
-            Materials.MeshMatcapMaterial.morphTargets = obj_material.morphTargets
-            Materials.MeshMatcapMaterial.normalScale = obj_material.normalScale
-            Materials.MeshMatcapMaterial.map = obj_material.map !== null ? "original" : "None"
-            Materials.MeshMatcapMaterial.matcap = obj_material.matcap !== null ? "original" : "None"
-            Materials.MeshMatcapMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
-            Materials.MeshMatcapMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
-            Materials.MeshMatcapMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-            current_map = obj_material.map
-            current_bumpMap = obj_material.bumpMap
-            current_matcap = obj_material.matcap
-            current_normalMap = obj_material.normalMap
-            current_alphaMap = obj_material.alphaMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
-            $('.list-drag').html(liStr);
-            $(".tip").hide();
-            break;
-          
-          case "MeshToonMaterial":
-            Materials.MeshToonMaterial.color = obj_material.color.getHex()
-            Materials.MeshToonMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshToonMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshToonMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshToonMaterial.morphNormals = obj_material.morphNormals
-            Materials.MeshToonMaterial.morphTargets = obj_material.morphTargets
-            Materials.MeshToonMaterial.normalScale = obj_material.normalScale
-            Materials.MeshToonMaterial.wireframe = obj_material.wireframe
-            Materials.MeshToonMaterial.map = obj_material.map !== null ? "original" : "None"
-            Materials.MeshToonMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
-            Materials.MeshToonMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
-            Materials.MeshToonMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
-            Materials.MeshToonMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-            current_map = obj_material.map
-            current_bumpMap = obj_material.bumpMap
-            current_normalMap = obj_material.normalMap
-            current_emissiveMap = obj_material.emissiveMap
-            current_alphaMap = obj_material.alphaMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
-            $('.list-drag').html(liStr);
-            $(".tip").hide();
-            break;
-          
-          case "MeshStandardMaterial":
-            Materials.MeshStandardMaterial.color = obj_material.color.getHex()
-            Materials.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshStandardMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshStandardMaterial.flatShading = obj_material.flatShading
-            Materials.MeshStandardMaterial.morphNormals = obj_material.morphNormals
-            Materials.MeshStandardMaterial.morphTargets = obj_material.morphTargets
-            Materials.MeshStandardMaterial.normalScale = obj_material.normalScale
-            Materials.MeshStandardMaterial.metalness = obj_material.metalness
-            Materials.MeshStandardMaterial.roughness = obj_material.roughness
-            Materials.MeshStandardMaterial.wireframe = obj_material.wireframe
-            Materials.MeshStandardMaterial.map = obj_material.map !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-            current_map = obj_material.map
-            current_bumpMap = obj_material.bumpMap
-            current_normalMap = obj_material.normalMap
-            current_alphaMap = obj_material.alphaMap
-            current_emissiveMap = obj_material.emissiveMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
-            $('.list-drag').html(liStr);
-            $(".tip").hide();
-            break;
-          
-          case "MeshStandardMaterial":
-            Materials.MeshStandardMaterial.color = obj_material.color.getHex()
-            Materials.MeshStandardMaterial.sheen = obj_material.sheen.getHex()
-            Materials.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshStandardMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshStandardMaterial.flatShading = obj_material.flatShading
-            Materials.MeshStandardMaterial.clearcoat = obj_material.clearcoat
-            Materials.MeshStandardMaterial.clearcoatRoughness = obj_material.clearcoatRoughness
-            Materials.MeshStandardMaterial.ior = obj_material.ior
-            Materials.MeshStandardMaterial.reflectivity = obj_material.reflectivity
-            Materials.MeshStandardMaterial.transmission = obj_material.transmission
-            Materials.MeshStandardMaterial.morphNormals = obj_material.morphNormals
-            Materials.MeshStandardMaterial.morphTargets = obj_material.morphTargets
-            Materials.MeshStandardMaterial.normalScale = obj_material.normalScale
-            Materials.MeshStandardMaterial.metalness = obj_material.metalness
-            Materials.MeshStandardMaterial.roughness = obj_material.roughness
-            Materials.MeshStandardMaterial.wireframe = obj_material.wireframe
-            Materials.MeshStandardMaterial.map = obj_material.map !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.bumpMap = obj_material.bumpMap !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.normalMap = obj_material.normalMap !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.emissiveMap = obj_material.emissiveMap !== null ? "original" : "None"
-            Materials.MeshStandardMaterial.alphaMap = obj_material.alphaMap !== null ? "original" : "None"
-            current_map = obj_material.map
-            current_bumpMap = obj_material.bumpMap
-            current_normalMap = obj_material.normalMap
-            current_alphaMap = obj_material.alphaMap
-            current_emissiveMap = obj_material.emissiveMap
-            url=obj_material.map.image.src
-            liStr = `<img src="${url}"/>`;
-            $('.list-drag').html(liStr);
-            $(".tip").hide();
-            break;
+
+        case "MeshPhongMaterial":
+          Materials.MeshPhongMaterial.color = obj_material.color.getHex()
+          Materials.MeshPhongMaterial.emissive = obj_material.emissive.getHex()
+          Materials.MeshPhongMaterial.specular = obj_material.specular.getHex()
+          Materials.MeshPhongMaterial.emissiveIntensity = obj_material.emissiveIntensity
+          Materials.MeshPhongMaterial.bumpScale = obj_material.bumpScale
+          Materials.MeshPhongMaterial.flatShading = obj_material.flatShading
+          Materials.MeshPhongMaterial.morphNormals = obj_material.morphNormals
+          Materials.MeshPhongMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshPhongMaterial.normalScale = obj_material.normalScale
+          Materials.MeshPhongMaterial.reflectivity = obj_material.reflectivity
+          Materials.MeshPhongMaterial.shininess = obj_material.shininess
+          Materials.MeshPhongMaterial.wireframe = obj_material.wireframe
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
+
+        case "MeshMatcapMaterial":
+          Materials.MeshMatcapMaterial.color = obj_material.color.getHex()
+          Materials.MeshMatcapMaterial.bumpScale = obj_material.bumpScale
+          Materials.MeshMatcapMaterial.flatShading = obj_material.flatShading
+          Materials.MeshMatcapMaterial.morphNormals = obj_material.morphNormals
+          Materials.MeshMatcapMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshMatcapMaterial.normalScale = obj_material.normalScale
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
+
+        case "MeshToonMaterial":
+          Materials.MeshToonMaterial.color = obj_material.color.getHex()
+          Materials.MeshToonMaterial.emissive = obj_material.emissive.getHex()
+          Materials.MeshToonMaterial.emissiveIntensity = obj_material.emissiveIntensity
+          Materials.MeshToonMaterial.bumpScale = obj_material.bumpScale
+          Materials.MeshToonMaterial.morphNormals = obj_material.morphNormals
+          Materials.MeshToonMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshToonMaterial.normalScale = obj_material.normalScale
+          Materials.MeshToonMaterial.wireframe = obj_material.wireframe
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
+
+        case "MeshStandardMaterial":
+          Materials.MeshStandardMaterial.color = obj_material.color.getHex()
+          Materials.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
+          Materials.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
+          Materials.MeshStandardMaterial.bumpScale = obj_material.bumpScale
+          Materials.MeshStandardMaterial.flatShading = obj_material.flatShading
+          Materials.MeshStandardMaterial.morphNormals = obj_material.morphNormals
+          Materials.MeshStandardMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshStandardMaterial.normalScale = obj_material.normalScale
+          Materials.MeshStandardMaterial.metalness = obj_material.metalness
+          Materials.MeshStandardMaterial.roughness = obj_material.roughness
+          Materials.MeshStandardMaterial.wireframe = obj_material.wireframe
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
+
+        case "MeshStandardMaterial":
+          Materials.MeshStandardMaterial.color = obj_material.color.getHex()
+          Materials.MeshStandardMaterial.sheen = obj_material.sheen.getHex()
+          Materials.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
+          Materials.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
+          Materials.MeshStandardMaterial.bumpScale = obj_material.bumpScale
+          Materials.MeshStandardMaterial.flatShading = obj_material.flatShading
+          Materials.MeshStandardMaterial.clearcoat = obj_material.clearcoat
+          Materials.MeshStandardMaterial.clearcoatRoughness = obj_material.clearcoatRoughness
+          Materials.MeshStandardMaterial.ior = obj_material.ior
+          Materials.MeshStandardMaterial.reflectivity = obj_material.reflectivity
+          Materials.MeshStandardMaterial.transmission = obj_material.transmission
+          Materials.MeshStandardMaterial.morphNormals = obj_material.morphNormals
+          Materials.MeshStandardMaterial.morphTargets = obj_material.morphTargets
+          Materials.MeshStandardMaterial.normalScale = obj_material.normalScale
+          Materials.MeshStandardMaterial.metalness = obj_material.metalness
+          Materials.MeshStandardMaterial.roughness = obj_material.roughness
+          Materials.MeshStandardMaterial.wireframe = obj_material.wireframe
+          url = obj_material.map.image.src
+          liStr = `<img src="${url}"/>`;
+          $('.list-drag').html(liStr);
+          $(".tip").hide();
+          break;
       }
     }
 
@@ -899,37 +791,38 @@
       material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"])
       material_folder.add(Material, "vertexColors")
       material_folder.add(Material, "visible")
-      material_folder.add(TextureOffset.offset, "x", -10, 10, 0.01).name("maps.offset.x")
-      material_folder.add(TextureOffset.offset, "y", -10, 10, 0.01).name("maps.offset.y")
-      material_folder.add(TextureOffset.repeat, "x", 0.1, 10, 0.1).name("maps.repeat.x")
-      material_folder.add(TextureOffset.repeat, "y", 0.1, 10, 0.1).name("maps.repeat.y")
+      material_folder.add(TextureOffset.offset, "x", -10, 10, 0.01).name("texture offset.x")
+      material_folder.add(TextureOffset.offset, "y", -10, 10, 0.01).name("texture offset.y")
+      material_folder.add(TextureOffset.repeat, "x", 0.1, 10, 0.1).name("texture repeat.x")
+      material_folder.add(TextureOffset.repeat, "y", 0.1, 10, 0.1).name("texture repeat.y")
       material_folder.open()
       material_folder.hide()
-
-      folder_texture = material_folder.addFolder("Texture Transform")
-      folder_texture.add(TextureParams, "current", ['map', 'alphaMap', 'bumpMap', 'normalMap', 'emissiveMap', 'specularMap', 'matcap'])
-      folder_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
-      folder_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
-      folder_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
-      folder_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
-      folder_texture.open()
 
       Material_Type_Folder.MeshBasicMaterial = material_folder.addFolder("Basic Material")
       Material_Type_Folder.MeshBasicMaterial.addColor(Materials.MeshBasicMaterial, "color")
       Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01)
       Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "morphTargets")
       Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe")
-      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "alphaMap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "specularMap", ['None', 'original', 'Custom'])
+      basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
+      basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map")
+      basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      basic_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      basic_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      basic_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      basic_texture.open()
       Material_Type_Folder.MeshBasicMaterial.open()
 
 
       Material_Type_Folder.MeshDepthMaterial = material_folder.addFolder("Depth Material")
       Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "morphTargets")
       Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "wireframe")
-      Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "alphaMap", ['None', 'original', 'Custom'])
+      depth_texture = Material_Type_Folder.MeshDepthMaterial.addFolder("Texture")
+      depth_texture.add(TextureParams, "current", ['map', 'alphaMap']).name("map")
+      depth_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      depth_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      depth_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      depth_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      depth_texture.open()
       Material_Type_Folder.MeshDepthMaterial.open()
 
 
@@ -939,12 +832,15 @@
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "morphNormals")
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "morphTargets")
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe")
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "emissive")
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveMap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "specularMap", ['None', 'original', 'Custom'])
+      lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
+      lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map")
+      lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      lambert_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      lambert_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      lambert_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      lambert_texture.open()
       Material_Type_Folder.MeshLambertMaterial.open()
 
 
@@ -956,18 +852,19 @@
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "morphTargets")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "flatShading")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe")
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "alphaMap", ['None', 'original', 'Custom'])
+      Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "specular")
       Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "emissive")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveMap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", -10, 10, 0.01)
-      Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "specular")
-      Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "specularMap", ['None', 'original', 'Custom'])
+      phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
+      phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map")
+      phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      phong_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      phong_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      phong_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      phong_texture.open()
       Material_Type_Folder.MeshPhongMaterial.open()
 
       Material_Type_Folder.MeshMatcapMaterial = material_folder.addFolder("Matcap Material")
@@ -975,14 +872,16 @@
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "morphNormals")
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "morphTargets")
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "flatShading")
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "alphaMap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "matcap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpScale", -10, 10, 0.01)
+      matcap_texture = Material_Type_Folder.MeshMatcapMaterial.addFolder("Texture")
+      matcap_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'matcap']).name("map")
+      matcap_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      matcap_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      matcap_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      matcap_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      matcap_texture.open()
       Material_Type_Folder.MeshMatcapMaterial.open()
 
 
@@ -991,16 +890,18 @@
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "morphNormals")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "morphTargets")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe")
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "emissive")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveMap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", -10, 10, 0.01)
+      toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
+      toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map")
+      toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      toon_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      toon_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      toon_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      toon_texture.open()
       Material_Type_Folder.MeshToonMaterial.open()
 
 
@@ -1012,16 +913,18 @@
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "morphTargets")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "flatShading")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe")
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "emissive")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveMap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", -10, 10, 0.01)
+      standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
+      standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map")
+      standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      standard_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      standard_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      standard_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      standard_texture.open()
       Material_Type_Folder.MeshStandardMaterial.open()
 
 
@@ -1039,16 +942,18 @@
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "morphTargets")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe")
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "map", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "alphaMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "emissive")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 10, 0.01)
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveMap", ['None', 'original', 'Custom'])
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "normalMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", -10, 10, 0.01).name("normalScale.x")
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", -10, 10, 0.01).name("normalScale.y")
-      Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpMap", ['None', 'original', 'Custom'])
       Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", -10, 10, 0.01)
+      physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
+      physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map")
+      physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"])
+      physical_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01)
+      physical_texture.add(TextureParams.center, "x", -10, 10, 0.01).name("center.x")
+      physical_texture.add(TextureParams.center, "y", -10, 10, 0.01).name("center.x")
+      physical_texture.open()
       Material_Type_Folder.MeshPhysicalMaterial.open()
 
       //for(var eachtype of Object.keys(Material_Type_Folder)){Material_Type_Folder[eachtype].hide()}
@@ -1360,7 +1265,7 @@
         if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
           select_material(pointer, camera, pointer_patch, camera_patch);
-          if (pointer.x < 1 - (($('#gui_container').width()+5) / window.innerWidth * 2))load_material()
+          if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) load_material()
         }
         cover = false;
       }
@@ -1664,7 +1569,7 @@
               })
             }
           }
-        } else if (cover_pointer.x < 1 - (($('#gui_container').width()+5) / window.innerWidth * 2)) { select_recovery() }
+        } else if (cover_pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) { select_recovery() }
       } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         var intersects = raycaster.intersectObject(garment, true);
@@ -1746,7 +1651,7 @@
               }
             }
           }
-        } else if (cover_pointer.x < 1 - (($('#gui_container').width()+5) / window.innerWidth * 2)) { select_recovery() }
+        } else if (cover_pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) { select_recovery() }
       }
     }
 
