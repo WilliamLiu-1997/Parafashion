@@ -988,7 +988,7 @@
       folder_env.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
       folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background));
       folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background))
-      // "BathRoom", 'Church', "Gallery", "Square"
+      // other options: "BathRoom", 'Church', "Gallery", "Square"
       folder_env.open()
 
       material_folder = gui.addFolder("Material")
@@ -1409,22 +1409,8 @@
         onWindowResize();
       }
       else if (progress_obj + progress_mtl == -2) {
-        //****************************************************************************************
-        // if (url) {
-        //   if (selected.length == 2) {
-        //     selected[0].material[selected[1]]=selected[0].material[selected[1]].clone();
-        //     selected_patch[0].material=selected_patch[0].material.clone();
-        //     updateUvTransform(selected[0].material[selected[1]]);
-        //     updateUvTransform(selected_patch[0].material)
-        //   }          
-        //   else if (selected.length == 1) {
-        //     selected[0].material=selected[0].material.clone();
-        //     selected_patch[0].material=selected_patch[0].material.clone();
-        //     updateUvTransform(selected[0].material);
-        //     updateUvTransform(selected_patch[0].material)
-        //   }
-        // }
-        //****************************************************************************************
+
+
       }
 
       $(".up-area").css({ "width": $(".dg.main").css("width") })
@@ -2393,21 +2379,6 @@
             last_y -= max_height * 1.5;
             max_height = 0
           }
-          // let count=patch.attributes.uv.count
-          //   let positions=new Float32Array(count*3)
-          //   let normals=new Float32Array(count*3)
-          //   for(let i=0;i<count;i++){
-          //     positions[i*3]=patch.attributes.uv.array[i*2]
-          //     positions[i*3+1]=patch.attributes.uv.array[i*2+1]
-          //     positions[i*3+2]=0
-          //     normals[i*3]=0
-          //     normals[i*3+1]=0
-          //     normals[i*3+2]=1
-          //   }
-          //   patch.deleteAttribute("position");
-          //   patch.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
-          //   patch.deleteAttribute("normal");
-          //   patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
           let vertices = [];
           let normals = [];
           for (var i = 0; i < uv[x].length; i++) {
@@ -2459,7 +2430,6 @@
           }
           last_x = last_x == -Infinity ? first * scale : last_x;
           patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
-          //patch_map.rotateZ(Math.PI)
           last_x += radius_x * 1.5 * scale;
           patch_map.scale.set(scale, scale, scale);
           newobj.add(patch_map);
@@ -2518,7 +2488,6 @@
           return
         }
         url = window.URL.createObjectURL(file);
-        //custom_texture = textureloader.load(url);
         let liStr = `<img src="${url}"/>`;
         $('.list-drag').html(liStr);
         $(".tip").hide();
