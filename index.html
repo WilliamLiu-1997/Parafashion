@@ -450,6 +450,7 @@
         let liStr = "";
         $('.list-drag').html(liStr);
         $(".tip").show();
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
       },
       set_default: function () {
         let num = garment.children[0].children.length;
@@ -480,6 +481,7 @@
         let liStr = "";
         $('.list-drag').html(liStr);
         $(".tip").show();
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
       },
       env: "None",
       Rotate: false,
@@ -602,6 +604,7 @@
               selected_patch[0].material = n.material[selected[1]].clone()
               Obj_to_GUI(n.material[selected[1]])
               gui.updateDisplay()
+              Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
               return;
             }
           }
@@ -614,6 +617,7 @@
               selected_patch[0].material = n.material.clone()
               Obj_to_GUI(n.material)
               gui.updateDisplay()
+              Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
               return;
             }
           }
@@ -629,6 +633,7 @@
           selected_patch[0].material = selected[0].material[selected[1]].clone()
           Obj_to_GUI(selected[0].material[selected[1]])
           gui.updateDisplay()
+          Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
           return;
 
         }
@@ -640,6 +645,7 @@
           selected_patch[0].material = selected[0].material.clone()
           Obj_to_GUI(selected[0].material)
           gui.updateDisplay()
+          Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
           return;
         }
         else { return }
