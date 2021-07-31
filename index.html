@@ -493,32 +493,11 @@
 
 
     var Materials = {
-      //'LineBasicMaterial': THREE.LineBasicMaterial,
-      //'LineDashedMaterial': THREE.LineDashedMaterial,
-      //'RawShaderMaterial': THREE.RawShaderMaterial,
-      //'ShaderMaterial': THREE.ShaderMaterial,
-      //'ShadowMaterial': THREE.ShadowMaterial,
-      //'SpriteMaterial': THREE.SpriteMaterial,
-      //'PointsMaterial': THREE.PointsMaterial
-      //'MeshNormalMaterial': {
-      //   bumpScale: 1.0,
-      //   displacementScale: 1.0,
-      //   displacementBias: 0.0,
-      //   flatShading: false,
-      //   morphNormals: false,
-      //   morphTargets: false,
-      //   normalScale: 1.0,//vector2
-      //   wireframe: false,
-      // },
       'MeshBasicMaterial': {
         color: 0xffffff,
         reflectivity: 0.5,
         wireframe: false,
       },
-      // 'MeshDepthMaterial': {
-      //   morphTargets: false,
-      //   wireframe: false,
-      // },
       'MeshLambertMaterial': {
         color: 0xffffff,
         emissive: 0x000000,
@@ -785,11 +764,6 @@
           Materials.MeshBasicMaterial.wireframe = obj_material.wireframe
           break;
 
-        // case "MeshDepthMaterial":
-        //   Materials.MeshDepthMaterial.morphTargets = obj_material.morphTargets
-        //   Materials.MeshDepthMaterial.wireframe = obj_material.wireframe
-        //   break;
-
         case "MeshLambertMaterial":
           Materials.MeshLambertMaterial.color = obj_material.color.getHex()
           Materials.MeshLambertMaterial.emissive = obj_material.emissive.getHex()
@@ -890,12 +864,6 @@
           obj_material.reflectivity = Materials.MeshBasicMaterial.reflectivity
           obj_material.wireframe = Materials.MeshBasicMaterial.wireframe
           break;
-
-        // case "MeshDepthMaterial":
-        //   if (obj_material.type != Material.material) obj_material = new THREE.MeshDepthMaterial()
-        //   obj_material.morphTargets = Materials.MeshDepthMaterial.morphTargets
-        //   obj_material.wireframe = Materials.MeshDepthMaterial.wireframe
-        //   break;
 
         case "MeshLambertMaterial":
           if (obj_material.type != Material.material) { obj_material = new THREE.MeshLambertMaterial({ map: default_texture, side: THREE.DoubleSide }) }
@@ -1054,23 +1022,6 @@
       Material_Type_Folder.MeshBasicMaterial.open()
 
 
-      // Material_Type_Folder.MeshDepthMaterial = material_folder.addFolder("Depth Material")
-      // Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "morphTargets").onChange(() => Material_Update())
-      // Material_Type_Folder.MeshDepthMaterial.add(Materials.MeshDepthMaterial, "wireframe").onChange(() => Material_Update())
-      // depth_texture = Material_Type_Folder.MeshDepthMaterial.addFolder("Texture")
-      // depth_texture.add(TextureParams, "current", ['map', 'alphaMap']).name("map").onChange(() => Texture_to_GUI())
-      // depth_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-      // depth_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture())
-      // depth_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture())
-      // depth_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture())
-      // depth_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture())
-      // depth_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-      // depth_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-      // depth_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
-      // depth_texture.open()
-      // Material_Type_Folder.MeshDepthMaterial.open()
-
-
       Material_Type_Folder.MeshLambertMaterial = material_folder.addFolder("Lambert Material")
       Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "color").onChange(() => Material_Update())
       Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update())
@@ -1218,8 +1169,6 @@
       physical_texture.add(TextureParams,"remove").name("Remove Texture")
       physical_texture.open()
       Material_Type_Folder.MeshPhysicalMaterial.open()
-
-      //for(var eachtype of Object.keys(Material_Type_Folder)){Material_Type_Folder[eachtype].hide()}
     }
 
 
