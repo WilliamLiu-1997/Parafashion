@@ -1231,7 +1231,7 @@ function onmouseDown(event) {
 
         if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
-            select_material(pointer, camera, pointer_patch, camera_patch);
+            select_material(pointer, camera, pointer_patch, camera_patch,event);
             if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) load_material()
         }
         cover = false;
@@ -1269,7 +1269,7 @@ function mouseMove(event) {
     if (drawing) {
     } else if (gui_options.cut) { }
     else if (cover) {
-        cover_material(pointer, camera, pointer_patch, camera_patch);
+        cover_material(pointer, camera, pointer_patch, camera_patch,event);
     }
 }
 
@@ -1291,7 +1291,7 @@ function select_recovery() {
     selected_patch = []
 }
 
-function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch) {
+function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch,event) {
 
     if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) {
         cover_recovery();
@@ -1457,7 +1457,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
 }
 
 
-function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch) {
+function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch,event) {
     if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) {
         return;
     }
