@@ -1677,7 +1677,6 @@ function individual(bufGeom, ig) {
 function individual_garmentToPatch(bufGeom, ig) {
 
     var groups = bufGeom.groups;
-    var origVerts = bufGeom.getAttribute('position').array;
     var origNormals = bufGeom.getAttribute('normal').array;
     var origUVs = bufGeom.getAttribute('uv').array;
     var group = groups[ig];
@@ -1771,7 +1770,6 @@ function seperateGroups_garmentToPatch(bufGeom) {
     var outGeometries = [];
     var groups = bufGeom.groups;
 
-    var origVerts = bufGeom.getAttribute('position').array;
     var origNormals = bufGeom.getAttribute('normal').array;
     var origUVs = bufGeom.getAttribute('uv').array;
     for (var ig = 0, ng = groups.length; ig < ng; ig++) {
@@ -1816,18 +1814,6 @@ function seperateGroups_garmentToPatch(bufGeom) {
 
 }
 
-
-function updateUvTransform(material) {
-    if (!material) return;
-    material.needsUpdate = true;
-    material.map.needsUpdate = true;
-    material.map.wrapS = texture_wrap[TextureParams.wrap];
-    material.map.wrapT = texture_wrap[TextureParams.wrap];
-    material.map.offset.set(TextureParams.offsetX, TextureParams.offsetY);
-    material.map.repeat.set(TextureParams.repeatX, TextureParams.repeatY);
-    material.map.center.set(TextureParams.centerX, TextureParams.centerY);
-    material.map.rotation = TextureParams.rotation;
-}
 
 function Show(Rotate) {
     if (controls !== undefined) {
