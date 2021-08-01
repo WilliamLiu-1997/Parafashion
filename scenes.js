@@ -403,11 +403,6 @@ var Material = {
     visible: true,
 }
 
-var texture_wrap = {
-    repeat: THREE.RepeatWrapping,
-    mirror: THREE.MirroredRepeatWrapping,
-    clamp: THREE.ClampToEdgeWrapping
-}
 var TextureParams = {
     current: "map",
     wrap: "clamp",
