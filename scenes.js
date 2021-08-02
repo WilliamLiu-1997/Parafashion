@@ -1307,7 +1307,7 @@ function select_recovery() {
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
 
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) {
+    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)&&pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight+document.getElementById('texture_container').offsetHeight+window.innerHeight*0.05 + 50) / window.innerHeight * 2)) {
         cover_recovery();
         return;
     }
@@ -1442,7 +1442,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
 
 
 function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) {
+    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)&&pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight+document.getElementById('texture_container').offsetHeight+window.innerHeight*0.05 + 50) / window.innerHeight * 2)) {
         return;
     }
     if (progress_obj + progress_mtl != -2) {
@@ -1514,7 +1514,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                     })
                 }
             }
-        } else if (cover_pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) { select_recovery() }
+        } else{ select_recovery() }
     } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         var intersects = raycaster.intersectObject(garment, true);
@@ -1581,7 +1581,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                     }
                 }
             }
-        } else if (cover_pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) { select_recovery() }
+        } else{ select_recovery() }
     }
 }
 
