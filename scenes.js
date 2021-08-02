@@ -182,6 +182,10 @@ var environment = {
     Square: env7, Park: env1, PlayingRoom: env2, Alley: env3, Sky: env4, Bridge: env5, Gallery: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env13, BedRoom: env9, BathRoom: env14, Town: env15
 }
 
+var environment_light = {
+    Square: [0.4,0.2], Park: [0.4,0.2], PlayingRoom: [0.6,0.4], Alley: [0.5,0.3], Sky: [0.5,0.7], Bridge: [0.5,0.2], Gallery: [0.4,0.6], None: [0.8,0.2], Snow: [0.4,0.2], LivingRoom: [0.35,0.65], Street: [0.42,0.6], Church: [0.2,0.8], Restaurant: [0.5,0.35], BedRoom: [0.4,0.5], BathRoom: [0.35,0.75], Town: [0.3,0.2]
+}
+
 function Reflectivity() {
     if (gui_options.Overall_Reflectivity === NaN) return;
     garment.traverse(function (child) {
@@ -214,11 +218,11 @@ function Reflectivity() {
 
     if (selected.length == 2) {
         gui.updateDisplay()
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
     }
     else if (selected.length == 1) {
         gui.updateDisplay()
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
     }
 }
 var gui_options = {
@@ -267,7 +271,7 @@ var gui_options = {
         let liStr = "";
         $('.list-drag').html(liStr);
         $(".tip").show();
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
     },
     set_default: function () {
         let num = garment.children[0].children.length;
@@ -308,7 +312,7 @@ var gui_options = {
         let liStr = "";
         $('.list-drag').html(liStr);
         $(".tip").show();
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background);
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env]);
     },
     Overall_Reflectivity: 1,
     env: "None",
@@ -411,7 +415,7 @@ var Material = {
                     selected_patch[0].material = n.material[selected[1]].clone()
                     Obj_to_GUI(n.material[selected[1]])
                     gui.updateDisplay()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
                     return;
                 }
             }
@@ -424,7 +428,7 @@ var Material = {
                     selected_patch[0].material = n.material.clone()
                     Obj_to_GUI(n.material)
                     gui.updateDisplay()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
                     return;
                 }
             }
@@ -440,7 +444,7 @@ var Material = {
             selected_patch[0].material = selected[0].material[selected[1]].clone()
             Obj_to_GUI(selected[0].material[selected[1]])
             gui.updateDisplay()
-            Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+            Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
             return;
 
         }
@@ -452,7 +456,7 @@ var Material = {
             selected_patch[0].material = selected[0].material.clone()
             Obj_to_GUI(selected[0].material)
             gui.updateDisplay()
-            Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+            Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
             return;
         }
         else { return }
@@ -563,7 +567,7 @@ function GUI_to_Texture() {
         selected[0].material = obj_material
         selected_patch[0].material = obj_material.clone()
     }
-    Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+    Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
 }
 
 function Obj_to_GUI(obj_material) {
@@ -811,8 +815,8 @@ function GUI_init() {
 
     folder_env = gui.addFolder("Environment")
     folder_env.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-    folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background));
-    folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background))
+    folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env]));
+    folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env]))
     // other options: "BathRoom", 'Church', "Gallery", "Square"
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Overall Reflectivity');
     folder_env.open()
@@ -1228,7 +1232,7 @@ function animate() {
         document.addEventListener("mousemove", mouseMove, false);
 
         $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color='#a0a0a0'>Vertices: " + obj_vertices_count + "</font></p>")
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background);
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env]);
         onWindowResize();
 
 
@@ -1818,9 +1822,11 @@ function Show(Rotate) {
 }
 
 
-function Display(show_env, patch_env) {
+function Display(show_env, patch_env,light) {
     if (show_env) {
         scene.background = show_env;
+        cameralight.intensity=light[0]
+        env_light.intensity=light[1]
         if (garment !== undefined) {
             garment.traverse(function (child) {
                 if (child.material !== undefined) {
@@ -1838,6 +1844,8 @@ function Display(show_env, patch_env) {
         }
         if (patch_env) {
             scene_patch.background = show_env;
+            cameralight_patch.intensity=light[0]
+            env_light_patch.intensity=light[1]
             if (patch !== undefined) {
                 patch.traverse(function (child) {
                     if (child.material !== undefined) {
@@ -1855,6 +1863,8 @@ function Display(show_env, patch_env) {
             }
         } else {
             scene_patch.background = null;
+            cameralight_patch.intensity=0.8
+            env_light_patch.intensity=0.2
             if (patch !== undefined) {
                 patch.traverse(function (child) {
                     if (child.material !== undefined) {
@@ -1874,6 +1884,8 @@ function Display(show_env, patch_env) {
     }
     else {
         scene.background = new THREE.Color(0x303030);
+        cameralight.intensity=0.8
+        env_light.intensity=0.2
         if (garment !== undefined) {
             garment.traverse(function (child) {
                 if (child.material !== undefined) {
@@ -1890,6 +1902,8 @@ function Display(show_env, patch_env) {
             })
         }
         scene_patch.background = null;
+        cameralight_patch.intensity=0.8
+        env_light_patch.intensity=0.2
         if (patch !== undefined) {
             patch.traverse(function (child) {
                 if (child.material !== undefined) {
