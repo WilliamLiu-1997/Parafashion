@@ -1338,10 +1338,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                             obj.material.dispose();
                         }
                     })
-                    //scene_patch.remove(covered_obj_patch);
                     scene.remove(covered_obj);
-                    var this_scale = intersects[0].object.scale;
-                    var this_position = intersects[0].object.position;
                     outlinePass_patch.selectedObjects = [intersects[0].object];
                     last_cover_patch = []
                     last_cover_patch.push(intersects[0].object)
@@ -1414,8 +1411,6 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
 
                     for (var x = 0; x < num; x++) {
                         if (patch && intersects[0].object.name == patch.children[x].name) {
-                            var this_scale = patch.children[x].children[i].scale;
-                            var this_position = patch.children[x].children[i].position;
                             outlinePass_patch.selectedObjects = [patch.children[x].children[i]];
                             break;
                         }
@@ -1473,8 +1468,6 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                         }
                     })
                     scene.remove(selected_obj);
-                    var this_scale = intersects[0].object.scale;
-                    var this_position = intersects[0].object.position;
                     outlinePass_patch_select.selectedObjects = [intersects[0].object];
                     last_select_patch = []
                     last_select = []
@@ -1556,8 +1549,6 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                     for (var x = 0; x < num; x++) {
                         if (patch && intersects[0].object.name == patch.children[x].name) {
                             selected_patch = [patch.children[x].children[i]];
-                            var this_scale = patch.children[x].children[i].scale;
-                            var this_position = patch.children[x].children[i].position;
                             outlinePass_patch_select.selectedObjects = [patch.children[x].children[i]];
                             break;
                         }
