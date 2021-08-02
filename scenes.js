@@ -1117,7 +1117,7 @@ function init_patch() {
     controls_patch.dampingFactor = 0.1;
     controls_patch.rotateSpeed = 0.2;
     controls_patch.screenSpacePanning = false;
-    controls_patch.minDistance = 0.02;
+    controls_patch.minDistance = 0.1;
     controls_patch.maxDistance = 1000;
 
     controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
@@ -1194,7 +1194,7 @@ function animate() {
     }
 
     $(".up-area").css({ "width": $(".dg.main").css("width") })
-    $("#gui_container_gui").css({ "max-height": window.innerHeight*0.91 - 50 - $('#texture_container').height() })
+    $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
 
     requestAnimationFrame(animate);
     render();
@@ -1246,7 +1246,7 @@ function onmouseDown(event) {
         if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
             select_material(pointer, camera, pointer_patch, camera_patch, event);
-            if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)||pointer.y < (1 - (document.getElementById('gui_container_gui').offsetHeight+document.getElementById('texture_container').offsetHeight+window.innerHeight*0.05 + 50) / window.innerHeight * 2)) load_material()
+            if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) || pointer.y < (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) load_material()
         }
         cover = false;
     }
@@ -1307,7 +1307,7 @@ function select_recovery() {
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
 
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)&&pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight+document.getElementById('texture_container').offsetHeight+window.innerHeight*0.05 + 50) / window.innerHeight * 2)) {
+    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) {
         cover_recovery();
         return;
     }
@@ -1434,10 +1434,9 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
         } else { cover_recovery() }
     }
 }
-
-
 function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)&&pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight+document.getElementById('texture_container').offsetHeight+window.innerHeight*0.05 + 50) / window.innerHeight * 2)) {
+    let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
+    if (on_patch_button || (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2))) {
         return;
     }
     if (progress_obj + progress_mtl != -2) {
@@ -1507,7 +1506,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                     })
                 }
             }
-        } else{ select_recovery() }
+        } else { select_recovery() }
     } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         var intersects = raycaster.intersectObject(garment, true);
@@ -1572,7 +1571,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                     }
                 }
             }
-        } else{ select_recovery() }
+        } else { select_recovery() }
     }
 }
 
@@ -1583,9 +1582,9 @@ function individual(bufGeom, ig) {
     var origVerts = bufGeom.getAttribute('position').array;
     var origNormals = bufGeom.getAttribute('normal').array;
     var origUVs = bufGeom.getAttribute('uv').array;
-    
+
     if (groups.length > 0) { var group = groups[ig]; }
-    else {var group = { start: 0, count: bufGeom.getAttribute('position').count }}
+    else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
 
     var destNumVerts = group.count;
 
@@ -1629,7 +1628,7 @@ function individual_garmentToPatch(bufGeom, ig) {
     var origUVs = bufGeom.getAttribute('uv').array;
 
     if (groups.length > 0) { var group = groups[ig]; }
-    else {var group = { start: 0, count: bufGeom.getAttribute('position').count }}
+    else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
 
     var destNumVerts = group.count;
 
