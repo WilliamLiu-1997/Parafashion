@@ -1774,35 +1774,33 @@ function Show(Rotate) {
 function Display(show_env, patch_env) {
     if (show_env) {
         scene.background = show_env;
-        env_light.intensity = 1;
         if (garment !== undefined) {
             garment.traverse(function (child) {
                 if (child.material !== undefined) {
                     if (Array.isArray(child.material)) {
                         child.material.forEach(function (m) {
-                            if (m.envMap !== undefined) { m.envMap = show_env; }
+                            if (m.envMap !== undefined) { m.envMap = show_env; m.combine = THREE.MixOperation; }
                         })
                     } else {
                         if (child.material.envMap !== undefined) {
-                            child.material.envMap = show_env;
+                            child.material.envMap = show_env; child.material.combine = THREE.MixOperation;
                         }
                     }
                 }
             })
         }
         if (patch_env) {
-            env_light_patch.intensity = 1;
             scene_patch.background = show_env;
             if (patch !== undefined) {
                 patch.traverse(function (child) {
                     if (child.material !== undefined) {
                         if (Array.isArray(child.material)) {
                             child.material.forEach(function (m) {
-                                if (m.envMap !== undefined) { m.envMap = show_env; }
+                                if (m.envMap !== undefined) { m.envMap = show_env; m.combine = THREE.MixOperation; }
                             })
                         } else {
                             if (child.material.envMap !== undefined) {
-                                child.material.envMap = show_env;
+                                child.material.envMap = show_env; child.material.combine = THREE.MixOperation;
                             }
                         }
                     }
@@ -1810,7 +1808,6 @@ function Display(show_env, patch_env) {
             }
         } else {
             scene_patch.background = null;
-            env_light_patch.intensity = 0.2;
             if (patch !== undefined) {
                 patch.traverse(function (child) {
                     if (child.material !== undefined) {
@@ -1830,7 +1827,6 @@ function Display(show_env, patch_env) {
     }
     else {
         scene.background = new THREE.Color(0x303030);
-        env_light.intensity = 0.2;
         if (garment !== undefined) {
             garment.traverse(function (child) {
                 if (child.material !== undefined) {
@@ -1847,7 +1843,6 @@ function Display(show_env, patch_env) {
             })
         }
         scene_patch.background = null;
-        env_light_patch.intensity = 0.2;
         if (patch !== undefined) {
             patch.traverse(function (child) {
                 if (child.material !== undefined) {
