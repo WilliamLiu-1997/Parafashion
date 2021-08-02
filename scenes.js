@@ -1194,7 +1194,7 @@ function animate() {
     }
 
     $(".up-area").css({ "width": $(".dg.main").css("width") })
-    $("#gui_container_gui").css({ "max-height": $('#gui_container').height() - 80 - $('#texture_container').height() })
+    $("#gui_container_gui").css({ "max-height": window.innerHeight*0.91 - 50 - $('#texture_container').height() })
 
     requestAnimationFrame(animate);
     render();
@@ -1246,7 +1246,7 @@ function onmouseDown(event) {
         if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
             select_material(pointer, camera, pointer_patch, camera_patch, event);
-            if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)) load_material()
+            if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2)||pointer.y < (1 - (document.getElementById('gui_container_gui').offsetHeight+document.getElementById('texture_container').offsetHeight+window.innerHeight*0.05 + 50) / window.innerHeight * 2)) load_material()
         }
         cover = false;
     }
