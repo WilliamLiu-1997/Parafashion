@@ -32,7 +32,7 @@ let last_select_patch = [];
 var max_radius = 0;
 var textureloader = new THREE.TextureLoader();
 let default_texture = textureloader.load("./texture/default.jpg");
-let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), emissive: 0x0, reflectivity: 0.3 })
+let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3 })
 let obj_size = 1;
 
 var url = ""
@@ -181,6 +181,46 @@ env15_refre.mapping = THREE.EquirectangularRefractionMapping;
 var environment = {
     Square: env7, Park: env1, PlayingRoom: env2, Alley: env3, Sky: env4, Bridge: env5, Gallery: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env13, BedRoom: env9, BathRoom: env14, Town: env15
 }
+
+function Reflectivity() {
+    if (gui_options.Overall_Reflectivity === NaN) return;
+    garment.traverse(function (child) {
+        if (child.type === "Mesh") {
+            if (Array.isArray(child.material)) {
+                for (let m of child.material) {
+                    m.reflectivity = gui_options.Overall_Reflectivity
+                }
+            } else {
+                child.material.reflectivity = gui_options.Overall_Reflectivity
+            }
+        }
+    })
+    patch.traverse(function (child) {
+        if (child.type === "Mesh") {
+            if (Array.isArray(child.material)) {
+                for (let m of child.material) {
+                    m.reflectivity = gui_options.Overall_Reflectivity
+                }
+            } else {
+                child.material.reflectivity = gui_options.Overall_Reflectivity
+            }
+        }
+    })
+
+    Materials.MeshBasicMaterial.reflectivity=gui_options.Overall_Reflectivity
+    Materials.MeshLambertMaterial.reflectivity=gui_options.Overall_Reflectivity
+    Materials.MeshPhongMaterial.reflectivity=gui_options.Overall_Reflectivity
+    Materials.MeshPhysicalMaterial.reflectivity=gui_options.Overall_Reflectivity
+
+    if (selected.length == 2) {
+        gui.updateDisplay()
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+    }
+    else if (selected.length == 1) {
+        gui.updateDisplay()
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background)
+    }
+}
 var gui_options = {
     Reset_Camera: function () {
         controls.reset();
@@ -270,6 +310,7 @@ var gui_options = {
         $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background);
     },
+    Overall_Reflectivity: 1,
     env: "None",
     Rotate: false,
     Enable_Patch_Background: false,
@@ -612,7 +653,12 @@ function Obj_to_GUI(obj_material) {
     }
 }
 
-function Material_Update() {
+function Material_Update(reflecttivity_change = false) {
+    if (reflecttivity_change) {
+        gui_options.Overall_Reflectivity = 0
+        gui.updateDisplay()
+        gui_options.Overall_Reflectivity = NaN
+    }
     if (selected.length == 2) {
         material_folder.show()
         GUI_to_Obj(selected[0].material[selected[1]])
@@ -768,6 +814,7 @@ function GUI_init() {
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background));
     folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background))
     // other options: "BathRoom", 'Church', "Gallery", "Square"
+    folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Overall Reflectivity');
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
@@ -784,7 +831,7 @@ function GUI_init() {
 
     Material_Type_Folder.MeshBasicMaterial = material_folder.addFolder("Basic Material")
     Material_Type_Folder.MeshBasicMaterial.addColor(Materials.MeshBasicMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
     Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update())
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
@@ -803,7 +850,7 @@ function GUI_init() {
 
     Material_Type_Folder.MeshLambertMaterial = material_folder.addFolder("Lambert Material")
     Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
     Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe").onChange(() => Material_Update())
     Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "emissive").onChange(() => Material_Update())
     Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update())
@@ -824,7 +871,7 @@ function GUI_init() {
 
     Material_Type_Folder.MeshPhongMaterial = material_folder.addFolder("Phong Material")
     Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
     Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "shininess", 0, 200, 1).onChange(() => Material_Update())
     Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "flatShading").onChange(() => Material_Update())
     Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe").onChange(() => Material_Update())
@@ -923,7 +970,7 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "ior", 1, 2.333, 0.001).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
     Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheen").onChange(() => Material_Update())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoatRoughness", 0, 1, 0.01).onChange(() => Material_Update())
