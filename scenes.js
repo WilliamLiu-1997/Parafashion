@@ -183,7 +183,7 @@ var environment = {
 }
 
 var environment_light = {
-    Square: [0.4,0.2], Park: [0.4,0.2], PlayingRoom: [0.6,0.4], Alley: [0.5,0.3], Sky: [0.5,0.7], Bridge: [0.5,0.2], Gallery: [0.4,0.6], None: [0.8,0.2], Snow: [0.4,0.2], LivingRoom: [0.35,0.65], Street: [0.42,0.6], Church: [0.2,0.8], Restaurant: [0.5,0.35], BedRoom: [0.4,0.5], BathRoom: [0.35,0.75], Town: [0.3,0.2]
+    Square: [0.4,0.2], Park: [0.4,0.2], PlayingRoom: [0.6,0.4], Alley: [0.5,0.3], Sky: [0.5,0.7], Bridge: [0.5,0.2], Gallery: [0.4,0.6], None: [0.8,0.2], Snow: [0.4,0.2], LivingRoom: [0.35,0.65], Street: [0.4,0.6], Church: [0.2,0.8], Restaurant: [0.5,0.35], BedRoom: [0.4,0.5], BathRoom: [0.35,0.75], Town: [0.3,0.2]
 }
 
 function Reflectivity() {
