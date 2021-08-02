@@ -219,7 +219,7 @@ var gui_options = {
             }
         })
         scene_patch.remove(patch)
-        patch = patch_loader(garment, uvs, 0.5, num, false);
+        patch = patch_loader(garment, uvs, 1, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
         select_recovery()
@@ -260,7 +260,7 @@ var gui_options = {
             }
         })
         scene_patch.remove(patch)
-        patch = patch_loader(garment, uvs, 0.5, num, false);
+        patch = patch_loader(garment, uvs, 1, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
         select_recovery()
@@ -1074,7 +1074,7 @@ function init_patch() {
         0.01,
         1000
     );
-    camera_patch.position.set(0, 0, 1);
+    camera_patch.position.set(0, 0, 2);
 
     cameralight_patch = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
     cameralight_patch.position.set(0, 0.5, 0)
@@ -1165,10 +1165,10 @@ function animate() {
         }
         if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 
-        patch = patch_loader(garment, uvs, 0.5, num, false);
+        patch = patch_loader(garment, uvs, 1, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
-        controls_patch.maxDistance = max_radius * 8;
+        controls_patch.maxDistance = max_radius * 15;
         controls.maxDistance = Math.min(100, obj_size * 10);
         camera_patch.far = max_radius * 50;
 
