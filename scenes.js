@@ -386,7 +386,6 @@ var Materials = {
         wireframe: false,
         clearcoat: 0.0,
         clearcoatRoughness: 0.0,
-        ior: 1.5,//1.0 to 2.333
         reflectivity: 0.5,
         sheen: 0x000000,//color
         transmission: 0.0,
@@ -667,7 +666,6 @@ function Obj_to_GUI(obj_material) {
             Materials.MeshPhysicalMaterial.flatShading = obj_material.flatShading
             Materials.MeshPhysicalMaterial.clearcoat = obj_material.clearcoat
             Materials.MeshPhysicalMaterial.clearcoatRoughness = obj_material.clearcoatRoughness
-            Materials.MeshPhysicalMaterial.ior = obj_material.ior
             Materials.MeshPhysicalMaterial.reflectivity = obj_material.reflectivity
             Materials.MeshPhysicalMaterial.transmission = obj_material.transmission
             Materials.MeshPhysicalMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
@@ -831,7 +829,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.flatShading = Materials.MeshPhysicalMaterial.flatShading
             obj_material.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
             obj_material.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
-            obj_material.ior = Materials.MeshPhysicalMaterial.ior
             obj_material.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
             obj_material.transmission = Materials.MeshPhysicalMaterial.transmission
             obj_material.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
@@ -847,7 +844,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material1.flatShading = Materials.MeshPhysicalMaterial.flatShading
             obj_material1.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
             obj_material1.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
-            obj_material1.ior = Materials.MeshPhysicalMaterial.ior
             obj_material1.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
             obj_material1.transmission = Materials.MeshPhysicalMaterial.transmission
             obj_material1.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
@@ -942,7 +938,6 @@ function GUI_to_Obj(obj_material_original) {
             obj_material.flatShading = Materials.MeshPhysicalMaterial.flatShading
             obj_material.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
             obj_material.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
-            obj_material.ior = Materials.MeshPhysicalMaterial.ior
             obj_material.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
             obj_material.transmission = Materials.MeshPhysicalMaterial.transmission
             obj_material.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
@@ -1161,7 +1156,6 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "color").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "ior", 1, 2.333, 0.001).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
     Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheen").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update_Param())
