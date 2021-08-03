@@ -186,15 +186,24 @@ var environment_light = {
     Square: [0.4, 0.2], Park: [0.4, 0.2], PlayingRoom: [0.6, 0.4], Alley: [0.5, 0.3], Sky: [0.5, 0.7], Bridge: [0.5, 0.2], Gallery: [0.4, 0.6], None: [0.8, 0.2], Snow: [0.4, 0.2], LivingRoom: [0.35, 0.65], Street: [0.4, 0.6], Church: [0.2, 0.8], Restaurant: [0.5, 0.35], BedRoom: [0.4, 0.5], BathRoom: [0.35, 0.75], Town: [0.3, 0.2]
 }
 
+function Overall_Reflectivity_NaN(){
+    gui_options.Overall_Reflectivity = 0
+    gui.updateDisplay()
+    gui_options.Overall_Reflectivity = NaN
+    gui.updateDisplay()
+}
+
 function Reflectivity() {
     if (gui_options.Overall_Reflectivity === NaN) return;
     garment.traverse(function (child) {
         if (child.type === "Mesh") {
             if (Array.isArray(child.material)) {
-                for (let m of child.material) {
-                    m.reflectivity = gui_options.Overall_Reflectivity
+                for (let m = 0; m < child.material.length; m++) {
+                    child.material[m] = child.material[m].clone()
+                    child.material[m].reflectivity = gui_options.Overall_Reflectivity
                 }
             } else {
+                child.material = child.material.clone()
                 child.material.reflectivity = gui_options.Overall_Reflectivity
             }
         }
@@ -202,10 +211,12 @@ function Reflectivity() {
     patch.traverse(function (child) {
         if (child.type === "Mesh") {
             if (Array.isArray(child.material)) {
-                for (let m of child.material) {
-                    m.reflectivity = gui_options.Overall_Reflectivity
+                for (let m = 0; m < child.material.length; m++) {
+                    child.material[m] = child.material[m].clone()
+                    child.material[m].reflectivity = gui_options.Overall_Reflectivity
                 }
             } else {
+                child.material = child.material.clone()
                 child.material.reflectivity = gui_options.Overall_Reflectivity
             }
         }
@@ -272,6 +283,7 @@ var gui_options = {
         $('.list-drag').html(liStr);
         $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+        Overall_Reflectivity_NaN()
     },
     set_default: function () {
         let num = garment.children[0].children.length;
@@ -313,6 +325,7 @@ var gui_options = {
         $('.list-drag').html(liStr);
         $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+        Overall_Reflectivity_NaN()
     },
     Overall_Reflectivity: 0,
     env: "None",
@@ -406,6 +419,7 @@ var Material_Type_Folder = {
 
 var Material = {
     reset: function () {
+        Overall_Reflectivity_NaN()
         if (selected.length == 2) {
             let name = selected[0].name
             for (var n of original) {
@@ -435,6 +449,7 @@ var Material = {
         else { return }
     },
     set_default: function () {
+        Overall_Reflectivity_NaN()
         if (selected.length == 2) {
             let default_set = default_material.clone()
             default_set.map = default_texture;
