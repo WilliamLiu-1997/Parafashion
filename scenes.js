@@ -332,6 +332,7 @@ var gui_options = {
     Rotate: false,
     Enable_Patch_Background: false,
     cut: false,
+    mode: "Customizing Material",
 }
 
 
@@ -1004,9 +1005,9 @@ function GUI_init() {
     document.getElementById('gui_container_gui').appendChild(gui.domElement);
 
     folder_basic = gui.addFolder("Basic")
+    folder_basic.add(gui_options, 'mode',["Customizing Material","Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     folder_basic.add(gui_options, 'Unselect');
-    folder_basic.add(gui_options, 'cut').name("Cut Garment").onChange(() => Clean_Cover_select());
     folder_basic.add(gui_options, "reset").name('Materials Recovery')
     folder_basic.add(gui_options, "set_default").name('Random Materials')
     folder_basic.open()
@@ -1204,9 +1205,15 @@ function GUI_init() {
 }
 
 
-function Clean_Cover_select() {
+function Change_Mode() {
+    gui_options.mode=="Customizing Material"?gui_options.cut=false:gui_options.cut=true;
     cover_recovery()
     select_recovery()
+    url = ""
+    let liStr = "";
+    $('.list-drag').html(liStr);
+    $(".tip").show();
+    return;
 }
 
 function Change_material() {
