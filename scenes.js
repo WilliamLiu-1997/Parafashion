@@ -540,6 +540,11 @@ function Texture_to_GUI() {
     let liStr = `<img src="${url}"/>`;
     $('.list-drag').html(liStr);
     $(".tip").hide();
+    if (url) {
+        obj_material[current] = textureloader.load(url)
+        selected_patch[0].material[current] = textureloader.load(url)
+    }
+    GUI_to_Texture()
     gui.updateDisplay()
 }
 
@@ -965,19 +970,23 @@ function GUI_to_Obj(obj_material_original) {
 
 function load_material() {
     if (selected.length == 2) {
+        selected[0].material[selected[1]]=selected[0].material[selected[1]].clone()
+        selected_patch[0].material=selected_patch[0].material.clone()
         Material.material = selected[0].material[selected[1]].type;
         for (var eachtype of Object.keys(Material_Type_Folder)) { Material_Type_Folder[eachtype].hide() }
         Material_Type_Folder[Material.material].show()
         material_folder.show()
-        Obj_to_GUI(selected[0].material[selected[1]].clone())
+        Obj_to_GUI(selected[0].material[selected[1]])
         gui.updateDisplay()
     }
     else if (selected.length == 1) {
+        selected[0].material=selected[0].material.clone()
+        selected_patch[0].material=selected_patch[0].material.clone()
         Material.material = selected[0].material.type;
         for (var eachtype of Object.keys(Material_Type_Folder)) { Material_Type_Folder[eachtype].hide() }
         Material_Type_Folder[Material.material].show()
         material_folder.show()
-        Obj_to_GUI(selected[0].material.clone())
+        Obj_to_GUI(selected[0].material)
         gui.updateDisplay()
     }
     else { Texture_to_GUI() }
