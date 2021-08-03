@@ -314,7 +314,7 @@ var gui_options = {
         $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env]);
     },
-    Overall_Reflectivity: 1,
+    Overall_Reflectivity: 0,
     env: "None",
     Rotate: false,
     Enable_Patch_Background: false,
@@ -570,6 +570,27 @@ function GUI_to_Texture() {
     Display(environment[gui_options.env], gui_options.Enable_Patch_Background,environment_light[gui_options.env])
 }
 
+function GUI_to_Texture_Param() {
+    let obj_material
+    if (selected.length == 2) { obj_material = selected[0].material[selected[1]] }
+    else if (selected.length == 1) { obj_material = selected[0].material }
+    else return
+    let current = TextureParams.current
+    if (url) {
+        obj_material.map.offset.set(TextureParams.offset.x, TextureParams.offset.y)
+        obj_material.map.repeat.set(TextureParams.repeat.x, TextureParams.repeat.y)
+        obj_material.map.rotation = TextureParams.rotation
+        obj_material.map.center.set(TextureParams.center.x, TextureParams.center.y)
+        selected_patch[0].material.map.offset.set(TextureParams.offset.x, TextureParams.offset.y)
+        selected_patch[0].material.map.repeat.set(TextureParams.repeat.x, TextureParams.repeat.y)
+        selected_patch[0].material.map.rotation = TextureParams.rotation
+        selected_patch[0].material.map.center.set(TextureParams.center.x, TextureParams.center.y)
+    } else {
+        obj_material[current] = null
+        selected_patch[0].material[current] = null
+    }
+}
+
 function Obj_to_GUI(obj_material) {
     obj_material = obj_material.clone();
     if (obj_material.map === null) obj_material.map = default_texture;
@@ -672,6 +693,168 @@ function Material_Update(reflecttivity_change = false) {
         material_folder.show()
         GUI_to_Obj(selected[0].material)
         gui.updateDisplay()
+    }
+}
+
+
+function Material_Update_Param(reflecttivity_change = false) {
+    if (reflecttivity_change) {
+        gui_options.Overall_Reflectivity = 0
+        gui.updateDisplay()
+        gui_options.Overall_Reflectivity = NaN
+    }
+    if (selected.length == 2) {
+        material_folder.show()
+        GUI_to_Obj_Param(selected[0].material[selected[1]],selected_patch[0].material)
+        gui.updateDisplay()
+    }
+    else if (selected.length == 1) {
+        material_folder.show()
+        GUI_to_Obj_Param(selected[0].material,selected_patch[0].material)
+        gui.updateDisplay()
+    }
+}
+
+function GUI_to_Obj_Param(obj_material,obj_material1) {
+    obj_material.opacity = Material.opacity
+    obj_material.transparent = Material.transparent
+    obj_material.alphaTest = Material.alphaTest
+    obj_material.side = Material.side === "FrontSide" ? THREE.FrontSide : Material.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
+    obj_material.visible = Material.visible
+    obj_material1.opacity = Material.opacity
+    obj_material1.transparent = Material.transparent
+    obj_material1.alphaTest = Material.alphaTest
+    obj_material1.side = Material.side === "FrontSide" ? THREE.FrontSide : Material.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
+    obj_material1.visible = Material.visible
+
+
+    switch (Material.material) {
+        case "MeshBasicMaterial":
+            obj_material.color.setHex(Materials.MeshBasicMaterial.color)
+            obj_material.reflectivity = Materials.MeshBasicMaterial.reflectivity
+            obj_material.wireframe = Materials.MeshBasicMaterial.wireframe
+            obj_material1.color.setHex(Materials.MeshBasicMaterial.color)
+            obj_material1.reflectivity = Materials.MeshBasicMaterial.reflectivity
+            obj_material1.wireframe = Materials.MeshBasicMaterial.wireframe
+            break;
+
+        case "MeshLambertMaterial":
+            obj_material.color.setHex(Materials.MeshLambertMaterial.color)
+            obj_material.emissive.setHex(Materials.MeshLambertMaterial.emissive)
+            obj_material.emissiveIntensity = Materials.MeshLambertMaterial.emissiveIntensity
+            obj_material.reflectivity = Materials.MeshLambertMaterial.reflectivity
+            obj_material.wireframe = Materials.MeshLambertMaterial.wireframe
+            obj_material1.color.setHex(Materials.MeshLambertMaterial.color)
+            obj_material1.emissive.setHex(Materials.MeshLambertMaterial.emissive)
+            obj_material1.emissiveIntensity = Materials.MeshLambertMaterial.emissiveIntensity
+            obj_material1.reflectivity = Materials.MeshLambertMaterial.reflectivity
+            obj_material1.wireframe = Materials.MeshLambertMaterial.wireframe
+            break;
+
+        case "MeshPhongMaterial":
+            obj_material.color.setHex(Materials.MeshPhongMaterial.color)
+            obj_material.emissive.setHex(Materials.MeshPhongMaterial.emissive)
+            obj_material.specular.setHex(Materials.MeshPhongMaterial.specular)
+            obj_material.emissiveIntensity = Materials.MeshPhongMaterial.emissiveIntensity
+            obj_material.bumpScale = Materials.MeshPhongMaterial.bumpScale
+            obj_material.flatShading = Materials.MeshPhongMaterial.flatShading
+            obj_material.normalScale.set(Materials.MeshPhongMaterial.normalScale.x, Materials.MeshPhongMaterial.normalScale.y)
+            obj_material.reflectivity = Materials.MeshPhongMaterial.reflectivity
+            obj_material.shininess = Materials.MeshPhongMaterial.shininess
+            obj_material.wireframe = Materials.MeshPhongMaterial.wireframe
+            obj_material1.color.setHex(Materials.MeshPhongMaterial.color)
+            obj_material1.emissive.setHex(Materials.MeshPhongMaterial.emissive)
+            obj_material1.specular.setHex(Materials.MeshPhongMaterial.specular)
+            obj_material1.emissiveIntensity = Materials.MeshPhongMaterial.emissiveIntensity
+            obj_material1.bumpScale = Materials.MeshPhongMaterial.bumpScale
+            obj_material1.flatShading = Materials.MeshPhongMaterial.flatShading
+            obj_material1.normalScale.set(Materials.MeshPhongMaterial.normalScale.x, Materials.MeshPhongMaterial.normalScale.y)
+            obj_material1.reflectivity = Materials.MeshPhongMaterial.reflectivity
+            obj_material1.shininess = Materials.MeshPhongMaterial.shininess
+            obj_material1.wireframe = Materials.MeshPhongMaterial.wireframe
+            break;
+
+        case "MeshMatcapMaterial":
+            obj_material.color.setHex(Materials.MeshMatcapMaterial.color)
+            obj_material.bumpScale = Materials.MeshMatcapMaterial.bumpScale
+            obj_material.flatShading = Materials.MeshMatcapMaterial.flatShading
+            obj_material.normalScale.set(Materials.MeshMatcapMaterial.normalScale.x, Materials.MeshMatcapMaterial.normalScale.y)
+            obj_material1.color.setHex(Materials.MeshMatcapMaterial.color)
+            obj_material1.bumpScale = Materials.MeshMatcapMaterial.bumpScale
+            obj_material1.flatShading = Materials.MeshMatcapMaterial.flatShading
+            obj_material1.normalScale.set(Materials.MeshMatcapMaterial.normalScale.x, Materials.MeshMatcapMaterial.normalScale.y)
+            break;
+
+        case "MeshToonMaterial":
+            obj_material.color.setHex(Materials.MeshToonMaterial.color)
+            obj_material.emissive.setHex(Materials.MeshToonMaterial.emissive)
+            obj_material.emissiveIntensity = Materials.MeshToonMaterial.emissiveIntensity
+            obj_material.bumpScale = Materials.MeshToonMaterial.bumpScale
+            obj_material.normalScale.set(Materials.MeshToonMaterial.normalScale.x, Materials.MeshToonMaterial.normalScale.y)
+            obj_material.wireframe = Materials.MeshToonMaterial.wireframe
+            obj_material1.color.setHex(Materials.MeshToonMaterial.color)
+            obj_material1.emissive.setHex(Materials.MeshToonMaterial.emissive)
+            obj_material1.emissiveIntensity = Materials.MeshToonMaterial.emissiveIntensity
+            obj_material1.bumpScale = Materials.MeshToonMaterial.bumpScale
+            obj_material1.normalScale.set(Materials.MeshToonMaterial.normalScale.x, Materials.MeshToonMaterial.normalScale.y)
+            obj_material1.wireframe = Materials.MeshToonMaterial.wireframe
+            break;
+
+        case "MeshStandardMaterial":
+            obj_material.color.setHex(Materials.MeshStandardMaterial.color)
+            obj_material.emissive.setHex(Materials.MeshStandardMaterial.emissive)
+            obj_material.emissiveIntensity = Materials.MeshStandardMaterial.emissiveIntensity
+            obj_material.bumpScale = Materials.MeshStandardMaterial.bumpScale
+            obj_material.flatShading = Materials.MeshStandardMaterial.flatShading
+            obj_material.normalScale.set(Materials.MeshStandardMaterial.normalScale.x, Materials.MeshStandardMaterial.normalScale.y)
+            obj_material.metalness = Materials.MeshStandardMaterial.metalness
+            obj_material.roughness = Materials.MeshStandardMaterial.roughness
+            obj_material.wireframe = Materials.MeshStandardMaterial.wireframe
+            obj_material1.color.setHex(Materials.MeshStandardMaterial.color)
+            obj_material1.emissive.setHex(Materials.MeshStandardMaterial.emissive)
+            obj_material1.emissiveIntensity = Materials.MeshStandardMaterial.emissiveIntensity
+            obj_material1.bumpScale = Materials.MeshStandardMaterial.bumpScale
+            obj_material1.flatShading = Materials.MeshStandardMaterial.flatShading
+            obj_material1.normalScale.set(Materials.MeshStandardMaterial.normalScale.x, Materials.MeshStandardMaterial.normalScale.y)
+            obj_material1.metalness = Materials.MeshStandardMaterial.metalness
+            obj_material1.roughness = Materials.MeshStandardMaterial.roughness
+            obj_material1.wireframe = Materials.MeshStandardMaterial.wireframe
+            break;
+
+        case "MeshPhysicalMaterial":
+            obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
+            if (obj_material.sheen) obj_material.sheen.setHex(Materials.MeshPhysicalMaterial.sheen)
+            else obj_material.sheen = new THREE.Color(Materials.MeshPhysicalMaterial.sheen)
+            obj_material.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
+            obj_material.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
+            obj_material.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
+            obj_material.flatShading = Materials.MeshPhysicalMaterial.flatShading
+            obj_material.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
+            obj_material.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
+            obj_material.ior = Materials.MeshPhysicalMaterial.ior
+            obj_material.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
+            obj_material.transmission = Materials.MeshPhysicalMaterial.transmission
+            obj_material.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
+            obj_material.metalness = Materials.MeshPhysicalMaterial.metalness
+            obj_material.roughness = Materials.MeshPhysicalMaterial.roughness
+            obj_material.wireframe = Materials.MeshPhysicalMaterial.wireframe
+            obj_material1.color.setHex(Materials.MeshPhysicalMaterial.color)
+            if (obj_material1.sheen) obj_material1.sheen.setHex(Materials.MeshPhysicalMaterial.sheen)
+            else obj_material1.sheen = new THREE.Color(Materials.MeshPhysicalMaterial.sheen)
+            obj_material1.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
+            obj_material1.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
+            obj_material1.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
+            obj_material1.flatShading = Materials.MeshPhysicalMaterial.flatShading
+            obj_material1.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
+            obj_material1.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
+            obj_material1.ior = Materials.MeshPhysicalMaterial.ior
+            obj_material1.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
+            obj_material1.transmission = Materials.MeshPhysicalMaterial.transmission
+            obj_material1.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
+            obj_material1.metalness = Materials.MeshPhysicalMaterial.metalness
+            obj_material1.roughness = Materials.MeshPhysicalMaterial.roughness
+            obj_material1.wireframe = Materials.MeshPhysicalMaterial.wireframe
+            break;
     }
 }
 
@@ -800,6 +983,7 @@ function load_material() {
     else { Texture_to_GUI() }
 }
 
+
 function GUI_init() {
     gui = new GUI({ width: 300, autoPlace: false, scrollable: true })
 
@@ -825,180 +1009,185 @@ function GUI_init() {
     material_folder.add(Material, "reset").name('Original Material')
     material_folder.add(Material, "set_default").name('Random Material')
     material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
-    material_folder.add(Material, "transparent").onChange(() => Material_Update())
-    material_folder.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update())
-    material_folder.add(Material, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update())
-    material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update())
-    material_folder.add(Material, "visible").onChange(() => Material_Update())
+    material_folder.add(Material, "transparent").onChange(() => Material_Update_Param())
+    material_folder.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    material_folder.add(Material, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
+    material_folder.add(Material, "visible").onChange(() => Material_Update_Param())
     material_folder.open()
     material_folder.hide()
 
     Material_Type_Folder.MeshBasicMaterial = material_folder.addFolder("Basic Material")
-    Material_Type_Folder.MeshBasicMaterial.addColor(Materials.MeshBasicMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
-    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update())
+    Material_Type_Folder.MeshBasicMaterial.addColor(Materials.MeshBasicMaterial, "color").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update_Param())
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
     basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
+    basic_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    basic_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    basic_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    basic_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    basic_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    basic_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    basic_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     basic_texture.add(TextureParams, "remove").name("Remove Texture")
     basic_texture.open()
     Material_Type_Folder.MeshBasicMaterial.open()
 
 
     Material_Type_Folder.MeshLambertMaterial = material_folder.addFolder("Lambert Material")
-    Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
-    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe").onChange(() => Material_Update())
-    Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "emissive").onChange(() => Material_Update())
-    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "color").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "emissive").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
+    lambert_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    lambert_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    lambert_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    lambert_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    lambert_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    lambert_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    lambert_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     lambert_texture.add(TextureParams, "remove").name("Remove Texture")
     lambert_texture.open()
     Material_Type_Folder.MeshLambertMaterial.open()
 
 
     Material_Type_Folder.MeshPhongMaterial = material_folder.addFolder("Phong Material")
-    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "shininess", 0, 200, 1).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "flatShading").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "specular").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "emissive").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "color").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "shininess", 0, 200, 1).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "flatShading").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "specular").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "emissive").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
+    phong_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    phong_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    phong_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    phong_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    phong_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    phong_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    phong_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     phong_texture.add(TextureParams, "remove").name("Remove Texture")
     phong_texture.open()
     Material_Type_Folder.MeshPhongMaterial.open()
 
     Material_Type_Folder.MeshMatcapMaterial = material_folder.addFolder("Matcap Material")
-    Material_Type_Folder.MeshMatcapMaterial.addColor(Materials.MeshMatcapMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "flatShading").onChange(() => Material_Update())
-    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update())
-    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update())
-    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshMatcapMaterial.addColor(Materials.MeshMatcapMaterial, "color").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "flatShading").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     matcap_texture = Material_Type_Folder.MeshMatcapMaterial.addFolder("Texture")
     matcap_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'matcap']).name("map").onChange(() => Texture_to_GUI())
     matcap_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
+    matcap_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    matcap_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    matcap_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    matcap_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    matcap_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    matcap_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    matcap_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     matcap_texture.add(TextureParams, "remove").name("Remove Texture")
     matcap_texture.open()
     Material_Type_Folder.MeshMatcapMaterial.open()
 
 
     Material_Type_Folder.MeshToonMaterial = material_folder.addFolder("Toon Material")
-    Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe").onChange(() => Material_Update())
-    Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "emissive").onChange(() => Material_Update())
-    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update())
-    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update())
-    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "color").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "emissive").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
     toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
+    toon_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    toon_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    toon_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    toon_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    toon_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    toon_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    toon_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     toon_texture.add(TextureParams, "remove").name("Remove Texture")
     toon_texture.open()
     Material_Type_Folder.MeshToonMaterial.open()
 
 
     Material_Type_Folder.MeshStandardMaterial = material_folder.addFolder("Standard Material")
-    Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "flatShading").onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe").onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "emissive").onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "color").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "flatShading").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "emissive").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
     standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
+    standard_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    standard_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    standard_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    standard_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    standard_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    standard_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    standard_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     standard_texture.add(TextureParams, "remove").name("Remove Texture")
     standard_texture.open()
     Material_Type_Folder.MeshStandardMaterial.open()
 
 
     Material_Type_Folder.MeshPhysicalMaterial = material_folder.addFolder("Physical Material")
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "color").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "ior", 1, 2.333, 0.001).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update(true))
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheen").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoatRoughness", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "transmission", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "emissive").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update())
+    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "color").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "ior", 1, 2.333, 0.001).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheen").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoatRoughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "transmission", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "emissive").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
     physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams.offset, "x", 0, 1, 0.01).name("offset.x").onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams.offset, "y", 0, 1, 0.01).name("offset.y").onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.01).name("repeat.x").onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.01).name("repeat.y").onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture())
+    physical_texture.add(TextureParams.offset, "x", 0, 1, 0.01).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    physical_texture.add(TextureParams.offset, "y", 0, 1, 0.01).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    physical_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.01).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    physical_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.01).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    physical_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    physical_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    physical_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     physical_texture.add(TextureParams, "remove").name("Remove Texture")
     physical_texture.open()
     Material_Type_Folder.MeshPhysicalMaterial.open()
+
+
+
+    gui_options.Overall_Reflectivity = NaN
+    gui.updateDisplay()
 }
 
 
