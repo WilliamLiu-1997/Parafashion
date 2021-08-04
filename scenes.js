@@ -20,11 +20,10 @@ let pointer = new THREE.Vector2();
 let pointer_patch = new THREE.Vector2();
 let original = [];
 let selected = [], selected_patch = [];
+let cut_obj = [];
 let mouse_down = false;
 let covered_obj = new THREE.Mesh();
-let covered_obj_patch = new THREE.Mesh();
 let selected_obj = new THREE.Mesh();
-let selected_obj_patch = new THREE.Mesh();
 let last_cover = [];
 let last_cover_patch = [];
 let last_select = [];
@@ -331,8 +330,8 @@ var gui_options = {
     env: "None",
     Rotate: false,
     Enable_Patch_Background: false,
-    cut: false,
-    mode: "Customizing Material",
+    cut: true,
+    Mode: "Cutting Model",
 }
 
 
@@ -1005,7 +1004,7 @@ function GUI_init() {
     document.getElementById('gui_container_gui').appendChild(gui.domElement);
 
     folder_basic = gui.addFolder("Basic")
-    folder_basic.add(gui_options, 'mode',["Customizing Material","Cutting Model"]).name("Mode").onChange(() => Change_Mode());
+    folder_basic.add(gui_options, 'Mode',["Cutting Model","Customizing Material"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     folder_basic.add(gui_options, 'Unselect');
     folder_basic.add(gui_options, "reset").name('Materials Recovery')
@@ -1206,7 +1205,7 @@ function GUI_init() {
 
 
 function Change_Mode() {
-    gui_options.mode=="Customizing Material"?gui_options.cut=false:gui_options.cut=true;
+    gui_options.Mode=="Customizing Material"?gui_options.cut=false:gui_options.cut=true;
     cover_recovery()
     select_recovery()
     url = ""
@@ -1494,7 +1493,11 @@ function onWindowResize() {
 function onmouseDown(event) {
     mouse_down = true;
     if (event.button == 0 && gui_options.cut) {
+        if(cut_obj.length>0){
         drawing = true;
+        }else{
+            select_cut(pointer, camera, event);
+        }
     }
     else if (event.button == 0) {
         let obj = document.getElementById("panel_box");
@@ -1541,7 +1544,7 @@ function mouseMove(event) {
     pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
     if (drawing) {
-    } else if (gui_options.cut) { }
+    } else if (gui_options.cut) { cover_cut(pointer, camera, event);}
     else if (cover) {
         cover_material(pointer, camera, pointer_patch, camera_patch, event);
     }
@@ -1563,6 +1566,7 @@ function select_recovery() {
     last_select_patch = []
     selected = []
     selected_patch = []
+    cut_obj=[]
 }
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
@@ -1694,6 +1698,46 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
         } else { cover_recovery() }
     }
 }
+
+function cover_cut(cover_pointer, cover_camera, event) {
+
+    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) {
+        cover_recovery();
+        return;
+    }
+    if (progress_obj + progress_mtl != -2) {
+        cover_recovery();
+        return;
+    }
+    let obj = document.getElementById("panel_box");
+    if (event.clientX < obj.offsetLeft
+        || event.clientX > (obj.offsetLeft + obj.clientWidth)
+        || event.clientY < obj.offsetTop
+        || event.clientY > (obj.offsetTop + obj.clientHeight)) {
+        raycaster.setFromCamera(cover_pointer, cover_camera);
+        var intersects = raycaster.intersectObject(garment, true);
+        if (intersects.length > 0) {
+            // console.log(intersects[ 0 ].face)
+            // console.log(intersects[ 0 ].point)
+            var num = patch ? patch.children.length : 0;
+            
+                if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
+                    outlinePass.selectedObjects = [intersects[0].object];
+                    last_cover = []
+                    last_cover.push(intersects[0].object)
+
+                    for (var x = 0; x < num; x++) {
+                        if (patch && intersects[0].object.name == patch.children[x].name) {
+                            outlinePass_patch.selectedObjects = [patch.children[x]];
+                            break;
+                        }
+                    }
+                }
+            
+        } else { cover_recovery() }
+    }
+}
+
 function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
     let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
     if (on_patch_button || (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2))) {
@@ -1833,6 +1877,48 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
             }
         } else { select_recovery() }
     }
+}
+
+
+function select_cut(cover_pointer, cover_camera, event) {
+    let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
+    if (on_patch_button || (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2))) {
+        return;
+    }
+    if (progress_obj + progress_mtl != -2) {
+        select_recovery();
+        return;
+    }
+    let obj = document.getElementById("panel_box");
+    if (event.clientX < obj.offsetLeft
+        || event.clientX > (obj.offsetLeft + obj.clientWidth)
+        || event.clientY < obj.offsetTop
+        || event.clientY > (obj.offsetTop + obj.clientHeight))
+        raycaster.setFromCamera(cover_pointer, cover_camera);
+    var intersects = raycaster.intersectObject(garment, true);
+    if (intersects.length > 0) {
+        // console.log(intersects[ 0 ].face)
+        // console.log(intersects[ 0 ].point)
+        //console.log(intersects[0].object)
+        var num = patch ? patch.children.length : 0;
+
+        if (last_select.length != 1 || last_select[0] != intersects[0].object) {
+            cut_obj = [intersects[0].object];
+            outlinePass_select.selectedObjects = [intersects[0].object];
+            last_select = []
+            last_select_patch = []
+            last_select.push(intersects[0].object)
+
+            for (var x = 0; x < num; x++) {
+                if (patch && intersects[0].object.name == patch.children[x].name) {
+                    outlinePass_patch_select.selectedObjects = [patch.children[x]];
+                    break;
+                }
+            }
+        }
+
+    }
+
 }
 
 
@@ -2410,7 +2496,9 @@ function randomString(e) {
 }
 
 function randomColor() {
-    return Math.random() * 0xffffff
+    let c=Math.random() * 0xffffff
+    while(c>0xccffff){c=Math.random() * 0xffffff}
+    return c
 }
 
 document.querySelector('.up-area').addEventListener('click', texture_click)
