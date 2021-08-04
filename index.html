@@ -56,7 +56,7 @@
       position: absolute;
       top: 10%;
       width: 20%;
-      min-width: 216px;
+      min-width: 240px;
       z-index: 2;
       text-align: center;
     }
@@ -229,38 +229,68 @@
     </div>
     <script>
       var render_patch_flag = true;
-      var resize_patch=false;
+      var patch_scaled = false;
+      var resize_patch = false;
       function hidePatches() {
-        resize_patch=true;
+        resize_patch = true;
         $("#panel-patches").on("show.bs.collapse", function () {
           $("#hide-patches").text("Hide Patches");
           $("#scale-patches").css({ color: "#fff" });
-          $(".panel_box").animate({ width: "20%", minWidth: "216px" }, 450,function() { resize_patch=false; });
+          $(".panel_box").animate(
+            { width: "20%", minWidth: "240px" },
+            450,
+            function () {
+              resize_patch = false;
+            }
+          );
           $("#scale-patches").text(">");
           render_patch_flag = true;
+          patch_scaled = false;
         });
         $("#panel-patches").on("hide.bs.collapse", function () {
           $("#hide-patches").text("Show Patches");
           $("#scale-patches").css({ color: "#aaa" });
-          $(".panel_box").animate({ width: "5%", minWidth: "120px" }, 450,function() { resize_patch=false; });
+          $(".panel_box").animate(
+            { width: "5%", minWidth: "120px" },
+            450,
+            function () {
+              resize_patch = false;
+            }
+          );
           $("#scale-patches").text(">");
           render_patch_flag = false;
+          patch_scaled = false;
         });
       }
       function scalePatches() {
-        resize_patch=true;
+        resize_patch = true;
         if (
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() != "<"
         ) {
-          $(".panel_box").animate({ width: "69%" }, 450,function() { resize_patch=false; });
+          $(".panel_box").animate(
+            {
+              width: Math.max(
+                window.innerWidth * 0.2,
+                window.innerWidth - 2 - $("#gui_container").width()
+              ),
+            },
+            450,
+            function () {
+              resize_patch = false;
+              patch_scaled = true;
+            }
+          );
           $("#scale-patches").text("<");
         } else if (
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() == "<"
         ) {
-          $(".panel_box").animate({ width: "20%" }, 450,function() { resize_patch=false; });
+          $(".panel_box").animate({ width: "20%" }, 450, function () {
+            resize_patch = false;
+          });
           $("#scale-patches").text(">");
+          patch_scaled = false;
         }
       }
     </script>

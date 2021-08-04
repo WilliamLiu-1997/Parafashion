@@ -1463,7 +1463,7 @@ function animate() {
 
     $(".up-area").css({ "width": $(".dg.main").css("width") })
     $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
-
+    if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
     requestAnimationFrame(animate);
     render();
     //stats.end();
