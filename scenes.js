@@ -1396,7 +1396,7 @@ function animate() {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
-    if (progress_obj + progress_mtl == 200) {
+    if (progress_obj + progress_mtl == 200&&garment) {
         var lack = false;
         var all_empty = true;
         progress_obj = progress_mtl = -1;
@@ -1471,7 +1471,7 @@ function render() {
 
 
 function onWindowResize() {
-    if (window.innerWidth < 1080) {
+    if (window.innerWidth < 1080&&! resize_patch) {
         $("#alert_size").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
     } else { $("#alert_size").html("") }
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -1700,7 +1700,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
 }
 
 function cover_cut(cover_pointer, cover_camera, event) {
-
+    if(cut_obj.length>0)return;
     if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) {
         cover_recovery();
         return;
