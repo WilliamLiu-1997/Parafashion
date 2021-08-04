@@ -185,7 +185,7 @@ var environment_light = {
     Square: [0.4, 0.2], Park: [0.4, 0.2], PlayingRoom: [0.6, 0.4], Alley: [0.5, 0.3], Sky: [0.5, 0.7], Bridge: [0.5, 0.2], Gallery: [0.4, 0.6], None: [0.8, 0.2], Snow: [0.4, 0.2], LivingRoom: [0.35, 0.65], Street: [0.4, 0.6], Church: [0.2, 0.8], Restaurant: [0.5, 0.35], BedRoom: [0.4, 0.5], BathRoom: [0.35, 0.75], Town: [0.3, 0.2]
 }
 
-function Overall_Reflectivity_NaN(){
+function Overall_Reflectivity_NaN() {
     gui_options.Overall_Reflectivity = 0
     gui.updateDisplay()
     gui_options.Overall_Reflectivity = NaN
@@ -1004,7 +1004,7 @@ function GUI_init() {
     document.getElementById('gui_container_gui').appendChild(gui.domElement);
 
     folder_basic = gui.addFolder("Basic")
-    folder_basic.add(gui_options, 'Mode',["Cutting Model","Customizing Material"]).name("Mode").onChange(() => Change_Mode());
+    folder_basic.add(gui_options, 'Mode', ["Cutting Model", "Customizing Material"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     folder_basic.add(gui_options, 'Unselect');
     folder_basic.add(gui_options, "reset").name('Materials Recovery')
@@ -1198,14 +1198,19 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial.open()
 
 
-
+    Change_Mode()
     gui_options.Overall_Reflectivity = NaN
     gui.updateDisplay()
 }
 
 
 function Change_Mode() {
-    gui_options.Mode=="Customizing Material"?gui_options.cut=false:gui_options.cut=true;
+    if (gui_options.Mode == "Cutting Model") {
+        $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After marking a model for cutting, we will remove it materials!&nbsp;&nbsp;</div>');
+        setTimeout(function () { $("#cut_alert").fadeOut(500); }, 3000)
+        setTimeout(function () { $("#alert_cut").html("") }, 3500)
+    }
+    gui_options.Mode == "Customizing Material" ? gui_options.cut = false : gui_options.cut = true;
     cover_recovery()
     select_recovery()
     url = ""
@@ -1396,7 +1401,7 @@ function animate() {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
-    if (progress_obj + progress_mtl == 200&&garment) {
+    if (progress_obj + progress_mtl == 200 && garment) {
         var lack = false;
         var all_empty = true;
         progress_obj = progress_mtl = -1;
@@ -1471,7 +1476,7 @@ function render() {
 
 
 function onWindowResize() {
-    if (window.innerWidth < 1080&&! resize_patch) {
+    if (window.innerWidth < 1080 && !resize_patch) {
         $("#alert_size").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
     } else { $("#alert_size").html("") }
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -1493,9 +1498,9 @@ function onWindowResize() {
 function onmouseDown(event) {
     mouse_down = true;
     if (event.button == 0 && gui_options.cut) {
-        if(cut_obj.length>0){
-        drawing = true;
-        }else{
+        if (cut_obj.length > 0) {
+            drawing = true;
+        } else {
             select_cut(pointer, camera, event);
         }
     }
@@ -1544,7 +1549,7 @@ function mouseMove(event) {
     pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
     if (drawing) {
-    } else if (gui_options.cut) { cover_cut(pointer, camera, event);}
+    } else if (gui_options.cut) { cover_cut(pointer, camera, event); }
     else if (cover) {
         cover_material(pointer, camera, pointer_patch, camera_patch, event);
     }
@@ -1566,7 +1571,7 @@ function select_recovery() {
     last_select_patch = []
     selected = []
     selected_patch = []
-    cut_obj=[]
+    cut_obj = []
 }
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
@@ -1700,7 +1705,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
 }
 
 function cover_cut(cover_pointer, cover_camera, event) {
-    if(cut_obj.length>0)return;
+    if (cut_obj.length > 0) return;
     if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) {
         cover_recovery();
         return;
@@ -1720,20 +1725,20 @@ function cover_cut(cover_pointer, cover_camera, event) {
             // console.log(intersects[ 0 ].face)
             // console.log(intersects[ 0 ].point)
             var num = patch ? patch.children.length : 0;
-            
-                if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
-                    outlinePass.selectedObjects = [intersects[0].object];
-                    last_cover = []
-                    last_cover.push(intersects[0].object)
 
-                    for (var x = 0; x < num; x++) {
-                        if (patch && intersects[0].object.name == patch.children[x].name) {
-                            outlinePass_patch.selectedObjects = [patch.children[x]];
-                            break;
-                        }
+            if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
+                outlinePass.selectedObjects = [intersects[0].object];
+                last_cover = []
+                last_cover.push(intersects[0].object)
+
+                for (var x = 0; x < num; x++) {
+                    if (patch && intersects[0].object.name == patch.children[x].name) {
+                        outlinePass_patch.selectedObjects = [patch.children[x]];
+                        break;
                     }
                 }
-            
+            }
+
         } else { cover_recovery() }
     }
 }
@@ -1903,6 +1908,31 @@ function select_cut(cover_pointer, cover_camera, event) {
         var num = patch ? patch.children.length : 0;
 
         if (last_select.length != 1 || last_select[0] != intersects[0].object) {
+            if (Array.isArray(intersects[0].object.material)) {
+                for (let m = 0; m < intersects[0].object.material.length; m++) {
+                    let default_set = default_material.clone()
+                    default_set.map = default_texture;
+                    default_set.color.set(randomColor())
+                    intersects[0].object.material[m] = default_set
+                }
+            }
+            else {
+                let default_set = default_material.clone()
+                default_set.map = default_texture;
+                default_set.color.set(randomColor())
+                intersects[0].object.material = default_set
+            }
+            for (let o = 0; o < original.length; o++) {
+                if (original[o].name === intersects[0].object.name) {
+                    original[o].geometry.dispose()
+                    if (Array.isArray(original[o].material)) {
+                        for (let m = 0; m < original[o].material.length; m++) {
+                            original[o].material[m].dispose()
+                        }
+                    } else { original[o].material.dispose() }
+                    original[o] = intersects[0].object.clone()
+                }
+            }
             cut_obj = [intersects[0].object];
             outlinePass_select.selectedObjects = [intersects[0].object];
             last_select = []
@@ -2496,8 +2526,8 @@ function randomString(e) {
 }
 
 function randomColor() {
-    let c=Math.random() * 0xffffff
-    while(c>0xccffff){c=Math.random() * 0xffffff}
+    let c = Math.random() * 0xffffff
+    while (c > 0xccffff) { c = Math.random() * 0xffffff }
     return c
 }
 
@@ -2525,7 +2555,9 @@ function appendFile(files) {
     for (var file of files) {
         var fileType = file.type.substr(file.type.lastIndexOf("/")).toUpperCase();
         if (fileType != "/PNG" && fileType != "/JPG" && fileType != "/JPEG") {
-            $("#alert_img").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image file is acceptable!&nbsp;&nbsp;</div>');
+            $("#alert_img").html('<div id="img_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image files are acceptable!&nbsp;&nbsp;</div>');
+            setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
+            setTimeout(function () { $("#alert_img").html("") }, 3500)
             return
         }
         url = window.URL.createObjectURL(file);
