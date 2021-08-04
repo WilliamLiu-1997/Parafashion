@@ -55,7 +55,7 @@
     div.panel_box {
       position: absolute;
       top: 10%;
-      width: 25%;
+      width: 20%;
       min-width: 216px;
       z-index: 2;
       text-align: center;
@@ -81,7 +81,7 @@
 
     .alert_container {
       position: absolute;
-      top: 1%;
+      top: 12px;
       left: 50%;
       transform: translate(-50%, 0);
       z-index: 99;
@@ -235,7 +235,7 @@
         $("#panel-patches").on("show.bs.collapse", function () {
           $("#hide-patches").text("Hide Patches");
           $("#scale-patches").css({ color: "#fff" });
-          $(".panel_box").animate({ width: "25%", minWidth: "216px" }, 450,function() { resize_patch=false; });
+          $(".panel_box").animate({ width: "20%", minWidth: "216px" }, 450,function() { resize_patch=false; });
           $("#scale-patches").text(">");
           render_patch_flag = true;
         });
@@ -253,13 +253,13 @@
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() != "<"
         ) {
-          $(".panel_box").animate({ width: "80%" }, 450,function() { resize_patch=false; });
+          $(".panel_box").animate({ width: "69%" }, 450,function() { resize_patch=false; });
           $("#scale-patches").text("<");
         } else if (
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() == "<"
         ) {
-          $(".panel_box").animate({ width: "25%" }, 450,function() { resize_patch=false; });
+          $(".panel_box").animate({ width: "20%" }, 450,function() { resize_patch=false; });
           $("#scale-patches").text(">");
         }
       }

@@ -37,7 +37,7 @@ let obj_size = 1;
 var url = ""
 
 let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
-var folder_basic, folder_env, material_folder, basic_texture, lambert_texture, phong_texture, matcap_texture, toon_texture, standard_texture, physical_texture;
+var folder_basic, folder_env, folder_env_global, material_folder, basic_texture, lambert_texture, phong_texture, matcap_texture, toon_texture, standard_texture, physical_texture;
 
 
 var garments_obj = "./leggins/leggins_patch.obj";
@@ -330,8 +330,8 @@ var gui_options = {
     env: "None",
     Rotate: false,
     Enable_Patch_Background: false,
-    cut: true,
-    Mode: "Cutting Model",
+    cut: false,
+    Mode: "Customizing Material",
 }
 
 
@@ -1004,11 +1004,9 @@ function GUI_init() {
     document.getElementById('gui_container_gui').appendChild(gui.domElement);
 
     folder_basic = gui.addFolder("Basic")
-    folder_basic.add(gui_options, 'Mode', ["Cutting Model", "Customizing Material"]).name("Mode").onChange(() => Change_Mode());
-    folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
+    folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Unselect');
-    folder_basic.add(gui_options, "reset").name('Materials Recovery')
-    folder_basic.add(gui_options, "set_default").name('Random Materials')
+    folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
@@ -1016,12 +1014,16 @@ function GUI_init() {
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
     // other options: "BathRoom", 'Church', "Gallery", "Square"
-    folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Overall Reflectivity');
+    folder_env_global = folder_env.addFolder("Material Global Settings")
+    folder_env_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
+    folder_env_global.add(gui_options, "reset").name('Materials Recovery')
+    folder_env_global.add(gui_options, "set_default").name('Remove Materials')
+    folder_env_global.open()
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
-    material_folder.add(Material, "reset").name('Original Material')
-    material_folder.add(Material, "set_default").name('Random Material')
+    material_folder.add(Material, "reset").name('Materials Recovery')
+    material_folder.add(Material, "set_default").name('Remove Material')
     material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
     material_folder.add(Material, "transparent").onChange(() => Material_Update_Param())
     material_folder.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
@@ -1238,6 +1240,8 @@ function init() {
 
     if (window.innerWidth < 1080) {
         $("#alert_size").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
+        setTimeout(function () { $("#size_alert").fadeOut(500); }, 5000)
+        setTimeout(function () { $("#alert_size").html("") }, 5500)
     }
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x303030);
@@ -1246,8 +1250,8 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById("container").appendChild(renderer.domElement);
-    stats = new Stats();
-    document.getElementById("container").appendChild(stats.dom);
+    //stats = new Stats();
+    //document.getElementById("container").appendChild(stats.dom);
 
     camera = new THREE.PerspectiveCamera(
         45,
@@ -1396,7 +1400,7 @@ function init_patch() {
 
 
 function animate() {
-    stats.begin();
+    //stats.begin();
     if (patch_panel_width != $("#container_patch").css("width")) {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
@@ -1462,7 +1466,7 @@ function animate() {
 
     requestAnimationFrame(animate);
     render();
-    stats.end();
+    //stats.end();
 }
 
 function render() {
@@ -1476,9 +1480,11 @@ function render() {
 
 
 function onWindowResize() {
-    if (window.innerWidth < 1080 && !resize_patch) {
-        $("#alert_size").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
-    } else { $("#alert_size").html("") }
+    if (window.innerWidth < 980 && !resize_patch && $("#alert_size").html().length == 0) {
+        $("#alert_size").html('<div id="size_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
+        setTimeout(function () { $("#size_alert").fadeOut(500); }, 5000)
+        setTimeout(function () { $("#alert_size").html("") }, 5500)
+    }
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -2555,7 +2561,7 @@ function appendFile(files) {
     for (var file of files) {
         var fileType = file.type.substr(file.type.lastIndexOf("/")).toUpperCase();
         if (fileType != "/PNG" && fileType != "/JPG" && fileType != "/JPEG") {
-            $("#alert_img").html('<div id="img_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image files are acceptable!&nbsp;&nbsp;</div>');
+            $("#alert_img").html('<div id="img_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image files are acceptable!&nbsp;&nbsp;</div>');
             setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
             setTimeout(function () { $("#alert_img").html("") }, 3500)
             return
