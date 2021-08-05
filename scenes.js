@@ -8,7 +8,7 @@ import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.
 import { FXAAShader } from './three.js/examples/jsm/shaders/FXAAShader.js';
 import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
-let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats;
+let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats, point_helper_geo, point_helper;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch, uvs;
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
@@ -1269,6 +1269,13 @@ function init() {
     scene.add(env_light);
 
 
+    point_helper_geo = new THREE.ConeGeometry(0.002, 0.06, 10);
+    point_helper_geo.translate(0, 0.03, 0);
+    point_helper_geo.rotateX(Math.PI / 2);
+    point_helper = new THREE.Mesh(point_helper_geo, new THREE.MeshNormalMaterial({ visible: false }));
+    scene.add(point_helper);
+
+
     // postprocessing
     composer = new EffectComposer(renderer);
     var renderPass = new RenderPass(scene, camera);
@@ -1404,7 +1411,7 @@ function animate() {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
-    $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl)) + "%", "aria- valuenow": Math.min(100,(progress_obj + progress_mtl))})
+    $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl)) + "%", "aria- valuenow": Math.min(100, (progress_obj + progress_mtl)) })
 
     if (progress_obj + progress_mtl == 200 && garment) {
         var lack = false;
@@ -1506,6 +1513,8 @@ function onmouseDown(event) {
     mouse_down = true;
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
+            controls.enabled = false; controls_patch.enabled = false;
+            mouseMove(event)
             drawing = true;
         } else {
             select_cut(pointer, camera, event);
@@ -1532,6 +1541,7 @@ function onmouseDown(event) {
 function onmouseUp(event) {
     mouse_down = false;
     if (event.button == 0 && gui_options.cut) {
+        controls.enabled = true; controls_patch.enabled = true;
         drawing = false;
     }
     else if (event.button == 0) {
@@ -1555,8 +1565,13 @@ function mouseMove(event) {
     pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
     pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
+    if (cut_obj.length > 0) {
+        on_cut(pointer, camera, event)
+    }
     if (drawing) {
-    } else if (gui_options.cut) { cover_cut(pointer, camera, event); }
+
+    }
+    else if (gui_options.cut) { cover_cut(pointer, camera, event); }
     else if (cover) {
         cover_material(pointer, camera, pointer_patch, camera_patch, event);
     }
@@ -1888,6 +1903,34 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                 }
             }
         } else { select_recovery() }
+    }
+}
+
+function on_cut(cover_pointer, cover_camera, event) {
+    let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
+    if (on_patch_button || (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2))) {
+        point_helper.material.visible = false;
+        return;
+    }
+    if (progress_obj + progress_mtl != -2) {
+        point_helper.material.visible = false;
+        select_recovery();
+        return;
+    }
+    let obj = document.getElementById("panel_box");
+    if (event.clientX < obj.offsetLeft
+        || event.clientX > (obj.offsetLeft + obj.clientWidth)
+        || event.clientY < obj.offsetTop
+        || event.clientY > (obj.offsetTop + obj.clientHeight))
+        raycaster.setFromCamera(cover_pointer, cover_camera);
+    var intersects = raycaster.intersectObject(cut_obj[0], true);
+    if (intersects.length > 0) {
+        point_helper.material.visible = true;
+        point_helper.position.set(0, 0, 0);
+        point_helper.lookAt(intersects[0].face.normal);
+        point_helper.position.copy(intersects[0].point);
+    } else {
+        point_helper.material.visible = false;
     }
 }
 
