@@ -1017,13 +1017,13 @@ function GUI_init() {
     folder_env_global = folder_env.addFolder("Material Global Settings")
     folder_env_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     folder_env_global.add(gui_options, "reset").name('Materials Recovery')
-    folder_env_global.add(gui_options, "set_default").name('Remove Materials')
+    folder_env_global.add(gui_options, "set_default").name('Random Materials')
     folder_env_global.open()
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
     material_folder.add(Material, "reset").name('Materials Recovery')
-    material_folder.add(Material, "set_default").name('Remove Material')
+    material_folder.add(Material, "set_default").name('Random Material')
     material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
     material_folder.add(Material, "transparent").onChange(() => Material_Update_Param())
     material_folder.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
