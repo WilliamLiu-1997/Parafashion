@@ -1250,8 +1250,8 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.getElementById("container").appendChild(renderer.domElement);
-    //stats = new Stats();
-    //document.getElementById("container").appendChild(stats.dom);
+    stats = new Stats();
+    document.getElementById("container").appendChild(stats.dom);
 
     camera = new THREE.PerspectiveCamera(
         45,
@@ -1406,7 +1406,7 @@ function init_patch() {
 }
 
 function animate() {
-    //stats.begin();
+    stats.begin();
     if (patch_panel_width != $("#container_patch").css("width")) {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
@@ -1474,7 +1474,7 @@ function animate() {
     if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
     requestAnimationFrame(animate);
     render();
-    //stats.end();
+    stats.end();
 }
 
 function render() {
