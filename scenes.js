@@ -13,7 +13,7 @@ let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
 let obj3D = new THREE.Object3D();
-let progress_obj = -2, progress_mtl = -2;
+let progress_obj = 0, progress_mtl = 0;
 let patch_panel_width = $("#container_patch").css("width");
 let raycaster = new THREE.Raycaster();
 let pointer = new THREE.Vector2();
@@ -1398,13 +1398,14 @@ function init_patch() {
 
 }
 
-
 function animate() {
     //stats.begin();
     if (patch_panel_width != $("#container_patch").css("width")) {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
+    $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl)) + "%", "aria- valuenow": Math.min(100,(progress_obj + progress_mtl))})
+
     if (progress_obj + progress_mtl == 200 && garment) {
         var lack = false;
         var all_empty = true;
@@ -1431,7 +1432,7 @@ function animate() {
                 uvs.push([]);
             }
         }
-        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
+        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 
         patch = patch_loader(garment, uvs, 1, num, false);
         patch.name = "patch";
@@ -1452,7 +1453,7 @@ function animate() {
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         onWindowResize();
 
-
+        $("#progress_bar").hide();
 
         //gui_options.set_default()
     }
@@ -2561,7 +2562,7 @@ function appendFile(files) {
     for (var file of files) {
         var fileType = file.type.substr(file.type.lastIndexOf("/")).toUpperCase();
         if (fileType != "/PNG" && fileType != "/JPG" && fileType != "/JPEG") {
-            $("#alert_img").html('<div id="img_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image files are acceptable!&nbsp;&nbsp;</div>');
+            $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image files are acceptable!&nbsp;&nbsp;</div>');
             setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
             setTimeout(function () { $("#alert_img").html("") }, 3500)
             return
