@@ -65,7 +65,7 @@ let outlinePass_params_cover = {
     rotate: false,
     usePatternTexture: false,
     visibleEdgeColor: "#cc6666",
-    hiddenEdgeColor: "#221111"
+    hiddenEdgeColor: "#331818"
 };
 
 let outlinePass_params_select = {
@@ -1208,7 +1208,7 @@ function GUI_init() {
 
 function Change_Mode() {
     if (gui_options.Mode == "Cutting Model") {
-        $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After marking a model for cutting, we will remove it materials!&nbsp;&nbsp;</div>');
+        $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After marking a model for cutting, we will remove its materials and they cannot be recovered!&nbsp;&nbsp;</div>');
         setTimeout(function () { $("#cut_alert").fadeOut(500); }, 3000)
         setTimeout(function () { $("#alert_cut").html("") }, 3500)
     }
@@ -1290,7 +1290,7 @@ function init() {
     outlinePass_select.edgeGlow = outlinePass_params_select.edgeGlow;
     outlinePass_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
     outlinePass_select.visibleEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
-    outlinePass_select.hiddenEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
+    outlinePass_select.hiddenEdgeColor.set(outlinePass_params_select.hiddenEdgeColor);
 
     effectFXAA = new ShaderPass(FXAAShader);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
@@ -1371,7 +1371,7 @@ function init_patch() {
     outlinePass_patch_select.edgeGlow = outlinePass_params_select.edgeGlow;
     outlinePass_patch_select.pulsePeriod = outlinePass_params_select.pulsePeriod;
     outlinePass_patch_select.visibleEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
-    outlinePass_patch_select.hiddenEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
+    outlinePass_patch_select.hiddenEdgeColor.set(outlinePass_params_select.hiddenEdgeColor);
 
     effectFXAA_patch = new ShaderPass(FXAAShader);
     effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.78 / window.devicePixelRatio);
