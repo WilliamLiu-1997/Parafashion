@@ -2328,8 +2328,8 @@ function Display(show_env, patch_env, light) {
             }
         } else {
             scene_patch.background = null;
-            cameralight_patch.intensity = light[0]
-            env_light_patch.intensity = light[1]
+            cameralight_patch.intensity = environment_light.None[0]
+            env_light_patch.intensity = environment_light.None[1]
             if (patch !== undefined) {
                 patch.traverse(function (child) {
                     if (child.material !== undefined) {
@@ -2349,8 +2349,8 @@ function Display(show_env, patch_env, light) {
     }
     else {
         scene.background = new THREE.Color(0x303030);
-        cameralight_patch.intensity = light[0]
-        env_light_patch.intensity = light[1]
+        cameralight.intensity = environment_light.None[0]
+        env_light.intensity = environment_light.None[1]
         if (garment !== undefined) {
             garment.traverse(function (child) {
                 if (child.material !== undefined) {
@@ -2367,8 +2367,8 @@ function Display(show_env, patch_env, light) {
             })
         }
         scene_patch.background = null;
-        cameralight_patch.intensity = light[0]
-        env_light_patch.intensity = light[1]
+        cameralight_patch.intensity = environment_light.None[0]
+        env_light_patch.intensity = environment_light.None[1]
         if (patch !== undefined) {
             patch.traverse(function (child) {
                 if (child.material !== undefined) {
