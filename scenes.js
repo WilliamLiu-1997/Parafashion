@@ -9,7 +9,7 @@ import { FXAAShader } from './three.js/examples/jsm/shaders/FXAAShader.js';
 import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats, point_helper_geo, point_helper;
-let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch, uvs;
+let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
 let obj3D = new THREE.Object3D();
@@ -273,7 +273,7 @@ var gui_options = {
             }
         })
         scene_patch.remove(patch)
-        patch = patch_loader(garment, uvs, 1, num, false);
+        patch = patch_loader(garment, 1, num);
         patch.name = "patch";
         scene_patch.add(patch);
         select_recovery()
@@ -315,7 +315,7 @@ var gui_options = {
             }
         })
         scene_patch.remove(patch)
-        patch = patch_loader(garment, uvs, 1, num, false);
+        patch = patch_loader(garment, 1, num);
         patch.name = "patch";
         scene_patch.add(patch);
         select_recovery()
@@ -1405,13 +1405,18 @@ function init_patch() {
 
 }
 
+
+function load() {
+    console.log(123)
+    $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl) / 2) + "%", "aria- valuenow": Math.min(100, (progress_obj + progress_mtl) / 2) })
+}
+
 function animate() {
     stats.begin();
     if (patch_panel_width != $("#container_patch").css("width")) {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
-    $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl)) + "%", "aria- valuenow": Math.min(100, (progress_obj + progress_mtl)) })
 
     if (progress_obj + progress_mtl == 200 && garment) {
         camera.position.set(0, 0, obj_size + 1)
@@ -1419,30 +1424,8 @@ function animate() {
         var all_empty = true;
         progress_obj = progress_mtl = -1;
         var num = garment.children[0].children.length;
-        uvs = []
-        for (var i = 0; i < num; i++) {
-            try {
-                var empty = true;
-                var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
-                uvs.push(uvarray);
-                if (!all_empty || i == 0) {
-                    for (var uv_index in uvarray) {
-                        if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
-                            empty = false;
-                        }
-                    }
-                }
-                !empty ? all_empty = false : all_empty = true;
-            }
-            catch (err) {
-                console.warn(err + ". Using empty UVs instead.")
-                lack = true
-                uvs.push([]);
-            }
-        }
-        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 
-        patch = patch_loader(garment, uvs, 1, num, false);
+        patch = patch_loader(garment, 1, num);
         patch.name = "patch";
         scene_patch.add(patch);
         camera_patch.position.set(0, 0, 1 + Math.max(1, max_radius))
@@ -1464,11 +1447,34 @@ function animate() {
 
         $("#progress_bar").hide();
 
-        //gui_options.set_default()
+
+        for (var i = 0; i < num; i++) {
+            try {
+                var empty = true;
+                var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
+                if (!all_empty || i == 0) {
+                    for (var uv_index in uvarray) {
+                        if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
+                            empty = false;
+                        }
+                    }
+                }
+                !empty ? all_empty = false : all_empty = true;
+            }
+            catch (err) {
+                console.warn(err + ". Using empty UVs instead.")
+                lack = true
+            }
+        }
+        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
+
     }
     else if (progress_obj + progress_mtl == -2) {
 
 
+    }
+    else {
+        load()
     }
 
     $(".up-area").css({ "width": $(".dg.main").css("width") })
@@ -2157,9 +2163,9 @@ function individual_garmentToPatch(bufGeom, ig) {
             newPositions[indexDest + 1] = 0;
             newPositions[indexDest + 2] = 0;
 
-            newNormals[indexDest] = origNormals[indexOrig];
-            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
-            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+            newNormals[indexDest] = 0;
+            newNormals[indexDest + 1] = 0;
+            newNormals[indexDest + 2] = 0;
 
             newUVs[indexDestUV] = 0;
             newUVs[indexDestUV + 1] = 0;
@@ -2535,7 +2541,7 @@ function array_default_material_clone(array, clone) {
 }
 
 
-function patch_loader(garment, uv, scale, num, double = false) {
+function patch_loader(garment, scale, num) {
     max_radius = 0;
     let first = false;
     let max_height = 0;
@@ -2609,15 +2615,17 @@ function patch_loader(garment, uv, scale, num, double = false) {
                 last_y -= max_height * 1.5;
                 max_height = 0
             }
+            patch_geo = individual_garmentToPatch(patch_geo, 0);
             let normals = [];
-            for (let i = 0; i < uv[x].length; i++) {
+            let patch_geo_uv = patch_geo.attributes.uv.array;
+            for (let i = 0; i < patch_geo_uv.length; i++) {
                 if ((i + 1) % 6 == 0) {
-                    let x1 = uv[x][i - 5]
-                    let y1 = uv[x][i - 4]
-                    let x2 = uv[x][i - 3]
-                    let y2 = uv[x][i - 2]
-                    let x3 = uv[x][i - 1]
-                    let y3 = uv[x][i]
+                    let x1 = patch_geo_uv[i - 5]
+                    let y1 = patch_geo_uv[i - 4]
+                    let x2 = patch_geo_uv[i - 3]
+                    let y2 = patch_geo_uv[i - 2]
+                    let x3 = patch_geo_uv[i - 1]
+                    let y3 = patch_geo_uv[i]
                     let a = y3 - y1
                     let b = x1 - x3
                     let c = x3 * y1 - x1 * y3
@@ -2628,7 +2636,6 @@ function patch_loader(garment, uv, scale, num, double = false) {
                     }
                 }
             }
-            patch_geo = individual_garmentToPatch(patch_geo, 0);
             patch_geo.deleteAttribute("normal");
             patch_geo.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
             let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
