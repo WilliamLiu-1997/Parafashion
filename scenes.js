@@ -1414,6 +1414,7 @@ function animate() {
     $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl)) + "%", "aria- valuenow": Math.min(100, (progress_obj + progress_mtl)) })
 
     if (progress_obj + progress_mtl == 200 && garment) {
+        camera.position.set(0, 0, obj_size + 1)
         var lack = false;
         var all_empty = true;
         progress_obj = progress_mtl = -1;
@@ -1444,7 +1445,8 @@ function animate() {
         patch = patch_loader(garment, uvs, 1, num, false);
         patch.name = "patch";
         scene_patch.add(patch);
-        controls_patch.maxDistance = max_radius * 15;
+        camera_patch.position.set(0, 0, 1 + Math.max(1, max_radius))
+        controls_patch.maxDistance = max_radius * 20;
         controls.maxDistance = Math.min(100, obj_size * 10);
         camera_patch.far = max_radius * 50;
 
@@ -2003,91 +2005,174 @@ function select_cut(cover_pointer, cover_camera, event) {
 
 
 function individual(bufGeom, ig) {
+    try {
+        var groups = bufGeom.groups;
+        var origVerts = bufGeom.getAttribute('position').array;
+        var origNormals = bufGeom.getAttribute('normal').array;
+        var origUVs = bufGeom.getAttribute('uv').array;
 
-    var groups = bufGeom.groups;
-    var origVerts = bufGeom.getAttribute('position').array;
-    var origNormals = bufGeom.getAttribute('normal').array;
-    var origUVs = bufGeom.getAttribute('uv').array;
+        if (groups.length > 0) { var group = groups[ig]; }
+        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
 
-    if (groups.length > 0) { var group = groups[ig]; }
-    else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
+        var destNumVerts = group.count;
 
-    var destNumVerts = group.count;
+        var newBufGeom = new THREE.BufferGeometry();
+        var newPositions = new Float32Array(destNumVerts * 3);
+        var newNormals = new Float32Array(destNumVerts * 3);
+        var newUVs = new Float32Array(destNumVerts * 2);
 
-    var newBufGeom = new THREE.BufferGeometry();
-    var newPositions = new Float32Array(destNumVerts * 3);
-    var newNormals = new Float32Array(destNumVerts * 3);
-    var newUVs = new Float32Array(destNumVerts * 2);
+        for (var iv = 0; iv < destNumVerts; iv++) {
 
-    for (var iv = 0; iv < destNumVerts; iv++) {
+            var indexOrig = 3 * (group.start + iv);
+            var indexDest = 3 * iv;
 
-        var indexOrig = 3 * (group.start + iv);
-        var indexDest = 3 * iv;
+            var indexOrigUV = 2 * (group.start + iv);
+            var indexDestUV = 2 * iv;
+            newPositions[indexDest] = origVerts[indexOrig];
+            newPositions[indexDest + 1] = origVerts[indexOrig + 1];
+            newPositions[indexDest + 2] = origVerts[indexOrig + 2];
 
-        var indexOrigUV = 2 * (group.start + iv);
-        var indexDestUV = 2 * iv;
-        newPositions[indexDest] = origVerts[indexOrig];
-        newPositions[indexDest + 1] = origVerts[indexOrig + 1];
-        newPositions[indexDest + 2] = origVerts[indexOrig + 2];
+            newNormals[indexDest] = origNormals[indexOrig];
+            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
 
-        newNormals[indexDest] = origNormals[indexOrig];
-        newNormals[indexDest + 1] = origNormals[indexOrig + 1];
-        newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+            newUVs[indexDestUV] = origUVs[indexOrigUV];
+            newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
 
-        newUVs[indexDestUV] = origUVs[indexOrigUV];
-        newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
+        }
 
+        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+
+        return newBufGeom;
     }
+    catch (e) {
+        var groups = bufGeom.groups;
+        var origVerts = bufGeom.getAttribute('position').array;
+        var origNormals = bufGeom.getAttribute('normal').array;
 
-    newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-    newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
-    newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+        if (groups.length > 0) { var group = groups[ig]; }
+        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
 
-    return newBufGeom;
+        var destNumVerts = group.count;
 
+        var newBufGeom = new THREE.BufferGeometry();
+        var newPositions = new Float32Array(destNumVerts * 3);
+        var newNormals = new Float32Array(destNumVerts * 3);
+        var newUVs = new Float32Array(destNumVerts * 2);
+
+        for (var iv = 0; iv < destNumVerts; iv++) {
+
+            var indexOrig = 3 * (group.start + iv);
+            var indexDest = 3 * iv;
+
+            var indexOrigUV = 2 * (group.start + iv);
+            var indexDestUV = 2 * iv;
+            newPositions[indexDest] = origVerts[indexOrig];
+            newPositions[indexDest + 1] = origVerts[indexOrig + 1];
+            newPositions[indexDest + 2] = origVerts[indexOrig + 2];
+
+            newNormals[indexDest] = origNormals[indexOrig];
+            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+
+            newUVs[indexDestUV] = 0;
+            newUVs[indexDestUV + 1] = 0;
+
+        }
+
+        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+
+        return newBufGeom;
+    }
 }
 
 function individual_garmentToPatch(bufGeom, ig) {
+    try {
+        var groups = bufGeom.groups;
+        var origNormals = bufGeom.getAttribute('normal').array;
+        var origUVs = bufGeom.getAttribute('uv').array;
 
-    var groups = bufGeom.groups;
-    var origNormals = bufGeom.getAttribute('normal').array;
-    var origUVs = bufGeom.getAttribute('uv').array;
+        if (groups.length > 0) { var group = groups[ig]; }
+        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
 
-    if (groups.length > 0) { var group = groups[ig]; }
-    else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
+        var destNumVerts = group.count;
 
-    var destNumVerts = group.count;
+        var newBufGeom = new THREE.BufferGeometry();
+        var newPositions = new Float32Array(destNumVerts * 3);
+        var newNormals = new Float32Array(destNumVerts * 3);
+        var newUVs = new Float32Array(destNumVerts * 2);
 
-    var newBufGeom = new THREE.BufferGeometry();
-    var newPositions = new Float32Array(destNumVerts * 3);
-    var newNormals = new Float32Array(destNumVerts * 3);
-    var newUVs = new Float32Array(destNumVerts * 2);
+        for (var iv = 0; iv < destNumVerts; iv++) {
 
-    for (var iv = 0; iv < destNumVerts; iv++) {
+            var indexOrig = 3 * (group.start + iv);
+            var indexDest = 3 * iv;
 
-        var indexOrig = 3 * (group.start + iv);
-        var indexDest = 3 * iv;
+            var indexOrigUV = 2 * (group.start + iv);
+            var indexDestUV = 2 * iv;
+            newPositions[indexDest] = origUVs[indexOrigUV];
+            newPositions[indexDest + 1] = origUVs[indexOrigUV + 1];
+            newPositions[indexDest + 2] = 0;
 
-        var indexOrigUV = 2 * (group.start + iv);
-        var indexDestUV = 2 * iv;
-        newPositions[indexDest] = origUVs[indexOrigUV];
-        newPositions[indexDest + 1] = origUVs[indexOrigUV + 1];
-        newPositions[indexDest + 2] = 0;
+            newNormals[indexDest] = origNormals[indexOrig];
+            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
 
-        newNormals[indexDest] = origNormals[indexOrig];
-        newNormals[indexDest + 1] = origNormals[indexOrig + 1];
-        newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+            newUVs[indexDestUV] = origUVs[indexOrigUV];
+            newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
 
-        newUVs[indexDestUV] = origUVs[indexOrigUV];
-        newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
+        }
 
+        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+
+        return newBufGeom;
+    }
+    catch (e) {
+        var groups = bufGeom.groups;
+        var origNormals = bufGeom.getAttribute('normal').array;
+
+        if (groups.length > 0) { var group = groups[ig]; }
+        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
+
+        var destNumVerts = group.count;
+
+        var newBufGeom = new THREE.BufferGeometry();
+        var newPositions = new Float32Array(destNumVerts * 3);
+        var newNormals = new Float32Array(destNumVerts * 3);
+        var newUVs = new Float32Array(destNumVerts * 2);
+
+        for (var iv = 0; iv < destNumVerts; iv++) {
+
+            var indexOrig = 3 * (group.start + iv);
+            var indexDest = 3 * iv;
+
+            var indexOrigUV = 2 * (group.start + iv);
+            var indexDestUV = 2 * iv;
+            newPositions[indexDest] = 0;
+            newPositions[indexDest + 1] = 0;
+            newPositions[indexDest + 2] = 0;
+
+            newNormals[indexDest] = origNormals[indexOrig];
+            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
+            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
+
+            newUVs[indexDestUV] = 0;
+            newUVs[indexDestUV + 1] = 0;
+
+        }
+
+        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
+        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
+        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
+
+        return newBufGeom;
     }
 
-    newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-    newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
-    newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
-
-    return newBufGeom;
 
 }
 
@@ -2303,14 +2388,14 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
     let onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
             let percentComplete = (xhr.loaded / xhr.total) * 100;
-            console.log(Math.round(percentComplete, 2) + "% downloaded");
+            console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
             progress_obj = Math.round(percentComplete, 2);
         }
     };
     let onProgress_mtl = function (xhr) {
         if (xhr.lengthComputable) {
             let percentComplete = (xhr.loaded / xhr.total) * 100;
-            console.log(Math.round(percentComplete, 2) + "% downloaded");
+            console.log(Math.round(percentComplete, 2) + "% downloaded(mtl)");
             progress_mtl = Math.round(percentComplete, 2);
         }
     };
@@ -2350,16 +2435,24 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                         child.castShadow = true;
                         child.receiveShadow = true;
                         child.geometry.computeFaceNormals();
-                        for (let i = 0; i < child.geometry.attributes.position.array.length; i++) {
-                            if ((i + 1) % 3 == 0) {
-                                x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
-                                x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
-                                y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
-                                y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
-                                z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
-                                z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
-                            }
-                        }
+
+                        child.geometry.computeBoundingBox();
+                        x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
+                        y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
+                        z_max = z_max < child.geometry.boundingBox.max.z ? child.geometry.boundingBox.max.z : z_max;
+                        x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
+                        y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
+                        z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
+                        // for (let i = 0; i < child.geometry.attributes.position.array.length; i++) {
+                        //     if ((i + 1) % 3 == 0) {
+                        //         x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
+                        //         x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
+                        //         y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
+                        //         y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
+                        //         z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
+                        //         z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
+                        //     }
+                        // }
                     }
                 })
                 let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
@@ -2394,16 +2487,24 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                                 child.castShadow = true;
                                 child.receiveShadow = true;
                                 child.geometry.computeFaceNormals();
-                                for (let i = 0; i < child.geometry.attributes.position.array.length; i++) {
-                                    if ((i + 1) % 3 == 0) {
-                                        x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
-                                        x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
-                                        y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
-                                        y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
-                                        z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
-                                        z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
-                                    }
-                                }
+
+                                child.geometry.computeBoundingBox();
+                                x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
+                                y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
+                                z_max = z_max < child.geometry.boundingBox.max.z ? child.geometry.boundingBox.max.z : z_max;
+                                x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
+                                y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
+                                z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
+                                // for (let i = 0; i < child.geometry.attributes.position.array.length; i++) {
+                                //     if ((i + 1) % 3 == 0) {
+                                //         x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
+                                //         x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
+                                //         y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
+                                //         y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
+                                //         z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
+                                //         z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
+                                //     }
+                                // }
                             }
                         })
                         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
