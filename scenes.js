@@ -1406,8 +1406,7 @@ function init_patch() {
 }
 
 
-function load() {
-    console.log(123)
+function show_progress() {
     $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl) / 2) + "%", "aria- valuenow": Math.min(100, (progress_obj + progress_mtl) / 2) })
 }
 
@@ -1474,9 +1473,9 @@ function animate() {
 
     }
     else {
-        load()
+        show_progress()
     }
-
+    $("#texture_container").css({ "max-height": window.innerHeight * 0.91*0.45 })
     $(".up-area").css({ "width": $(".dg.main").css("width") })
     $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
     if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
