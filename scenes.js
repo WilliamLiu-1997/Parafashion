@@ -1269,8 +1269,8 @@ function init() {
     scene.add(env_light);
 
 
-    point_helper_geo = new THREE.ConeGeometry(0.001, 0.03, 10, 10);
-    point_helper_geo.translate(0, 0.015, 0);
+    point_helper_geo = new THREE.ConeGeometry(0.001, 0.01, 10, 10);
+    point_helper_geo.translate(0, 0.005, 0);
     point_helper_geo.rotateX(Math.PI / 2);
     point_helper = new THREE.Mesh(point_helper_geo, new THREE.MeshNormalMaterial({ visible: false }));
     scene.add(point_helper);
@@ -2328,8 +2328,8 @@ function Display(show_env, patch_env, light) {
             }
         } else {
             scene_patch.background = null;
-            cameralight_patch.intensity = 0.8
-            env_light_patch.intensity = 0.2
+            cameralight_patch.intensity = light[0]
+            env_light_patch.intensity = light[1]
             if (patch !== undefined) {
                 patch.traverse(function (child) {
                     if (child.material !== undefined) {
@@ -2349,8 +2349,8 @@ function Display(show_env, patch_env, light) {
     }
     else {
         scene.background = new THREE.Color(0x303030);
-        cameralight.intensity = 0.8
-        env_light.intensity = 0.2
+        cameralight_patch.intensity = light[0]
+        env_light_patch.intensity = light[1]
         if (garment !== undefined) {
             garment.traverse(function (child) {
                 if (child.material !== undefined) {
@@ -2367,8 +2367,8 @@ function Display(show_env, patch_env, light) {
             })
         }
         scene_patch.background = null;
-        cameralight_patch.intensity = 0.8
-        env_light_patch.intensity = 0.2
+        cameralight_patch.intensity = light[0]
+        env_light_patch.intensity = light[1]
         if (patch !== undefined) {
             patch.traverse(function (child) {
                 if (child.material !== undefined) {
