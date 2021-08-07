@@ -10,9 +10,9 @@ import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats, point_helper_geo, point_helper;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
-var tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
-var windowHeight = window.innerHeight;
-var tanFOV_patch = Math.tan(((Math.PI / 180) * camera_patch.fov / 2));
+var tanFOV;
+var windowHeight;
+var tanFOV_patch;
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
 let obj3D = new THREE.Object3D();
@@ -1332,6 +1332,8 @@ function init() {
     helper.material.transparent = true;
     scene.add(helper);
 
+    tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
+    windowHeight = window.innerHeight;
 
     window.addEventListener("resize", onWindowResize);
     window.addEventListener("mousedown", onmouseDown, false);
@@ -1405,6 +1407,9 @@ function init_patch() {
     // controls_patch.minPolarAngle = Math.PI * 0.1;
     // controls_patch.maxAzimuthAngle = Math.PI * 0.4;
     // controls_patch.minAzimuthAngle = -Math.PI * 0.4;
+
+
+    tanFOV_patch = Math.tan(((Math.PI / 180) * camera_patch.fov / 2));
 
 }
 
