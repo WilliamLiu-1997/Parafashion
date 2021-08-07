@@ -10,6 +10,9 @@ import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats, point_helper_geo, point_helper;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
+var tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
+var windowHeight = window.innerHeight;
+var tanFOV_patch = Math.tan(((Math.PI / 180) * camera_patch.fov / 2));
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
 let obj3D = new THREE.Object3D();
@@ -1501,13 +1504,18 @@ function onWindowResize() {
         setTimeout(function () { $("#alert_size").html("") }, 5500)
     }
     camera.aspect = window.innerWidth / window.innerHeight;
+    camera.fov = (360 / Math.PI) * Math.atan(tanFOV * (window.innerHeight / windowHeight));
     camera.updateProjectionMatrix();
+
+
+
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
 
     if (render_patch_flag) {
         camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.78;
+        camera_patch.fov = (360 / Math.PI) * Math.atan(tanFOV_patch * (window.innerHeight / windowHeight));
         camera_patch.updateProjectionMatrix();
         renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
         composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
