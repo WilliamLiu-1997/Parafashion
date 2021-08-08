@@ -409,7 +409,9 @@ THREE.CameraControls = function (object, domElement) {
 
 		} else if (scope.object.isOrthographicCamera) {
 
-			panUp_Distance(-50 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
+			scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom * dollyScale));
+			scope.object.updateProjectionMatrix();
+			zoomChanged = true;
 
 		} else {
 
@@ -430,7 +432,9 @@ THREE.CameraControls = function (object, domElement) {
 
 		} else if (scope.object.isOrthographicCamera) {
 
-			panUp_Distance(50 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
+			scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom / dollyScale));
+			scope.object.updateProjectionMatrix();
+			zoomChanged = true;
 
 		} else {
 

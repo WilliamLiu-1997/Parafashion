@@ -1257,11 +1257,10 @@ function init() {
     stats = new Stats();
     document.getElementById("container").appendChild(stats.dom);
 
-    camera = new THREE.PerspectiveCamera(
-        45,
-        window.innerWidth / window.innerHeight,
+    camera = new THREE.OrthographicCamera(
+        window.innerWidth / - 200, window.innerWidth / 200, window.innerHeight / 200, window.innerHeight / - 200,
         0.01,
-        1000
+        10000
     );
     camera.position.set(0, 0, 2);
 
@@ -1329,7 +1328,7 @@ function init() {
     helper.material.transparent = true;
     scene.add(helper);
 
-    tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
+    //tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
     windowHeight = window.innerHeight;
 
     window.addEventListener("resize", onWindowResize);
