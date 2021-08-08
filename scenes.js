@@ -51,8 +51,8 @@ var garments_mtl = "./leggins/patch_smooth.mtl"
 var garments_obj = "./leggins/patch_smooth.obj"
 var garments_mtl = "./obj/village1/village_final.mtl"
 var garments_obj = "./obj/village1/village_final.obj"
-// var garments_mtl = "./obj/tower/tower3.mtl"
-// var garments_obj = "./obj/tower/tower3.obj"
+var garments_mtl = "./obj/tower/tower3.mtl"
+var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
 // var garments_mtl = "./obj/S/S.mtl"
@@ -331,7 +331,6 @@ var gui_options = {
     },
     Overall_Reflectivity: 0,
     env: "None",
-    Rotate: false,
     Enable_Patch_Background: false,
     cut: false,
     Mode: "Customizing Material",
@@ -1013,9 +1012,8 @@ function GUI_init() {
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
-    folder_env.add(gui_options, 'Rotate').onChange(() => Show(gui_options.Rotate));
-    folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
+    folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     // other options: "BathRoom", 'Church', "Gallery", "Square"
     folder_env_global = folder_env.addFolder("Material Global Settings")
     folder_env_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
@@ -1313,8 +1311,7 @@ function init() {
 
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
-    controls.rotateSpeed = 0.1;
-    controls.autoRotateSpeed = 0.15;
+    controls.rotateSpeed = 0.15;
     controls.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
@@ -1392,7 +1389,7 @@ function init_patch() {
 
     controls_patch.enableDamping = true;
     controls_patch.dampingFactor = 0.1;
-    controls_patch.rotateSpeed = 0.1;
+    controls_patch.rotateSpeed = 0.15;
 
     controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
@@ -2282,12 +2279,6 @@ function seperateGroups_garmentToPatch(bufGeom) {
 
 }
 
-
-function Show(Rotate) {
-    if (controls !== undefined) {
-        controls.autoRotate = Rotate
-    }
-}
 
 
 function Display(show_env, patch_env, light) {
