@@ -15,6 +15,9 @@
 
 THREE.OrbitControls = function (object, domElement) {
 
+	this.angleX = 0;
+	this.angleY = 0;
+
 	this.stop = false;
 
 	this.o = new THREE.Vector3(0, 0, 0)
@@ -290,14 +293,32 @@ THREE.OrbitControls = function (object, domElement) {
 	}
 
 	function rotateLeft(angle) {
+		var offset=new THREE.Vector3()
+		var position = scope.object.position;
+		offset.copy(position).sub(scope.target);
+		var targetDistance = offset.length();
+		scope.angleX -= angle*Math.PI
+		scope.target.x = Math.sin(scope.angleX)
+		scope.target.z = Math.cos(scope.angleX)
+		scope.target.y = Math.sin(scope.angleY)
+		scope.target.setLength(targetDistance)
 
-		sphericalDelta.theta -= angle;
-
+		// sphericalDelta.theta -= angle;
+		console.log(scope.angleX)
 	}
 
 	function rotateUp(angle) {
+		var offset = new THREE.Vector3()
+		var position = scope.object.position;
+		offset.copy(position).sub(scope.target);
+		var targetDistance = offset.length();
+		scope.angleY = Math.max(-Math.PI/2,Math.min(scope.angleY + angle * Math.PI, Math.PI/2))
+		scope.target.x = Math.sin(scope.angleX)
+		scope.target.z = Math.cos(scope.angleX)
+		scope.target.y = Math.sin(scope.angleY)
+		scope.target.setLength(targetDistance)
 
-		sphericalDelta.phi -= angle;
+		//sphericalDelta.phi -= angle;
 
 	}
 
