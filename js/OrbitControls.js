@@ -4,6 +4,7 @@
  * @author alteredq / http://alteredqualia.com/
  * @author WestLangley / http://github.com/WestLangley
  * @author erich666 / http://erichaines.com
+ * @author William / https://github.com/WilliamLiu-1997
  */
 
 // This set of controls performs orbiting, dollying (zooming), and panning.
@@ -26,7 +27,8 @@ THREE.OrbitControls = function (object, domElement) {
 
 	this.minZ = -Infinity;
 	this.maxZ = Infinity;
-
+	
+	// The sensibility of panning and Dolly
 	this.sensibility = 1;
 
 	this.domElement = (domElement !== undefined) ? domElement : document;
