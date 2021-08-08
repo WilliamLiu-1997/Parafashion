@@ -284,7 +284,7 @@ class CameraControls extends EventDispatcher{
 
 		}();
 
-		var panUp_Distance = function () {
+		var moveForward = function () {
 
 			var v = new Vector3();
 
@@ -336,7 +336,7 @@ class CameraControls extends EventDispatcher{
 
 			if (scope.object.isPerspectiveCamera) {
 
-				panUp_Distance(-50 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
+				moveForward(-50 * scope.sensibility * dollyScale / element.clientHeight);
 
 			} else if (scope.object.isOrthographicCamera) {
 
@@ -359,7 +359,7 @@ class CameraControls extends EventDispatcher{
 
 			if (scope.object.isPerspectiveCamera) {
 
-				panUp_Distance(50 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
+				moveForward(50 * scope.sensibility * dollyScale / element.clientHeight);
 
 			} else if (scope.object.isOrthographicCamera) {
 
