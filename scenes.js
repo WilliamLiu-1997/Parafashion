@@ -1,4 +1,6 @@
+import * as THREE from './three.js/build/three.module.js';
 import { GUI } from './js/dat.gui.module.js';
+import { CameraControls } from './js/CameraControls.js';
 import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
 import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
@@ -1310,11 +1312,9 @@ function init() {
     composer.setSize(window.innerWidth, window.innerHeight);
     // controls
 
-    controls = new THREE.CameraControls(camera, renderer.domElement);
+    controls = new CameraControls(camera, renderer.domElement);
 
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.1;
-    controls.rotateSpeed = 0.1;
+    controls.dynamicSensibility = false;
     controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: false, PAN: THREE.MOUSE.MIDDLE };
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
@@ -1388,11 +1388,9 @@ function init_patch() {
     composer_patch.setPixelRatio(window.devicePixelRatio);
     composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
 
-    controls_patch = new THREE.CameraControls(camera_patch, renderer_patch.domElement);
+    controls_patch = new CameraControls(camera_patch, renderer_patch.domElement);
 
-    controls_patch.enableDamping = true;
-    controls_patch.dampingFactor = 0.1;
-    controls_patch.rotateSpeed = 0.1;
+    controls_patch.dynamicSensibility = false;
 
     controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
