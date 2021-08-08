@@ -1310,7 +1310,7 @@ function init() {
     composer.setSize(window.innerWidth, window.innerHeight);
     // controls
 
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls = new THREE.CameraControls(camera, renderer.domElement);
 
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
@@ -1388,7 +1388,7 @@ function init_patch() {
     composer_patch.setPixelRatio(window.devicePixelRatio);
     composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
 
-    controls_patch = new THREE.OrbitControls(camera_patch, renderer_patch.domElement);
+    controls_patch = new THREE.CameraControls(camera_patch, renderer_patch.domElement);
 
     controls_patch.enableDamping = true;
     controls_patch.dampingFactor = 0.1;
