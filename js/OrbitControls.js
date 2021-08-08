@@ -626,10 +626,10 @@ THREE.OrbitControls = function (object, domElement) {
 		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 		// rotating across whole screen goes 360 degrees around
-		rotateLeft(2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
+		rotateLeft(1.2 * (element.clientWidth / element.clientHeight) * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
 
 		// rotating up and down along whole screen attempts to go 360, but limited to 180
-		rotateUp(2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+		rotateUp(1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
 
 		rotateStart.copy(rotateEnd);
 
@@ -674,7 +674,7 @@ THREE.OrbitControls = function (object, domElement) {
 
 		panDelta.subVectors(panEnd, panStart);
 
-		pan(panDelta.x, panDelta.y);
+		pan(panDelta.x * scope.sensibility, panDelta.y * scope.sensibility);
 
 		panStart.copy(panEnd);
 
