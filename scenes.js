@@ -1511,9 +1511,6 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.fov = (360 / Math.PI) * Math.atan(tanFOV * (window.innerHeight / windowHeight));
     camera.updateProjectionMatrix();
-
-
-
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
@@ -2461,16 +2458,6 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                         x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
                         y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
                         z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
-                        // for (let i = 0; i < child.geometry.attributes.position.array.length; i++) {
-                        //     if ((i + 1) % 3 == 0) {
-                        //         x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
-                        //         x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
-                        //         y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
-                        //         y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
-                        //         z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
-                        //         z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
-                        //     }
-                        // }
                     }
                 })
                 let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
@@ -2513,16 +2500,6 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                                 x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
                                 y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
                                 z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
-                                // for (let i = 0; i < child.geometry.attributes.position.array.length; i++) {
-                                //     if ((i + 1) % 3 == 0) {
-                                //         x_max = x_max < child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_max
-                                //         x_min = x_min > child.geometry.attributes.position.array[i - 2] ? child.geometry.attributes.position.array[i - 2] : x_min
-                                //         y_max = y_max < child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_max
-                                //         y_min = y_min > child.geometry.attributes.position.array[i - 1] ? child.geometry.attributes.position.array[i - 1] : y_min
-                                //         z_max = z_max < child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_max
-                                //         z_min = z_min > child.geometry.attributes.position.array[i] ? child.geometry.attributes.position.array[i] : z_min
-                                //     }
-                                // }
                             }
                         })
                         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
