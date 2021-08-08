@@ -1,4 +1,9 @@
-import * as THREE from '../three.js/build/three.module.js';
+import {
+	EventDispatcher,
+	MOUSE,
+	Quaternion,
+	Vector2,
+	Vector3} from '../three.js/build/three.module.js';
 /**
  * @author qiao / https://github.com/qiao
  * @author mrdoob / http://mrdoob.com
@@ -14,15 +19,15 @@ import * as THREE from '../three.js/build/three.module.js';
 //    Orbit - left mouse / touch: one finger move
 //    Zoom - middle mouse, or mousewheel / touch: two finger spread or squish
 //    Pan - right mouse, or arrow keys / touch: three finger swipe
-class CameraControls extends THREE.EventDispatcher{
+class CameraControls extends EventDispatcher{
 	constructor(object, domElement) {
 		super();
 		this.angleX = 0;
 		this.angleY = 0;
-		this.look = new THREE.Vector3(0, 0, -1);
+		this.look = new Vector3(0, 0, -1);
 		this.stop = false;
 
-		this.o = new THREE.Vector3(0, 0, 0)
+		this.o = new Vector3(0, 0, 0)
 
 		this.object = object;
 
@@ -37,7 +42,7 @@ class CameraControls extends THREE.EventDispatcher{
 		this.enabled = true;
 
 		// "target" sets the location of focus, where the object orbits around
-		this.target = new THREE.Vector3();
+		this.target = new Vector3();
 
 		// How far you can dolly and pan ( PerspectiveCamera only )
 		this.maxDistance = Infinity;
@@ -71,7 +76,7 @@ class CameraControls extends THREE.EventDispatcher{
 		this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
 
 		// Mouse buttons
-		this.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: false, PAN: THREE.MOUSE.MIDDLE };
+		this.mouseButtons = { ORBIT: MOUSE.RIGHT, ZOOM: false, PAN: MOUSE.MIDDLE };
 
 		// for reset
 		this.target0 = this.target.clone();
@@ -108,14 +113,14 @@ class CameraControls extends THREE.EventDispatcher{
 		// this method is exposed, but perhaps it would be better if we can make it private...
 		this.update = function () {
 
-			var offset = new THREE.Vector3();
+			var offset = new Vector3();
 
 			// so camera.up is the orbit axis
-			var quat = new THREE.Quaternion().setFromUnitVectors(object.up, new THREE.Vector3(0, 1, 0));
+			var quat = new Quaternion().setFromUnitVectors(object.up, new Vector3(0, 1, 0));
 			var quatInverse = quat.clone().inverse();
 
-			var lastPosition = new THREE.Vector3();
-			var lastQuaternion = new THREE.Quaternion();
+			var lastPosition = new Vector3();
+			var lastQuaternion = new Quaternion();
 
 			return function update() {
 
@@ -213,20 +218,20 @@ class CameraControls extends THREE.EventDispatcher{
 		var EPS = 0.000001;
 
 
-		var panOffset = new THREE.Vector3();
+		var panOffset = new Vector3();
 		var zoomChanged = false;
 
-		var rotateStart = new THREE.Vector2();
-		var rotateEnd = new THREE.Vector2();
-		var rotateDelta = new THREE.Vector2();
+		var rotateStart = new Vector2();
+		var rotateEnd = new Vector2();
+		var rotateDelta = new Vector2();
 
-		var panStart = new THREE.Vector2();
-		var panEnd = new THREE.Vector2();
-		var panDelta = new THREE.Vector2();
+		var panStart = new Vector2();
+		var panEnd = new Vector2();
+		var panDelta = new Vector2();
 
-		var dollyStart = new THREE.Vector2();
-		var dollyEnd = new THREE.Vector2();
-		var dollyDelta = new THREE.Vector2();
+		var dollyStart = new Vector2();
+		var dollyEnd = new Vector2();
+		var dollyDelta = new Vector2();
 
 		function getAutoRotationAngle() {
 
@@ -251,7 +256,7 @@ class CameraControls extends THREE.EventDispatcher{
 
 		var panLeft = function () {
 
-			var v = new THREE.Vector3();
+			var v = new Vector3();
 
 			return function panLeft(distance, objectMatrix) {
 
@@ -266,7 +271,7 @@ class CameraControls extends THREE.EventDispatcher{
 
 		var panUp = function () {
 
-			var v = new THREE.Vector3();
+			var v = new Vector3();
 
 			return function panUp(distance, objectMatrix) {
 
@@ -281,7 +286,7 @@ class CameraControls extends THREE.EventDispatcher{
 
 		var panUp_Distance = function () {
 
-			var v = new THREE.Vector3();
+			var v = new Vector3();
 
 			return function panUp(distance) {
 
