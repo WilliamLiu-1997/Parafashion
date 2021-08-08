@@ -62,7 +62,7 @@ THREE.CameraControls = function (object, domElement) {
 	// Set to true to automatically rotate around the target
 	// If auto-rotate is enabled, you must call controls.update() in your animation loop
 	this.autoRotate = false;
-	this.autoRotateSpeed = 2.0; // 30 seconds per round when fps is 60
+	this.autoRotateSpeed = 0.2;
 
 	// Set to false to disable use of the keys
 	this.enableKeys = true;
@@ -128,7 +128,7 @@ THREE.CameraControls = function (object, domElement) {
 
 			if (scope.autoRotate && state === STATE.NONE) {
 
-				rotateLeft(getAutoRotationAngle());
+				rotate(getAutoRotationAngle(),0);
 
 			}
 
@@ -238,21 +238,13 @@ THREE.CameraControls = function (object, domElement) {
 
 	}
 
-	function rotateLeft(angle) {
-		scope.angleX += angle * 50 * scope.rotateSpeed
-		scope.look.x = Math.sin(scope.angleX)
-		scope.look.z = -Math.cos(scope.angleX)
+	function rotate(angleX, angleY) {
+		scope.angleX += angleX * 50 * scope.rotateSpeed
+		scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY - angleY * 50 * scope.rotateSpeed, Math.PI / 2.001))
+		scope.look.x = Math.sin(scope.angleX) * (Math.PI / 2-Math.abs(scope.angleY))
+		scope.look.z = -Math.cos(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
 		scope.look.y = Math.sin(scope.angleY)
 		scope.look.setLength(1)
-	}
-
-	function rotateUp(angle) {
-		scope.angleY = Math.max(-Math.PI / 2, Math.min(scope.angleY - angle * 50 * scope.rotateSpeed, Math.PI / 2))
-		scope.look.x = Math.sin(scope.angleX)
-		scope.look.z = -Math.cos(scope.angleX)
-		scope.look.y = Math.sin(scope.angleY)
-		scope.look.setLength(1)
-
 	}
 
 	var panLeft = function () {
@@ -417,10 +409,7 @@ THREE.CameraControls = function (object, domElement) {
 		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 		// rotating across whole screen goes 360 degrees around
-		rotateLeft(1.2 * (element.clientWidth / element.clientHeight) * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
-
-		// rotating up and down along whole screen attempts to go 360, but limited to 180
-		rotateUp(1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+		rotate(1.2 * (element.clientWidth / element.clientHeight) * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed, 1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
 
 		rotateStart.copy(rotateEnd);
 
@@ -560,11 +549,7 @@ THREE.CameraControls = function (object, domElement) {
 
 		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-		// rotating across whole screen goes 360 degrees around
-		rotateLeft(1.2 * (element.clientWidth / element.clientHeight) * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed);
-
-		// rotating up and down along whole screen attempts to go 360, but limited to 180
-		rotateUp(1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+		rotate(1.2 * (element.clientWidth / element.clientHeight) * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed, 1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
 
 		rotateStart.copy(rotateEnd);
 
