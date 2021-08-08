@@ -15,9 +15,13 @@
 
 THREE.OrbitControls = function ( object, domElement ) {
 
-	this.stop=false;
+	this.stop = false;
+	
+	this.o=new THREE.Vector3(0,0,0)
 
 	this.object = object;
+
+	this.sensibility = 1;
 
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
@@ -166,7 +170,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 			spherical.radius *= scale;
 
 			// restrict radius to be between desired limits
-			spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
+			//spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
 
 			// move target to panned location
 			scope.target.add( panOffset );
@@ -327,6 +331,24 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	}();
 
+	var panUp_Distance = function () {
+
+		var v = new THREE.Vector3();
+
+		return function panUp(distance, objectMatrix) {
+
+				v.setFromMatrixColumn(objectMatrix, 0);
+				v.crossVectors(scope.object.up, v);
+
+
+			v.multiplyScalar(distance);
+
+			panOffset.add(v);
+
+		};
+
+	}();
+
 	// deltaX and deltaY are in pixels; right and down are positive
 	var pan = function () {
 
@@ -347,8 +369,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 				targetDistance *= Math.tan( ( scope.object.fov / 2 ) * Math.PI / 180.0 );
 
 				// we actually don't use screenWidth, since perspective camera is fixed to screen height
-				panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
-				panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
+				panLeft( 20 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
+				panUp( 20 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
 
 			} else if ( scope.object.isOrthographicCamera ) {
 
@@ -368,11 +390,24 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	}();
 
-	function dollyIn( dollyScale ) {
+	function dollyIn(dollyScale) {
+		
+		var offset = new THREE.Vector3();
+		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 		if ( scope.object.isPerspectiveCamera ) {
 
-			scale /= dollyScale;
+			//scale *= dollyScale;
+			// perspective
+			var position = scope.object.position;
+			offset.copy(position).sub(scope.target);
+			var targetDistance = offset.length();
+
+			// half of the fov is center to top of screen
+			targetDistance *= Math.tan((scope.object.fov / 2) * Math.PI / 180.0);
+
+			// we actually don't use screenWidth, since perspective camera is fixed to screen height
+			panUp_Distance(-100 * scope.sensibility * dollyScale * targetDistance / element.clientHeight, scope.object.matrix);
 
 		} else if ( scope.object.isOrthographicCamera ) {
 
@@ -389,11 +424,24 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	}
 
-	function dollyOut( dollyScale ) {
+	function dollyOut(dollyScale) {
 
-		if ( scope.object.isPerspectiveCamera ) {
+		var offset = new THREE.Vector3();
+		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-			scale *= dollyScale;
+		if (scope.object.isPerspectiveCamera) {
+			
+			//scale *= dollyScale;
+			// perspective
+			var position = scope.object.position;
+			offset.copy(position).sub(scope.target);
+			var targetDistance = offset.length();
+
+			// half of the fov is center to top of screen
+			targetDistance *= Math.tan((scope.object.fov / 2) * Math.PI / 180.0);
+
+			// we actually don't use screenWidth, since perspective camera is fixed to screen height
+			panUp_Distance(100 * scope.sensibility * dollyScale * targetDistance / element.clientHeight, scope.object.matrix);
 
 		} else if ( scope.object.isOrthographicCamera ) {
 
@@ -491,7 +539,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		panDelta.subVectors( panEnd, panStart );
 
-		pan( panDelta.x, panDelta.y );
+		pan(panDelta.x * scope.sensibility/10, panDelta.y * scope.sensibility/10 );
 
 		panStart.copy( panEnd );
 

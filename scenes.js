@@ -53,8 +53,8 @@ var garments_mtl = "./obj/village1/village_final.mtl"
 var garments_obj = "./obj/village1/village_final.obj"
 var garments_mtl = "./obj/tower/tower3.mtl"
 var garments_obj = "./obj/tower/tower3.obj"
-// var garments_mtl = "./obj/city2/city2.mtl"
-// var garments_obj = "./obj/city2/city2.obj"
+var garments_mtl = "./obj/city2/city2.mtl"
+var garments_obj = "./obj/city2/city2.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 //garments_mtl=false
@@ -1313,11 +1313,8 @@ function init() {
 
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
-    controls.rotateSpeed = 0.2;
+    controls.rotateSpeed = 0.1;
     controls.autoRotateSpeed = 0.15;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 0.1;
-    controls.maxDistance = 50;
     controls.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
@@ -1395,10 +1392,7 @@ function init_patch() {
 
     controls_patch.enableDamping = true;
     controls_patch.dampingFactor = 0.1;
-    controls_patch.rotateSpeed = 0.2;
-    controls_patch.screenSpacePanning = false;
-    controls_patch.minDistance = 0.1;
-    controls_patch.maxDistance = 1000;
+    controls_patch.rotateSpeed = 0.1;
 
     controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
@@ -1436,8 +1430,6 @@ function animate() {
         patch.name = "patch";
         scene_patch.add(patch);
         camera_patch.position.set(0, 0, 1 + Math.max(1, max_radius))
-        controls_patch.maxDistance = max_radius * 20;
-        controls.maxDistance = Math.min(100, obj_size * 10);
         camera_patch.far = max_radius * 50;
 
         for (var i = 0; i < original.length; i++) {
@@ -1477,6 +1469,7 @@ function animate() {
 
     }
     else if (progress_obj + progress_mtl == -2) {
+        
 
 
     }
