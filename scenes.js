@@ -1315,7 +1315,7 @@ function init() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
     controls.rotateSpeed = 0.1;
-    controls.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
+    controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: false, PAN: THREE.MOUSE.MIDDLE };
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
     scene.add(garment);
