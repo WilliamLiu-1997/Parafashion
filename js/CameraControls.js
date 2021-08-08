@@ -18,7 +18,7 @@ THREE.CameraControls = function (object, domElement) {
 
 	this.angleX = 0;
 	this.angleY = 0;
-	this.look = new THREE.Vector3(0,0,-1);
+	this.look = new THREE.Vector3(0, 0, -1);
 	this.stop = false;
 
 	this.o = new THREE.Vector3(0, 0, 0)
@@ -27,7 +27,7 @@ THREE.CameraControls = function (object, domElement) {
 
 	this.minZ = -Infinity;
 	this.maxZ = Infinity;
-	
+
 	// The sensibility of panning and Dolly
 	this.sensibility = 1;
 
@@ -39,28 +39,12 @@ THREE.CameraControls = function (object, domElement) {
 	// "target" sets the location of focus, where the object orbits around
 	this.target = new THREE.Vector3();
 
-	// How far you can dolly in and out ( PerspectiveCamera only )
-	this.minDistance = -Infinity;
+	// How far you can dolly and pan ( PerspectiveCamera only )
 	this.maxDistance = Infinity;
 
 	// How far you can zoom in and out ( OrthographicCamera only )
 	this.minZoom = 0;
 	this.maxZoom = Infinity;
-
-	// How far you can orbit vertically, upper and lower limits.
-	// Range is 0 to Math.PI radians.
-	this.minPolarAngle = 0; // radians
-	this.maxPolarAngle = Math.PI; // radians
-
-	// How far you can orbit horizontally, upper and lower limits.
-	// If set, must be a sub-interval of the interval [ - Math.PI, Math.PI ].
-	this.minAzimuthAngle = - Infinity; // radians
-	this.maxAzimuthAngle = Infinity; // radians
-
-	// Set to true to enable damping (inertia)
-	// If damping is enabled, you must call controls.update() in your animation loop
-	this.enableDamping = true;
-	this.dampingFactor = 0.25;
 
 	// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
 	// Set to false to disable zooming
@@ -97,18 +81,6 @@ THREE.CameraControls = function (object, domElement) {
 	//
 	// public methods
 	//
-
-	this.getPolarAngle = function () {
-
-		return spherical.phi;
-
-	};
-
-	this.getAzimuthalAngle = function () {
-
-		return spherical.theta;
-
-	};
 
 	this.saveState = function () {
 
@@ -154,36 +126,18 @@ THREE.CameraControls = function (object, domElement) {
 			// rotate offset to "y-axis-is-up" space
 			offset.applyQuaternion(quat);
 
-			// angle from z-axis around y-axis
-			spherical.setFromVector3(offset);
-
 			if (scope.autoRotate && state === STATE.NONE) {
 
 				rotateLeft(getAutoRotationAngle());
 
 			}
 
-			spherical.theta += sphericalDelta.theta;
-			spherical.phi += sphericalDelta.phi;
-
-			// restrict theta to be between desired limits
-			spherical.theta = Math.max(scope.minAzimuthAngle, Math.min(scope.maxAzimuthAngle, spherical.theta));
-
-			// restrict phi to be between desired limits
-			spherical.phi = Math.max(scope.minPolarAngle, Math.min(scope.maxPolarAngle, spherical.phi));
-
-			spherical.makeSafe();
-
-
-			spherical.radius *= scale;
-
-			// restrict radius to be between desired limits
-			//spherical.radius = Math.max( scope.minDistance, Math.min( scope.maxDistance, spherical.radius ) );
-
 			// move target to panned location
 			scope.target.add(panOffset);
-
-			offset.setFromSpherical(spherical);
+			let distance = scope.target.distanceTo(scope.o)
+			if (distance > scope.maxDistance) {
+				scope.target.multiplyScalar(scope.maxDistance / distance)
+			}
 
 			// rotate offset back to "camera-up-vector-is-up" space
 			offset.applyQuaternion(quatInverse);
@@ -195,18 +149,6 @@ THREE.CameraControls = function (object, domElement) {
 			look.add(scope.look)
 			scope.object.lookAt(look);
 
-			if (scope.enableDamping === true) {
-
-				sphericalDelta.theta *= (1 - scope.dampingFactor);
-				sphericalDelta.phi *= (1 - scope.dampingFactor);
-
-			} else {
-
-				sphericalDelta.set(0, 0, 0);
-
-			}
-
-			scale = 1;
 			panOffset.set(0, 0, 0);
 
 			// update condition is:
@@ -268,11 +210,7 @@ THREE.CameraControls = function (object, domElement) {
 
 	var EPS = 0.000001;
 
-	// current position in spherical coordinates
-	var spherical = new THREE.Spherical();
-	var sphericalDelta = new THREE.Spherical();
 
-	var scale = 1;
 	var panOffset = new THREE.Vector3();
 	var zoomChanged = false;
 
@@ -306,18 +244,14 @@ THREE.CameraControls = function (object, domElement) {
 		scope.look.z = -Math.cos(scope.angleX)
 		scope.look.y = Math.sin(scope.angleY)
 		scope.look.setLength(1)
-
-		// sphericalDelta.theta -= angle;
 	}
 
 	function rotateUp(angle) {
-		scope.angleY = Math.max(-Math.PI / 2, Math.min(scope.angleY - angle *50* scope.rotateSpeed, Math.PI/2))
+		scope.angleY = Math.max(-Math.PI / 2, Math.min(scope.angleY - angle * 50 * scope.rotateSpeed, Math.PI / 2))
 		scope.look.x = Math.sin(scope.angleX)
 		scope.look.z = -Math.cos(scope.angleX)
 		scope.look.y = Math.sin(scope.angleY)
 		scope.look.setLength(1)
-
-		//sphericalDelta.phi -= angle;
 
 	}
 
@@ -377,8 +311,8 @@ THREE.CameraControls = function (object, domElement) {
 
 			if (scope.object.isPerspectiveCamera) {
 				// we actually don't use screenWidth, since perspective camera is fixed to screen height
-				panLeft(deltaX  / element.clientHeight, scope.object.matrix);
-				panUp(deltaY  / element.clientHeight, scope.object.matrix);
+				panLeft(deltaX / element.clientHeight, scope.object.matrix);
+				panUp(deltaY / element.clientHeight, scope.object.matrix);
 
 			} else if (scope.object.isOrthographicCamera) {
 
@@ -404,7 +338,7 @@ THREE.CameraControls = function (object, domElement) {
 		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 		if (scope.object.isPerspectiveCamera) {
-			
+
 			panUp_Distance(-50 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
 
 		} else if (scope.object.isOrthographicCamera) {
@@ -427,7 +361,7 @@ THREE.CameraControls = function (object, domElement) {
 		var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 		if (scope.object.isPerspectiveCamera) {
-			
+
 			panUp_Distance(50 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
 
 		} else if (scope.object.isOrthographicCamera) {
