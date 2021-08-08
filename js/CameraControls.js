@@ -288,7 +288,7 @@ class CameraControls extends EventDispatcher{
 
 			var v = new Vector3();
 
-			return function panUp(distance) {
+			return function moveForward(distance) {
 
 				v.copy(scope.look)
 
