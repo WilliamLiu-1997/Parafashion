@@ -73,7 +73,8 @@ class CameraControls extends EventDispatcher {
 
 		// Set to false to disable panning
 		this.enablePan = true;
-		this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
+		this.keyPanSpeed = 20.0;// pixels moved per arrow key push
+		this.keyRotateSpeed = 20.0;
 
 		// Set to true to automatically rotate around the target
 		// If auto-rotate is enabled, you must call controls.update() in your animation loop
@@ -84,7 +85,7 @@ class CameraControls extends EventDispatcher {
 		this.enableKeys = true;
 
 		// The four arrow keys
-		this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
+		this.keys = { TURNLEFT: 37, TURNUP: 38, TURNRIGHT: 39, TURNBOTTOM: 40, FORWARD: 87, BACKWARD: 83, LEFT: 65, RIGHT: 68 };
 
 		// Mouse buttons
 		this.mouseButtons = { ORBIT: MOUSE.RIGHT, ZOOM: false, PAN: MOUSE.MIDDLE };
@@ -520,31 +521,57 @@ class CameraControls extends EventDispatcher {
 		}
 
 		function handleKeyDown(event) {
+			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+			if (scope.enableRotate === true) {
+				switch (event.keyCode) {
 
-			switch (event.keyCode) {
+					case scope.keys.TURNUP:
+						rotate(0, -0.05 * Math.PI / element.clientHeight * scope.keyRotateSpeed);
+						scope.update();
+						break;
 
-				case scope.keys.UP:
-					pan(0, scope.keyPanSpeed);
-					scope.update();
-					break;
+					case scope.keys.TURNBOTTOM:
+						rotate(0, 0.05 * Math.PI / element.clientHeight * scope.keyRotateSpeed);
+						scope.update();
+						break;
 
-				case scope.keys.BOTTOM:
-					pan(0, - scope.keyPanSpeed);
-					scope.update();
-					break;
+					case scope.keys.TURNLEFT:
+						rotate(-0.05 * (element.clientWidth / element.clientHeight) * Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
+						scope.update();
+						break;
 
-				case scope.keys.LEFT:
-					pan(scope.keyPanSpeed, 0);
-					scope.update();
-					break;
+					case scope.keys.TURNRIGHT:
+						rotate(0.05 * (element.clientWidth / element.clientHeight) * Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
+						scope.update();
+						break;
 
-				case scope.keys.RIGHT:
-					pan(- scope.keyPanSpeed, 0);
-					scope.update();
-					break;
-
+				}
 			}
+			if (scope.enablePan === true) {
+				switch (event.keyCode) {
 
+					case scope.keys.FORWARD:
+						dollyOut(getZoomScale());;
+						scope.update();
+						break;
+
+					case scope.keys.BACKWARD:
+						dollyIn(getZoomScale());;
+						scope.update();
+						break;
+
+					case scope.keys.LEFT:
+						pan(scope.keyPanSpeed, 0);
+						scope.update();
+						break;
+
+					case scope.keys.RIGHT:
+						pan(- scope.keyPanSpeed, 0);
+						scope.update();
+						break;
+
+				}
+			}
 		}
 
 		function handleTouchStartRotate(event) {
@@ -754,7 +781,7 @@ class CameraControls extends EventDispatcher {
 
 		function onKeyDown(event) {
 
-			if (scope.enabled === false || scope.enableKeys === false || scope.enablePan === false) return;
+			if (scope.enabled === false || scope.enableKeys === false) return;
 
 			handleKeyDown(event);
 

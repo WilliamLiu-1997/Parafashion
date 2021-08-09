@@ -1393,6 +1393,7 @@ function init_patch() {
 
     controls_patch.dynamicSensibility = false;
     controls_patch.enableDamping = true;
+    controls_patch.enableKeys = false;
 
     controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
