@@ -1509,6 +1509,10 @@ function onWindowResize() {
         setTimeout(function () { $("#size_alert").fadeOut(500); }, 5000)
         setTimeout(function () { $("#alert_size").html("") }, 5500)
     }
+    else if (window.innerWidth >= 980) {
+        $("#size_alert").hide();
+        $("#alert_size").html("");
+     }
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.fov = (360 / Math.PI) * Math.atan(tanFOV * (window.innerHeight / windowHeight));
     camera.updateProjectionMatrix();
