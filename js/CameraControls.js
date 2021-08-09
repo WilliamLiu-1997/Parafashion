@@ -32,7 +32,7 @@ class CameraControls extends EventDispatcher {
 		this.object = object;
 
 		this.minZ = -Infinity
-		this.maxZ=Infinity
+		this.maxZ = Infinity
 
 		// The sensibility of panning and Dolly
 		this.sensibility = 1;
@@ -182,15 +182,31 @@ class CameraControls extends EventDispatcher {
 				position.copy(scope.target).add(offset);
 
 
+				if (scope.enableDamping) {
+					scope.angleX += angleXDelta * scope.dampingFactor * 1.5;
+					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.5, Math.PI / 2.001))
+				}
+				scope.look.x = Math.sin(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
+				scope.look.z = -Math.cos(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
+				scope.look.y = Math.sin(scope.angleY)
+				scope.look.normalize()
+
+
 				let look = position.clone();
 				look.add(scope.look);
 				scope.object.lookAt(look);
 
 				if (scope.enableDamping === true) {
 
+					angleXDelta *= (1 - scope.dampingFactor * 1.5);
+					angleYDelta *= (1 - scope.dampingFactor * 1.5);
+
 					panOffset.multiplyScalar(1 - scope.dampingFactor);
 
 				} else {
+
+					angleXDelta = 0;
+					angleYDelta = 0;
 
 					panOffset.set(0, 0, 0);
 
@@ -252,7 +268,8 @@ class CameraControls extends EventDispatcher {
 		var state = STATE.NONE;
 
 		var EPS = 0.000001;
-
+		var angleXDelta = 0;
+		var angleYDelta = 0;
 
 		var panOffset = new Vector3();
 		var zoomChanged = false;
@@ -282,12 +299,8 @@ class CameraControls extends EventDispatcher {
 		}
 
 		function rotate(angleX, angleY) {
-			scope.angleX += angleX * 50 * scope.rotateSpeed
-			scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY - angleY * 50 * scope.rotateSpeed, Math.PI / 2.001))
-			scope.look.x = Math.sin(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
-			scope.look.z = -Math.cos(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
-			scope.look.y = Math.sin(scope.angleY)
-			//scope.look.normalize()
+			angleXDelta += angleX * 50 * scope.rotateSpeed;
+			angleYDelta -= angleY * 50 * scope.rotateSpeed;
 		}
 
 		var panLeft = function () {
