@@ -82,7 +82,7 @@ class CameraControls extends EventDispatcher {
 		this.keys = { TURNLEFT: 37, TURNUP: 38, TURNRIGHT: 39, TURNBOTTOM: 40, FORWARD: 87, BACKWARD: 83, LEFT: 65, RIGHT: 68 };
 
 		// Mouse buttons
-		this.mouseButtons = {  PAN:MOUSE.RIGHT, ZOOM: false, ROTATE: MOUSE.MIDDLE };
+		this.mouseButtons = { PAN: MOUSE.RIGHT, ZOOM: false, ROTATE: MOUSE.MIDDLE };
 
 		// for reset
 		this.position0 = this.object.position.clone();
@@ -192,7 +192,7 @@ class CameraControls extends EventDispatcher {
 					angleXDelta = 0;
 					angleYDelta = 0;
 					panOffset.set(0, 0, 0);
-					
+
 				}
 
 				// update condition is:
@@ -201,7 +201,7 @@ class CameraControls extends EventDispatcher {
 				if (zoomChanged ||
 					lastPosition.distanceToSquared(scope.object.position) > EPS ||
 					8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
-					
+
 					scope.dispatchEvent(changeEvent);
 					lastPosition.copy(scope.object.position);
 					lastQuaternion.copy(scope.object.quaternion);
