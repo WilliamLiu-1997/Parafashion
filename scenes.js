@@ -1316,7 +1316,7 @@ function init() {
 
     controls.dynamicSensibility = false;
     controls.enableDamping = true;
-    controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: false, PAN: THREE.MOUSE.MIDDLE };
+    controls.mouseButtons = { PAN: THREE.MOUSE.RIGHT, ZOOM: false,  ROTATE:THREE.MOUSE.MIDDLE };
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
     scene.add(garment);
@@ -1395,7 +1395,7 @@ function init_patch() {
     controls_patch.enableDamping = true;
     controls_patch.enableKeys = false;
 
-    controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
+    controls_patch.mouseButtons = { ROTATE: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
     controls_patch.enableRotate = false;
     // controls_patch.maxPolarAngle = Math.PI * 0.9;
