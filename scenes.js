@@ -1316,7 +1316,7 @@ function init() {
 
     controls.dynamicSensibility = false;
     controls.enableDamping = true;
-    controls.mouseButtons = { PAN: THREE.MOUSE.RIGHT, ZOOM: false,  ROTATE:THREE.MOUSE.MIDDLE };
+    controls.rotateSpeed = 0.12;
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
     scene.add(garment);
@@ -1395,8 +1395,6 @@ function init_patch() {
     controls_patch.enableDamping = true;
     controls_patch.enableKeys = false;
 
-    controls_patch.mouseButtons = { ROTATE: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
-
     controls_patch.enableRotate = false;
     // controls_patch.maxPolarAngle = Math.PI * 0.9;
     // controls_patch.minPolarAngle = Math.PI * 0.1;
@@ -1422,8 +1420,8 @@ function animate() {
 
     if (progress_obj + progress_mtl == 200 && garment) {
         camera.position.set(0, 0, obj_size + 1)
-        controls.sensibility = camera.position.distanceTo(O) / 1.5;
-        gui_options.sensibility = camera.position.distanceTo(O) / 1.5;
+        controls.sensibility = camera.position.distanceTo(O) / 1.2;
+        gui_options.sensibility = camera.position.distanceTo(O) / 1.2;
         gui.updateDisplay();
         var lack = false;
         var all_empty = true;
@@ -1487,7 +1485,7 @@ function animate() {
     $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
     if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
     let p = new THREE.Vector3(0, 0, camera_patch.position.z)
-    controls_patch.sensibility = p.distanceTo(O) / 1.5
+    controls_patch.sensibility = p.distanceTo(O) / 1.2
     requestAnimationFrame(animate);
     render();
     stats.end();
@@ -1512,7 +1510,7 @@ function onWindowResize() {
     else if (window.innerWidth >= 980) {
         $("#size_alert").hide();
         $("#alert_size").html("");
-     }
+    }
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.fov = (360 / Math.PI) * Math.atan(tanFOV * (window.innerHeight / windowHeight));
     camera.updateProjectionMatrix();
