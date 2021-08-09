@@ -38,7 +38,7 @@ var textureloader = new THREE.TextureLoader();
 let default_texture = textureloader.load("./texture/default.jpg");
 let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3 })
 let obj_size = 1;
-let O=new THREE.Vector3(0,0,0);
+let O = new THREE.Vector3(0, 0, 0);
 
 var url = ""
 
@@ -1013,7 +1013,7 @@ function GUI_init() {
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Unselect');
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
-    folder_basic.add(gui_options, 'sensibility', 0.1, 20, 0.01).name("Control Sensibility").onChange(() => { if (controls !== undefined) { controls.sensibility = gui_options.sensibility;}});
+    folder_basic.add(gui_options, 'sensibility', 0.1, 20, 0.01).name("Control Sensibility").onChange(() => { if (controls !== undefined) { controls.sensibility = gui_options.sensibility; } });
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
@@ -1315,6 +1315,7 @@ function init() {
     controls = new CameraControls(camera, renderer.domElement);
 
     controls.dynamicSensibility = false;
+    controls.enableDamping = true;
     controls.mouseButtons = { ORBIT: THREE.MOUSE.RIGHT, ZOOM: false, PAN: THREE.MOUSE.MIDDLE };
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
@@ -1391,6 +1392,7 @@ function init_patch() {
     controls_patch = new CameraControls(camera_patch, renderer_patch.domElement);
 
     controls_patch.dynamicSensibility = false;
+    controls_patch.enableDamping = true;
 
     controls_patch.mouseButtons = { ORBIT: THREE.MOUSE.MIDDLE, ZOOM: false, PAN: THREE.MOUSE.RIGHT };
 
@@ -1472,19 +1474,19 @@ function animate() {
 
     }
     else if (progress_obj + progress_mtl == -2) {
-        
+
 
 
     }
     else {
         show_progress()
     }
-    $("#texture_container").css({ "max-height": window.innerHeight * 0.91*0.45 })
+    $("#texture_container").css({ "max-height": window.innerHeight * 0.91 * 0.45 })
     $(".up-area").css({ "width": $(".dg.main").css("width") })
     $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
     if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
-    let p = new THREE.Vector3(0,0,camera_patch.position.z)
-    controls_patch.sensibility = p.distanceTo(O)/1.5
+    let p = new THREE.Vector3(0, 0, camera_patch.position.z)
+    controls_patch.sensibility = p.distanceTo(O) / 1.5
     requestAnimationFrame(animate);
     render();
     stats.end();

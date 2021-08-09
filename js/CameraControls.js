@@ -44,6 +44,11 @@ class CameraControls extends EventDispatcher {
 		// Set to false to disable this control
 		this.enabled = true;
 
+		// Set to true to enable damping (inertia)
+		// If damping is enabled, you must call controls.update() in your animation loop
+		this.enableDamping = false;
+		this.dampingFactor = 0.1;
+
 		// "target" sets the location of focus, where the object orbits around
 		this.target = new Vector3();
 
@@ -157,7 +162,15 @@ class CameraControls extends EventDispatcher {
 				}
 
 				// move target to panned location
-				scope.target.add(panOffset);
+				if (scope.enableDamping === true) {
+
+					scope.target.addScaledVector(panOffset, scope.dampingFactor);
+
+				} else {
+
+					scope.target.add(panOffset);
+
+				}
 				let distance = scope.target.distanceTo(scope.o)
 				if (distance > scope.maxDistance) {
 					scope.target.multiplyScalar(scope.maxDistance / distance)
@@ -173,7 +186,15 @@ class CameraControls extends EventDispatcher {
 				look.add(scope.look);
 				scope.object.lookAt(look);
 
-				panOffset.set(0, 0, 0);
+				if (scope.enableDamping === true) {
+
+					panOffset.multiplyScalar(1 - scope.dampingFactor);
+
+				} else {
+
+					panOffset.set(0, 0, 0);
+
+				}
 
 				// update condition is:
 				// min(camera displacement, camera rotation in radians)^2 > EPS
