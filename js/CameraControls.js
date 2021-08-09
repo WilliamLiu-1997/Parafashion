@@ -31,6 +31,9 @@ class CameraControls extends EventDispatcher {
 
 		this.object = object;
 
+		this.minZ = -Infinity
+		this.maxZ=Infinity
+
 		// The sensibility of panning and Dolly
 		this.sensibility = 1;
 		// Dynamically change the sensibility according to the distance between the object and center of the scene
@@ -343,6 +346,7 @@ class CameraControls extends EventDispatcher {
 		}();
 
 		function dollyIn(dollyScale) {
+			if (scope.object.position.z > scope.maxZ) return
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 			if (scope.object.isPerspectiveCamera) {
