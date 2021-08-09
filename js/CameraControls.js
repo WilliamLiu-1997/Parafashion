@@ -68,8 +68,8 @@ class CameraControls extends EventDispatcher {
 
 		// Set to false to disable panning
 		this.enablePan = true;
-		this.keyPanSpeed = 20.0;// pixels moved per arrow key push
-		this.keyRotateSpeed = 20.0;
+		this.keyPanSpeed = 1.0;// pixels moved per arrow key push
+		this.keyRotateSpeed = 1.0;
 
 		// Set to true to automatically rotate around the target
 		// If auto-rotate is enabled, you must call controls.update() in your animation loop
@@ -521,22 +521,22 @@ class CameraControls extends EventDispatcher {
 				switch (event.keyCode) {
 
 					case scope.keys.TURNUP:
-						rotate(0, -0.05 * Math.PI / element.clientHeight * scope.keyRotateSpeed);
+						rotate(0, -Math.PI / element.clientHeight * scope.keyRotateSpeed);
 						scope.update();
 						break;
 
 					case scope.keys.TURNBOTTOM:
-						rotate(0, 0.05 * Math.PI / element.clientHeight * scope.keyRotateSpeed);
+						rotate(0, Math.PI / element.clientHeight * scope.keyRotateSpeed);
 						scope.update();
 						break;
 
 					case scope.keys.TURNLEFT:
-						rotate(-0.05 * (element.clientWidth / element.clientHeight) * Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
+						rotate(-(element.clientWidth / element.clientHeight) * Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
 						scope.update();
 						break;
 
 					case scope.keys.TURNRIGHT:
-						rotate(0.05 * (element.clientWidth / element.clientHeight) * Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
+						rotate((element.clientWidth / element.clientHeight) * Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
 						scope.update();
 						break;
 
@@ -546,22 +546,22 @@ class CameraControls extends EventDispatcher {
 				switch (event.keyCode) {
 
 					case scope.keys.FORWARD:
-						dollyOut(getZoomScale());;
+						dollyOut(getZoomScale() * scope.keyPanSpeed);;
 						scope.update();
 						break;
 
 					case scope.keys.BACKWARD:
-						dollyIn(getZoomScale());;
+						dollyIn(getZoomScale() * scope.keyPanSpeed);;
 						scope.update();
 						break;
 
 					case scope.keys.LEFT:
-						pan(scope.keyPanSpeed, 0);
+						pan(20 * scope.keyPanSpeed, 0);
 						scope.update();
 						break;
 
 					case scope.keys.RIGHT:
-						pan(- scope.keyPanSpeed, 0);
+						pan(- 20 * scope.keyPanSpeed, 0);
 						scope.update();
 						break;
 
