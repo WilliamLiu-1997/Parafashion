@@ -9,13 +9,13 @@ import {
 //Author: William https://github.com/WilliamLiu-1997
 
 // This set of controls performs turning, dollying (zooming), and panning. It is an update of OrbitControls
-// Pan up / down / left / right  - middle mouse or WASD keys / touch: one finger move
+// Pan up / down / left / right  - right mouse, or WASD keys / touch: one finger move
 // Move forward / backward  - mousewheel or WASD keys / touch: two finger spread or squish
-// Turn  - right mouse, or arrow keys / touch: three finger swipe
+// Rotate  - middle mouse, or arrow keys / touch: three finger swipe
 
 // Updates compared to OrbitControls:
 // 1. The dollying of PerspectiveCamera is replaced with panning forward and backward.Therefore, this component can be used to move the PerspectiveCamera to six directions including forward, backward, up, down, left and right from current perspective.
-// 2. The turning will be conducted using the PerspectiveCamera as the center.
+// 2. The rotation will be conducted using the PerspectiveCamera as the center.
 
 class CameraControls extends EventDispatcher {
 	constructor(object, domElement) {
@@ -82,7 +82,7 @@ class CameraControls extends EventDispatcher {
 		this.keys = { TURNLEFT: 37, TURNUP: 38, TURNRIGHT: 39, TURNBOTTOM: 40, FORWARD: 87, BACKWARD: 83, LEFT: 65, RIGHT: 68 };
 
 		// Mouse buttons
-		this.mouseButtons = { ROTATE: MOUSE.RIGHT, ZOOM: false, PAN: MOUSE.MIDDLE };
+		this.mouseButtons = {  PAN:MOUSE.RIGHT, ZOOM: false, ROTATE: MOUSE.MIDDLE };
 
 		// for reset
 		this.position0 = this.object.position.clone();
