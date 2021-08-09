@@ -18,10 +18,14 @@ import {
 // 2. Rotation is centered on the camera itself.
 
 class CameraControls extends EventDispatcher {
+
 	constructor(object, domElement) {
+
 		super();
+
 		this.angleX = 0;
 		this.angleY = 0;
+
 		this.stop = false;
 
 		this.o = new Vector3(0, 0, 0)
@@ -169,6 +173,11 @@ class CameraControls extends EventDispatcher {
 					scope.angleX += angleXDelta * scope.dampingFactor * 1.5;
 					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.5, Math.PI / 2.001))
 
+				} else {
+
+					scope.angleX += angleXDelta * 1.5;
+					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * 1.5, Math.PI / 2.001))
+
 				}
 
 				scope.look.x = Math.sin(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
@@ -198,9 +207,7 @@ class CameraControls extends EventDispatcher {
 				// update condition is:
 				// min(camera displacement, camera rotation in radians)^2 > EPS
 				// using small-angle approximation cos(x/2) = 1 - x^2 / 8
-				if (zoomChanged ||
-					lastPosition.distanceToSquared(scope.object.position) > EPS ||
-					8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
+				if (zoomChanged || lastPosition.distanceToSquared(scope.object.position) > EPS || 8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
 
 					scope.dispatchEvent(changeEvent);
 					lastPosition.copy(scope.object.position);
@@ -279,8 +286,10 @@ class CameraControls extends EventDispatcher {
 		}
 
 		function rotate(angleX, angleY) {
+
 			angleXDelta += angleX * 50 * scope.rotateSpeed;
 			angleYDelta -= angleY * 50 * scope.rotateSpeed;
+
 		}
 
 		var panLeft = function () {
@@ -337,7 +346,7 @@ class CameraControls extends EventDispatcher {
 				var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 				if (scope.object.isPerspectiveCamera) {
-					// we actually don't use screenWidth, since perspective camera is fixed to screen height
+
 					panLeft(deltaX / element.clientHeight, scope.object.matrix);
 					panUp(deltaY / element.clientHeight, scope.object.matrix);
 
@@ -360,7 +369,9 @@ class CameraControls extends EventDispatcher {
 		}();
 
 		function dollyIn(dollyScale) {
+
 			if (scope.object.position.z > scope.maxZ) return
+
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 			if (scope.object.isPerspectiveCamera) {
@@ -383,7 +394,9 @@ class CameraControls extends EventDispatcher {
 		}
 
 		function dollyOut(dollyScale) {
+
 			if (scope.object.position.z < scope.minZ) return
+
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 			if (scope.object.isPerspectiveCamera) {
@@ -500,8 +513,11 @@ class CameraControls extends EventDispatcher {
 		}
 
 		function handleKeyDown(event) {
+
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+
 			if (scope.enableRotate === true) {
+
 				switch (event.keyCode) {
 
 					case scope.keys.TURNUP:
@@ -525,8 +541,11 @@ class CameraControls extends EventDispatcher {
 						break;
 
 				}
+
 			}
+
 			if (scope.enablePan === true) {
+
 				switch (event.keyCode) {
 
 					case scope.keys.FORWARD:
@@ -540,17 +559,19 @@ class CameraControls extends EventDispatcher {
 						break;
 
 					case scope.keys.LEFT:
-						pan(20 * scope.keyPanSpeed, 0);
+						pan(20 * scope.keyPanSpeed * scope.sensibility, 0);
 						scope.update();
 						break;
 
 					case scope.keys.RIGHT:
-						pan(- 20 * scope.keyPanSpeed, 0);
+						pan(- 20 * scope.keyPanSpeed * scope.sensibility, 0);
 						scope.update();
 						break;
 
 				}
+
 			}
+
 		}
 
 		function handleTouchStartRotate(event) {
@@ -685,15 +706,17 @@ class CameraControls extends EventDispatcher {
 				document.addEventListener('mousemove', onMouseMove, false);
 				document.addEventListener('mouseup', onMouseUp, false);
 
-
 			}
 
 		}
 
 		function onMouseMove(event) {
+
 			if (scope.stop) {
+
 				onMouseUp(event);
 				scope.stop = false;
+
 			}
 
 			if (scope.enabled === false) return;
@@ -756,6 +779,7 @@ class CameraControls extends EventDispatcher {
 
 			scope.dispatchEvent(startEvent); // not sure why these are here...
 			scope.dispatchEvent(endEvent);
+
 		}
 
 		function onKeyDown(event) {
