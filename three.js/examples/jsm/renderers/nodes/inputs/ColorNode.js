@@ -1,5 +1,5 @@
 import InputNode from '../core/InputNode.js';
-import { Color } from '../../../../../build/three.module.js';
+import { Color } from 'three';
 
 class ColorNode extends InputNode {
 
@@ -9,10 +9,10 @@ class ColorNode extends InputNode {
 
 		this.value = value;
 
-		Object.defineProperty( this, 'isColorNode', { value: true } );
-
 	}
 
 }
+
+ColorNode.prototype.isColorNode = true;
 
 export default ColorNode;

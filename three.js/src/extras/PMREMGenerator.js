@@ -25,7 +25,7 @@ import { Vector3 } from '../math/Vector3.js';
 import { Color } from '../math/Color.js';
 import { WebGLRenderTarget } from '../renderers/WebGLRenderTarget.js';
 import { MeshBasicMaterial } from '../materials/MeshBasicMaterial.js';
-import { BoxBufferGeometry } from '../geometries/BoxGeometry.js';
+import { BoxGeometry } from '../geometries/BoxGeometry.js';
 import { BackSide } from '../constants.js';
 
 const LOD_MIN = 4;
@@ -59,7 +59,7 @@ const backgroundMaterial = new MeshBasicMaterial( {
 	depthWrite: false,
 	depthTest: false,
 } );
-const backgroundBox = new Mesh( new BoxBufferGeometry(), backgroundMaterial );
+const backgroundBox = new Mesh( new BoxGeometry(), backgroundMaterial );
 
 const _flatCamera = /*@__PURE__*/ new OrthographicCamera();
 const { _lodPlanes, _sizeLods, _sigmas } = /*@__PURE__*/ _createPlanes();
@@ -94,7 +94,10 @@ const _axisDirections = [
  * even more filtered 'mips' at the same LOD_MIN resolution, associated with
  * higher roughness levels. In this way we maintain resolution to smoothly
  * interpolate diffuse lighting while limiting sampling computation.
- */
+ *
+ * Paper: Fast, Accurate Image-Based Lighting
+ * https://drive.google.com/file/d/15y8r_UpKlU9SvV4ILb0C3qCPecS8pvLz/view
+*/
 
 function convertLinearToRGBE( color ) {
 

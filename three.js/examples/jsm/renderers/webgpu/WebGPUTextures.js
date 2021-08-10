@@ -1,7 +1,7 @@
 import { GPUTextureFormat, GPUAddressMode, GPUFilterMode, GPUTextureDimension } from './constants.js';
 import { CubeTexture, Texture, NearestFilter, NearestMipmapNearestFilter, NearestMipmapLinearFilter, LinearFilter, RepeatWrapping, MirroredRepeatWrapping,
 	RGBFormat, RGBAFormat, RedFormat, RGFormat, RGBA_S3TC_DXT1_Format, RGBA_S3TC_DXT3_Format, RGBA_S3TC_DXT5_Format, UnsignedByteType, FloatType, HalfFloatType, sRGBEncoding
-} from '../../../../build/three.module.js';
+} from 'three';
 import WebGPUTextureUtils from './WebGPUTextureUtils.js';
 
 class WebGPUTextures {
@@ -366,7 +366,7 @@ class WebGPUTextures {
 
 				this._getImageBitmap( image, texture ).then( imageBitmap => {
 
-					this._copyImageBitmapToTexture( imageBitmap, textureGPU );
+					this._copyExternalImageToTexture( imageBitmap, textureGPU );
 
 					if ( needsMipmaps === true ) this._generateMipmaps( textureGPU, textureGPUDescriptor );
 
@@ -416,7 +416,7 @@ class WebGPUTextures {
 
 			this._getImageBitmap( image, texture ).then( imageBitmap => {
 
-				this._copyImageBitmapToTexture( imageBitmap, textureGPU, { x: 0, y: 0, z: i } );
+				this._copyExternalImageToTexture( imageBitmap, textureGPU, { x: 0, y: 0, z: i } );
 
 			} );
 
@@ -424,11 +424,11 @@ class WebGPUTextures {
 
 	}
 
-	_copyImageBitmapToTexture( image, textureGPU, origin = { x: 0, y: 0, z: 0 } ) {
+	_copyExternalImageToTexture( image, textureGPU, origin = { x: 0, y: 0, z: 0 } ) {
 
-		this.device.queue.copyImageBitmapToTexture(
+		this.device.queue.copyExternalImageToTexture(
 			{
-				imageBitmap: image
+				source: image
 			}, {
 				texture: textureGPU,
 				mipLevel: 0,
