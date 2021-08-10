@@ -1,8 +1,8 @@
 import babel from '@rollup/plugin-babel';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
+import babelrc from './.babelrc.json';
 
-function glconstants() {
+export function glconstants() {
 
 	var constants = {
 		POINTS: 0, ZERO: 0, NONE: 0,
@@ -39,7 +39,9 @@ function glconstants() {
 		CULL_FACE: 2884,
 		DEPTH_TEST: 2929,
 		STENCIL_TEST: 2960,
+		VIEWPORT: 2978,
 		BLEND: 3042,
+		SCISSOR_BOX: 3088,
 		SCISSOR_TEST: 3089,
 		UNPACK_ALIGNMENT: 3317,
 		MAX_TEXTURE_SIZE: 3379,
@@ -152,7 +154,8 @@ function glconstants() {
 		UNPACK_SKIP_IMAGES: 32877,
 		MAX_SAMPLES: 36183,
 		READ_FRAMEBUFFER: 36008,
-		DRAW_FRAMEBUFFER: 36009
+		DRAW_FRAMEBUFFER: 36009,
+		SAMPLE_ALPHA_TO_COVERAGE: 32926
 	};
 
 	return {
@@ -199,7 +202,7 @@ function addons() {
 
 }
 
-function glsl() {
+export function glsl() {
 
 	return {
 
@@ -258,61 +261,24 @@ function header() {
 
 		renderChunk( code ) {
 
-			return '// threejs.org/license\n' + code;
+			return `/**
+ * @license
+ * Copyright 2010-2021 Three.js Authors
+ * SPDX-License-Identifier: MIT
+ */
+${ code }`;
 
 		}
 
 	};
 
 }
-
-function polyfills() {
-
-	return {
-
-		transform( code, filePath ) {
-
-			if ( filePath.endsWith( 'src/Three.js' ) || filePath.endsWith( 'src\\Three.js' ) ) {
-
-				code = 'import \'regenerator-runtime\';\n' + code;
-
-			}
-
-			return {
-				code: code,
-				map: null
-			};
-
-		}
-
-	};
-
-}
-
-const babelrc = {
-	presets: [
-		[
-			'@babel/preset-env',
-			{
-				modules: false,
-				// the supported browsers of the three.js browser bundle
-				// https://browsersl.ist/?q=%3E0.3%25%2C+not+dead
-				targets: '>0.3%, not dead',
-				loose: true,
-				bugfixes: true,
-			}
-		]
-	]
-};
 
 export default [
 	{
 		input: 'src/Three.js',
 		plugins: [
-			polyfills(),
-			nodeResolve(),
 			addons(),
-			glconstants(),
 			glsl(),
 			babel( {
 				babelHelpers: 'bundled',
@@ -335,8 +301,6 @@ export default [
 	{
 		input: 'src/Three.js',
 		plugins: [
-			polyfills(),
-			nodeResolve(),
 			addons(),
 			glconstants(),
 			glsl(),
