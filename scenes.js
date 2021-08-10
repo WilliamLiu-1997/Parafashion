@@ -1323,10 +1323,8 @@ function init() {
     scene.add(covered_obj);
 
 
-    var helper = new THREE.GridHelper(200, 200);
+    var helper = new THREE.GridHelper(200, 200, 0x606060, 0x404040);
     helper.position.y = -0.5;
-    helper.material.opacity = 0.25;
-    helper.material.transparent = true;
     scene.add(helper);
 
     tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
