@@ -8,7 +8,7 @@ Kd 0.800000 0.800000 0.800000
 Ks 0.010000 0.010000 0.010000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
-d 0.000000
+d 1.000000
 illum 9
 map_Kd 3td_AcaciaBranch_01.png
 map_d 3td_AcaciaBranch_03_NRM.png
@@ -20,7 +20,7 @@ Kd 0.800000 0.800000 0.800000
 Ks 0.010000 0.010000 0.010000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
-d 0.000000
+d 1.000000
 illum 9
 map_Kd 3td_AcaciaBranch_03.png
 map_d 3td_AcaciaBranch_01_NRM.png
@@ -56,7 +56,7 @@ Kd 0.376471 0.349020 0.078431
 Ks 0.010000 0.010000 0.010000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
-d 0.000000
+d 1.000000
 illum 9
 map_Kd Plants 2.jpg
 map_d Plants 2 mask.jpg
