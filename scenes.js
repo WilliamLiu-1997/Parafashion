@@ -1317,7 +1317,7 @@ function init() {
     controls.dynamicSensibility = false;
     controls.enableDamping = true;
     controls.invertRotate = true;
-    controls.rotateSpeed = 0.1;
+    controls.rotateSpeed = 1.2;
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
     scene.add(garment);
