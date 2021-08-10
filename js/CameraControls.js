@@ -186,6 +186,7 @@ class CameraControls extends EventDispatcher {
 				scope.look.y = Math.sin(scope.angleY)
 				scope.look.normalize()
 
+				position.z = Math.min(scope.maxZ,Math.max(scope.minZ, position.z))
 
 				let look = position.clone();
 				look.add(scope.look);
@@ -381,8 +382,6 @@ class CameraControls extends EventDispatcher {
 
 		function dollyForward(dollyScale) {
 
-			if (scope.object.position.z > scope.maxZ) return
-
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 			if (scope.object.isPerspectiveCamera) {
@@ -405,8 +404,6 @@ class CameraControls extends EventDispatcher {
 		}
 
 		function dollyBackward(dollyScale) {
-
-			if (scope.object.position.z < scope.minZ) return
 
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
