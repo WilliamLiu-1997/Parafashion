@@ -1405,18 +1405,6 @@ function init_patch() {
 
 
     tanFOV_patch = Math.tan(((Math.PI / 180) * camera_patch.fov / 2));
-
-}
-
-
-function animate() {
-    stats.begin();
-    if (patch_panel_width != $("#container_patch").css("width")) {
-        patch_panel_width = $("#container_patch").css("width")
-        onWindowResize()
-    }
-
-    if (progress_obj + progress_mtl == 200 && garment) {
         camera.position.set(0, 0, obj_size + 1)
         controls.sensibility = camera.position.distanceTo(O) / 1.2;
         gui_options.sensibility = camera.position.distanceTo(O) / 1.2;
@@ -1467,6 +1455,18 @@ function animate() {
             }
         }
         if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
+}
+
+
+function animate() {
+    stats.begin();
+    if (patch_panel_width != $("#container_patch").css("width")) {
+        patch_panel_width = $("#container_patch").css("width")
+        onWindowResize()
+    }
+
+    if (progress_obj + progress_mtl == 200 && garment) {
+
 
     }
     else if (progress_obj + progress_mtl == -2) {
