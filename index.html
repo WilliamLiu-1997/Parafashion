@@ -282,11 +282,11 @@
         $("#loading").animate({ opacity: 1 }, 500);
       }
       function hide_loading() {
-        $("#loading").fadeOut();
-        $("#loading_background").fadeOut();
+        $("#loading").fadeOut(500);
+        $("#loading_background").fadeOut(1000);
       }
 
-      
+
       var render_patch_flag = true;
       var patch_scaled = false;
       var resize_patch = false;
