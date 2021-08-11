@@ -624,6 +624,7 @@ class CameraControls extends EventDispatcher {
 
 			var dx = event.touches[0].pageX - event.touches[1].pageX;
 			var dy = event.touches[0].pageY - event.touches[1].pageY;
+			var max = Math.sqrt(element.clientHeight * element.clientHeight + element.clientWidth * element.clientWidth)
 
 			var distance = Math.sqrt(dx * dx + dy * dy);
 
@@ -633,11 +634,11 @@ class CameraControls extends EventDispatcher {
 
 			if (dollyDelta.y > 0) {
 
-				dollyBackward(getZoomScale());
+				dollyBackward(dollyDelta.y / max);
 
 			} else if (dollyDelta.y < 0) {
 
-				dollyForward(getZoomScale());
+				dollyForward(Math.abs(dollyDelta.y / max));
 
 			}
 
