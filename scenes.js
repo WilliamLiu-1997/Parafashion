@@ -1251,7 +1251,7 @@ function init() {
         setTimeout(function () { $("#alert_size").html("") }, 5500)
     }
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x333333);
+    scene.background = new THREE.Color(0x181818);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -2347,7 +2347,7 @@ function Display(show_env, patch_env, light) {
         }
     }
     else {
-        scene.background = new THREE.Color(0x333333);
+        scene.background = new THREE.Color(0x181818);
         cameralight.intensity = environment_light.None[0]
         env_light.intensity = environment_light.None[1]
         if (garment !== undefined) {
