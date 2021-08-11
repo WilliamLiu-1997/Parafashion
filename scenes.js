@@ -1418,7 +1418,7 @@ function animate() {
         onWindowResize()
     }
 
-    if (progress_obj + progress_mtl == 200 && garment) {
+    if (progress_obj + progress_mtl == 200 && garment!==undefined) {
         camera.position.set(0, 0, obj_size + 1)
         var lack = false;
         var all_empty = true;
@@ -1469,12 +1469,8 @@ function animate() {
         if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 
     }
-    else if (progress_obj + progress_mtl == -2) {
+    else if (progress_obj + progress_mtl == -2 && garment !== undefined) {
 
-
-    }
-    else {
-        
     }
     $("#texture_container").css({ "max-height": window.innerHeight * 0.91*0.45 })
     $(".up-area").css({ "width": $(".dg.main").css("width") })
