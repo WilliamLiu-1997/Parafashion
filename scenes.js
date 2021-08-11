@@ -1233,17 +1233,12 @@ function Change_material() {
 
 init();
 init_patch();
-GUI_init();
+onWindowResize();
 animate();
 
 
 function init() {
 
-    if (window.innerWidth < 1080) {
-        $("#alert_size").html('<div class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
-        setTimeout(function () { $("#size_alert").fadeOut(500); }, 5000)
-        setTimeout(function () { $("#alert_size").html("") }, 5500)
-    }
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x181818);
 
@@ -1445,9 +1440,6 @@ function animate() {
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         onWindowResize();
 
-        hide_loading();
-
-
         for (var i = 0; i < num; i++) {
             try {
                 var empty = true;
@@ -1467,6 +1459,10 @@ function animate() {
             }
         }
         if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
+
+
+        hide_loading();
+        GUI_init();
 
     }
     else if (progress_obj + progress_mtl == -2 && garment !== undefined) {
