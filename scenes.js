@@ -1209,58 +1209,6 @@ function GUI_init() {
     Change_Mode()
     gui_options.Overall_Reflectivity = NaN
     gui.updateDisplay()
-
-
-    camera.position.set(0, 0, obj_size + 1)
-    controls.sensibility = camera.position.distanceTo(O) / 1.2;
-    gui_options.sensibility = camera.position.distanceTo(O) / 1.2;
-    gui.updateDisplay();
-    var lack = false;
-    var all_empty = true;
-    progress_obj = progress_mtl = -1;
-    var num = garment.children[0].children.length;
-
-    patch = patch_loader(garment, 1, num);
-    patch.name = "patch";
-    scene_patch.add(patch);
-    camera_patch.position.set(0, 0, 1 + Math.max(1, max_radius))
-    camera_patch.far = max_radius * 50;
-    controls_patch.maxZ = max_radius * 20;
-    controls_patch.minZ = 0.1;
-    controls.maxDistance = Math.min(100, obj_size * 10);
-    for (var i = 0; i < original.length; i++) {
-        if (original[i].geometry.groups.length > 0) {
-            original[i].material = original[i].material.slice(0)
-        }
-    }
-
-    document.addEventListener("mousemove", mouseMove, false);
-
-    $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
-    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
-    onWindowResize();
-
-    hide_loading();
-
-    for (var i = 0; i < num; i++) {
-        try {
-            var empty = true;
-            var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
-            if (!all_empty || i == 0) {
-                for (var uv_index in uvarray) {
-                    if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
-                        empty = false;
-                    }
-                }
-            }
-            !empty ? all_empty = false : all_empty = true;
-        }
-        catch (err) {
-            console.warn(err + ". Using empty UVs instead.")
-            lack = true
-        }
-    }
-    if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 }
 
 
@@ -1469,7 +1417,56 @@ function animate() {
     }
 
     if (progress_obj + progress_mtl == 200 && garment) {
+        camera.position.set(0, 0, obj_size + 1)
+        controls.sensibility = camera.position.distanceTo(O) / 1.2;
+        gui_options.sensibility = camera.position.distanceTo(O) / 1.2;
+        gui.updateDisplay();
+        var lack = false;
+        var all_empty = true;
+        progress_obj = progress_mtl = -1;
+        var num = garment.children[0].children.length;
 
+        patch = patch_loader(garment, 1, num);
+        patch.name = "patch";
+        scene_patch.add(patch);
+        camera_patch.position.set(0, 0, 1 + Math.max(1, max_radius))
+        camera_patch.far = max_radius * 50;
+        controls_patch.maxZ = max_radius * 20;
+        controls_patch.minZ = 0.1;
+        controls.maxDistance = Math.min(100, obj_size * 10);
+        for (var i = 0; i < original.length; i++) {
+            if (original[i].geometry.groups.length > 0) {
+                original[i].material = original[i].material.slice(0)
+            }
+        }
+
+        document.addEventListener("mousemove", mouseMove, false);
+
+        $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+        onWindowResize();
+
+        hide_loading();
+
+        for (var i = 0; i < num; i++) {
+            try {
+                var empty = true;
+                var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
+                if (!all_empty || i == 0) {
+                    for (var uv_index in uvarray) {
+                        if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
+                            empty = false;
+                        }
+                    }
+                }
+                !empty ? all_empty = false : all_empty = true;
+            }
+            catch (err) {
+                console.warn(err + ". Using empty UVs instead.")
+                lack = true
+            }
+        }
+        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
 
     }
     else if (progress_obj + progress_mtl == -2) {
