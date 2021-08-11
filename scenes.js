@@ -1411,10 +1411,6 @@ function init_patch() {
 }
 
 
-function show_progress() {
-    $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl) / 2) + "%", "aria- valuenow": Math.min(100, (progress_obj + progress_mtl) / 2) })
-}
-
 function animate() {
     stats.begin();
     if (patch_panel_width != $("#container_patch").css("width")) {
@@ -1445,11 +1441,11 @@ function animate() {
 
         document.addEventListener("mousemove", mouseMove, false);
 
-        $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color='#a0a0a0'>Vertices: " + obj_vertices_count + "</font></p>")
+        $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         onWindowResize();
 
-        $("#progress_bar").hide();
+        hide_loading();
 
 
         for (var i = 0; i < num; i++) {
@@ -1478,7 +1474,7 @@ function animate() {
 
     }
     else {
-        show_progress()
+        
     }
     $("#texture_container").css({ "max-height": window.innerHeight * 0.91*0.45 })
     $(".up-area").css({ "width": $(".dg.main").css("width") })
