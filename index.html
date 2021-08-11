@@ -41,25 +41,31 @@
 
     #info {
       position: absolute;      
-      font-size: 20px;
-      font-weight: 10;
+      font-size: 16px;
+      font-weight: 100;
       font-family: Lato, sans-serif;
-      top: 10px;
-      width: 100%;
+      left:50%;
+      top: 6px;
       text-align: center;
       user-select: none;
       z-index: 100;
+      text-transform: uppercase;
+      transform: translate(-50%, 0);
     }
 
     #vertice_num{
       position: absolute;  
       font-size: 10px;
+      font-weight: 100;
       color:#a0a0a0;
-      font-weight: 10;
+      text-align: center;
+      left:50%;
+      bottom: 0px;
       font-family: Lato, sans-serif;
       text-align: center;
-      width: 100%;
-      top: 30px;
+      user-select: none;
+      text-transform: uppercase;
+      transform: translate(-50%, 0);
     }
 
     canvas {
@@ -165,6 +171,7 @@
       z-index: 98;
       height: 100%;
       width: 100%;
+      cursor: wait;
     }
   </style>
 
@@ -286,7 +293,9 @@
       </div>
     </div>
     <div id="info">
-      <p>Parafashion<br /></p>
+      <p>Parafashion</p>
+    </div>
+    <div id="vertice_num">
     </div>
     <script>
       show_loading();
