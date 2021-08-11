@@ -130,9 +130,6 @@ class CameraControls extends EventDispatcher {
 		// this method is exposed, but perhaps it would be better if we can make it private...
 		this.update = function () {
 
-			var lastPosition = new Vector3();
-			var lastQuaternion = new Quaternion();
-
 			return function update() {
 
 				var position = scope.object.position;
@@ -205,21 +202,6 @@ class CameraControls extends EventDispatcher {
 					panOffset.set(0, 0, 0);
 
 				}
-
-				// update condition is:
-				// min(camera displacement, camera rotation in radians)^2 > EPS
-				// using small-angle approximation cos(x/2) = 1 - x^2 / 8
-				if (zoomChanged || lastPosition.distanceToSquared(scope.object.position) > EPS || 8 * (1 - lastQuaternion.dot(scope.object.quaternion)) > EPS) {
-
-					scope.dispatchEvent(changeEvent);
-					lastPosition.copy(scope.object.position);
-					lastQuaternion.copy(scope.object.quaternion);
-					zoomChanged = false;
-					return true;
-
-				}
-
-				return false;
 
 			};
 
