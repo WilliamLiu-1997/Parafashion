@@ -1442,7 +1442,7 @@ function animate() {
 
         document.addEventListener("mousemove", mouseMove, false);
 
-        $("#info").html("<p><font size='3'>Parafashion</font><br /><font size='1' color='#a0a0a0'>Vertices: " + obj_vertices_count + "</font></p>")
+        $("#info").html("<p>Parafashion<br /><div id='vertice_num'>Vertices: " + obj_vertices_count + "</div></p>")
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         onWindowResize();
 

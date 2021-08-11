@@ -40,11 +40,26 @@
     }
 
     #info {
-      position: absolute;
+      position: absolute;      
+      font-size: 20px;
+      font-weight: 10;
+      font-family: Lato, sans-serif;
       top: 10px;
       width: 100%;
       text-align: center;
       user-select: none;
+      z-index: 100;
+    }
+
+    #vertice_num{
+      position: absolute;  
+      font-size: 10px;
+      color:#a0a0a0;
+      font-weight: 10;
+      font-family: Lato, sans-serif;
+      text-align: center;
+      width: 100%;
+      top: 30px;
     }
 
     canvas {
@@ -146,7 +161,7 @@
 
     #loading_background {
       position: absolute;
-      background-color: rgba(0, 0, 0, 0.75);
+      background-color: rgba(0, 0, 0, 0.5);
       z-index: 98;
       height: 100%;
       width: 100%;
@@ -271,7 +286,7 @@
       </div>
     </div>
     <div id="info">
-      <p><font size="3">Parafashion</font><br /></p>
+      <p>Parafashion<br /></p>
     </div>
     <script>
       show_loading();
