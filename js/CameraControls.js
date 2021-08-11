@@ -186,7 +186,7 @@ class CameraControls extends EventDispatcher {
 				scope.look.y = Math.sin(scope.angleY)
 				scope.look.normalize()
 
-				position.z = Math.min(scope.maxZ,Math.max(scope.minZ, position.z))
+				position.z = Math.min(scope.maxZ, Math.max(scope.minZ, position.z))
 
 				let look = position.clone();
 				look.add(scope.look);
@@ -278,12 +278,6 @@ class CameraControls extends EventDispatcher {
 		function getAutoRotationAngle() {
 
 			return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
-
-		}
-
-		function getZoomScale() {
-
-			return Math.pow(0.95, scope.zoomSpeed);
 
 		}
 
@@ -456,7 +450,7 @@ class CameraControls extends EventDispatcher {
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 			// rotating across whole screen goes 360 degrees around
-			rotate(1.2 *  Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed, 1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+			rotate(1.2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed, 1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
 
 			rotateStart.copy(rotateEnd);
 
@@ -472,11 +466,11 @@ class CameraControls extends EventDispatcher {
 
 			if (dollyDelta.y > 0) {
 
-				dollyForward(getZoomScale());
+				dollyForward(scope.zoomSpeed);
 
 			} else if (dollyDelta.y < 0) {
 
-				dollyBackward(getZoomScale());
+				dollyBackward(scope.zoomSpeed);
 
 			}
 
@@ -508,11 +502,11 @@ class CameraControls extends EventDispatcher {
 
 			if (event.deltaY < 0) {
 
-				dollyBackward(getZoomScale());
+				dollyBackward(scope.zoomSpeed);
 
 			} else if (event.deltaY > 0) {
 
-				dollyForward(getZoomScale());
+				dollyForward(scope.zoomSpeed);
 
 			}
 
@@ -544,7 +538,7 @@ class CameraControls extends EventDispatcher {
 						break;
 
 					case scope.keys.TURNRIGHT:
-						rotate( Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
+						rotate(Math.PI / element.clientWidth * scope.keyRotateSpeed, 0);
 						scope.update();
 						break;
 
@@ -557,12 +551,12 @@ class CameraControls extends EventDispatcher {
 				switch (event.keyCode) {
 
 					case scope.keys.FORWARD:
-						dollyBackward(getZoomScale() * scope.keyPanSpeed);;
+						dollyBackward(scope.zoomSpeed * scope.keyPanSpeed);;
 						scope.update();
 						break;
 
 					case scope.keys.BACKWARD:
-						dollyForward(getZoomScale() * scope.keyPanSpeed);;
+						dollyForward(scope.zoomSpeed * scope.keyPanSpeed);;
 						scope.update();
 						break;
 
@@ -612,7 +606,7 @@ class CameraControls extends EventDispatcher {
 
 			var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-			rotate(1.2 *  Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed, 1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
+			rotate(1.2 * Math.PI * rotateDelta.x / element.clientWidth * scope.rotateSpeed, 1.2 * Math.PI * rotateDelta.y / element.clientHeight * scope.rotateSpeed);
 
 			rotateStart.copy(rotateEnd);
 
@@ -624,7 +618,6 @@ class CameraControls extends EventDispatcher {
 
 			var dx = event.touches[0].pageX - event.touches[1].pageX;
 			var dy = event.touches[0].pageY - event.touches[1].pageY;
-			var max = Math.sqrt(element.clientHeight * element.clientHeight + element.clientWidth * element.clientWidth)
 
 			var distance = Math.sqrt(dx * dx + dy * dy);
 
@@ -634,11 +627,11 @@ class CameraControls extends EventDispatcher {
 
 			if (dollyDelta.y > 0) {
 
-				dollyBackward(dollyDelta.y / max);
+				dollyBackward(scope.zoomSpeed / 2);
 
 			} else if (dollyDelta.y < 0) {
 
-				dollyForward(Math.abs(dollyDelta.y / max));
+				dollyForward(scope.zoomSpeed / 2);
 
 			}
 
