@@ -87,15 +87,29 @@
       z-index: 99;
     }
 
-    .progress {
-      background-color: rgb(165, 165, 165);
+    .loading {
+      display: none;
       position: absolute;
-      width: 50%;
-      height: 25px;
       top: 48%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 99;
+      color: white;
+      font-size: 40px;
+      font-weight: 100;
+      font-family: Lato, sans-serif;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      z-index: 99;
+    }
+    .loading span {
+      animation: shrink 2s infinite;
+    }
+
+    @keyframes shrink {
+      50% {
+        transform: scale(0.2);
+      }
     }
 
     .tip {
@@ -129,20 +143,29 @@
       overflow-y: auto;
       overflow-x: hidden;
     }
+
+    #loading_background {
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.75);
+      z-index: 98;
+      height: 100%;
+      width: 100%;
+    }
   </style>
 
   <body>
-    <div id="progress_bar" class="progress">
-      <div id="progress"
-        class="progress-bar progress-bar-striped active"
-        role="progressbar"
-        aria-valuenow="0"
-        aria-valuemin="0"
-        aria-valuemax="100"
-        style="width: 0%;font-size: 18px;line-height: 25px;"
-      >
-        Loading...
-      </div>
+    <div id="loading_background"></div>
+    <div id="loading" class="loading">
+      <span style="animation-delay: 0s">L</span
+      ><span style="animation-delay: 0.1s">o</span
+      ><span style="animation-delay: 0.2s">a</span
+      ><span style="animation-delay: 0.3s">d</span
+      ><span style="animation-delay: 0.4s">i</span
+      ><span style="animation-delay: 0.5s">n</span
+      ><span style="animation-delay: 0.6s">g</span
+      ><span style="animation-delay: 0.7s">·</span
+      ><span style="animation-delay: 0.8s">·</span
+      ><span style="animation-delay: 0.9s">·</span>
     </div>
     <div id="container"></div>
     <div id="gui_container">
@@ -251,6 +274,19 @@
       <p><font size="3">Parafashion</font><br /></p>
     </div>
     <script>
+      show_loading();
+
+      function show_loading() {
+        $("#loading").show();
+        $("#loading").css({ display: "flex", opacity: 0 });
+        $("#loading").animate({ opacity: 1 }, 500);
+      }
+      function hide_loading() {
+        $("#loading").fadeOut();
+        $("#loading_background").fadeOut();
+      }
+
+      
       var render_patch_flag = true;
       var patch_scaled = false;
       var resize_patch = false;

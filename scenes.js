@@ -1236,6 +1236,7 @@ function Change_material() {
     Material_Update()
 }
 
+
 init();
 init_patch();
 GUI_init();
@@ -1408,10 +1409,6 @@ function init_patch() {
 }
 
 
-function show_progress() {
-    $("#progress").css({ "width": Math.min(100, (progress_obj + progress_mtl) / 2) + "%", "aria- valuenow": Math.min(100, (progress_obj + progress_mtl) / 2) })
-}
-
 function animate() {
     stats.begin();
     if (patch_panel_width != $("#container_patch").css("width")) {
@@ -1449,8 +1446,7 @@ function animate() {
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         onWindowResize();
 
-        $("#progress_bar").hide();
-
+        hide_loading();
 
         for (var i = 0; i < num; i++) {
             try {
@@ -1479,7 +1475,6 @@ function animate() {
 
     }
     else {
-        show_progress()
     }
     $("#texture_container").css({ "max-height": window.innerHeight * 0.91 * 0.45 })
     $(".up-area").css({ "width": $(".dg.main").css("width") })
