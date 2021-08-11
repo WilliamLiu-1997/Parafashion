@@ -1313,7 +1313,7 @@ function init() {
     // controls
 
     controls = new CameraControls(camera, renderer.domElement);
-
+    controls.mouseButtons = { PAN: THREE.MOUSE.MIDDLE, ZOOM: false, ROTATE: THREE.MOUSE.RIGHT };
     controls.dynamicSensibility = false;
     controls.enableDamping = true;
     controls.invertRotate = true;
