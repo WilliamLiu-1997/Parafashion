@@ -60,7 +60,7 @@ var garments_obj = "./obj/tower/tower3.obj"
 // var garments_obj = "./obj/city2/city2.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
-//garments_mtl=false
+// garments_mtl = false
 
 
 let outlinePass_params_cover = {
