@@ -58,8 +58,8 @@ var garments_mtl = "./obj/tower/tower3.mtl"
 var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-var garments_mtl = "./obj/S/S.mtl"
-var garments_obj = "./obj/S/S.obj"
+// var garments_mtl = "./obj/S/S.mtl"
+// var garments_obj = "./obj/S/S.obj"
 // garments_mtl = false
 
 
@@ -193,9 +193,9 @@ var environment_light = {
 
 function Overall_Reflectivity_NaN() {
     gui_options.Overall_Reflectivity = 0
-    gui.updateDisplay()
+    
     gui_options.Overall_Reflectivity = NaN
-    gui.updateDisplay()
+    
 }
 
 function Reflectivity() {
@@ -233,11 +233,11 @@ function Reflectivity() {
     Materials.MeshPhysicalMaterial.reflectivity = gui_options.Overall_Reflectivity
 
     if (selected.length == 2) {
-        gui.updateDisplay()
+        
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
     }
     else if (selected.length == 1) {
-        gui.updateDisplay()
+        
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
     }
 }
@@ -245,12 +245,12 @@ var gui_options = {
     Reset_Camera: function () {
         controls.reset();
         controls_patch.reset();
-        if (gui) { gui.updateDisplay() }
+        if (gui) {  }
     },
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        if (gui) { gui.updateDisplay() }
+        if (gui) {  }
     },
     reset: function () {
         let num = garment.children[0].children.length;
@@ -432,7 +432,7 @@ var Material = {
                     selected[0].material[selected[1]] = n.material[selected[1]].clone()
                     selected_patch[0].material = n.material[selected[1]].clone()
                     Obj_to_GUI(n.material[selected[1]])
-                    gui.updateDisplay()
+                    
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
@@ -445,7 +445,7 @@ var Material = {
                     selected[0].material = n.material.clone()
                     selected_patch[0].material = n.material.clone()
                     Obj_to_GUI(n.material)
-                    gui.updateDisplay()
+                    
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
@@ -462,7 +462,7 @@ var Material = {
             selected[0].material[selected[1]] = default_set
             selected_patch[0].material = selected[0].material[selected[1]].clone()
             Obj_to_GUI(selected[0].material[selected[1]])
-            gui.updateDisplay()
+            
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
 
@@ -474,7 +474,7 @@ var Material = {
             selected[0].material = default_set
             selected_patch[0].material = selected[0].material.clone()
             Obj_to_GUI(selected[0].material)
-            gui.updateDisplay()
+            
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
         }
@@ -525,7 +525,7 @@ var TextureParams = {
             }
         }
         Texture_to_GUI()
-        gui.updateDisplay()
+        
     },
 };
 
@@ -564,7 +564,7 @@ function Texture_to_GUI() {
     //     selected_patch[0].material[current] = textureloader.load(url)
     // }
     //GUI_to_Texture()
-    gui.updateDisplay()
+    
 }
 
 function GUI_to_Texture() {
@@ -699,18 +699,18 @@ function Obj_to_GUI(obj_material) {
 function Material_Update(reflecttivity_change = false) {
     if (reflecttivity_change) {
         gui_options.Overall_Reflectivity = 0
-        gui.updateDisplay()
+        
         gui_options.Overall_Reflectivity = NaN
     }
     if (selected.length == 2) {
         material_folder.show()
         GUI_to_Obj(selected[0].material[selected[1]])
-        gui.updateDisplay()
+        
     }
     else if (selected.length == 1) {
         material_folder.show()
         GUI_to_Obj(selected[0].material)
-        gui.updateDisplay()
+        
     }
 }
 
@@ -718,18 +718,18 @@ function Material_Update(reflecttivity_change = false) {
 function Material_Update_Param(reflecttivity_change = false) {
     if (reflecttivity_change) {
         gui_options.Overall_Reflectivity = 0
-        gui.updateDisplay()
+        
         gui_options.Overall_Reflectivity = NaN
     }
     if (selected.length == 2) {
         material_folder.show()
         GUI_to_Obj_Param(selected[0].material[selected[1]], selected_patch[0].material)
-        gui.updateDisplay()
+        
     }
     else if (selected.length == 1) {
         material_folder.show()
         GUI_to_Obj_Param(selected[0].material, selected_patch[0].material)
-        gui.updateDisplay()
+        
     }
 }
 
@@ -987,7 +987,7 @@ function load_material() {
         Material_Type_Folder[Material.material].show()
         material_folder.show()
         Obj_to_GUI(selected[0].material[selected[1]])
-        gui.updateDisplay()
+        
     }
     else if (selected.length == 1) {
         selected[0].material = selected[0].material.clone()
@@ -997,7 +997,7 @@ function load_material() {
         Material_Type_Folder[Material.material].show()
         material_folder.show()
         Obj_to_GUI(selected[0].material)
-        gui.updateDisplay()
+        
     }
     else { Texture_to_GUI() }
 }
@@ -1012,6 +1012,8 @@ function GUI_init() {
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Unselect');
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
+    folder_basic.add(controls, 'sensibility', 0.5, 20, 0.1).name("Camera Sensibility");
+    folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
@@ -1206,7 +1208,7 @@ function GUI_init() {
 
     Change_Mode()
     gui_options.Overall_Reflectivity = NaN
-    gui.updateDisplay()
+    
 }
 
 
@@ -1460,7 +1462,7 @@ function animate() {
 
     }
     else if (progress_obj + progress_mtl == -2 && garment !== undefined) {
-
+        gui.updateDisplay();
     }
 
     $("#texture_container").css({ "max-height": window.innerHeight * 0.91 * 0.45 })
