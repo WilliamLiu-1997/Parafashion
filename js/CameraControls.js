@@ -168,8 +168,8 @@ class CameraControls extends EventDispatcher {
 
 				if (scope.enableDamping) {
 
-					scope.angleX += angleXDelta * scope.dampingFactor * 1.5;
-					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.5, Math.PI / 2.001))
+					scope.angleX += angleXDelta * scope.dampingFactor;
+					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor, Math.PI / 2.001))
 
 				} else {
 
@@ -191,8 +191,8 @@ class CameraControls extends EventDispatcher {
 
 				if (scope.enableDamping === true) {
 
-					angleXDelta *= (1 - scope.dampingFactor * 1.5);
-					angleYDelta *= (1 - scope.dampingFactor * 1.5);
+					angleXDelta *= (1 - scope.dampingFactor);
+					angleYDelta *= (1 - scope.dampingFactor);
 					panOffset.multiplyScalar(1 - scope.dampingFactor);
 
 				} else {
