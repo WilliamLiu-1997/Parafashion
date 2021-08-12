@@ -28,7 +28,7 @@ class CameraControls extends EventDispatcher {
 
 		this.stop = false;
 
-		this.o = new Vector3(0, 0, 0)
+		this.o = new Vector3(0, 0, 0);
 
 		this.object = object;
 
@@ -366,7 +366,7 @@ class CameraControls extends EventDispatcher {
 
 			} else if (scope.object.isOrthographicCamera) {
 
-				scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom * Math.pow(0.95,dollyScale)));
+				scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom * Math.pow(0.95, dollyScale)));
 				scope.object.updateProjectionMatrix();
 				zoomChanged = true;
 
@@ -389,7 +389,7 @@ class CameraControls extends EventDispatcher {
 
 			} else if (scope.object.isOrthographicCamera) {
 
-				scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom / Math.pow(0.95,dollyScale)));
+				scope.object.zoom = Math.max(scope.minZoom, Math.min(scope.maxZoom, scope.object.zoom / Math.pow(0.95, dollyScale)));
 				scope.object.updateProjectionMatrix();
 				zoomChanged = true;
 
