@@ -333,7 +333,6 @@ var gui_options = {
         Overall_Reflectivity_NaN()
     },
     Overall_Reflectivity: 0,
-    sensibility: 1,
     env: "None",
     Enable_Patch_Background: false,
     cut: false,
@@ -1013,7 +1012,6 @@ function GUI_init() {
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Unselect');
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
-    folder_basic.add(gui_options, 'sensibility', 0.1, 20, 0.01).name("Control Sensibility").onChange(() => { if (controls !== undefined) { controls.sensibility = gui_options.sensibility; } });
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
@@ -1309,10 +1307,10 @@ function init() {
 
     controls = new CameraControls(camera, renderer.domElement);
     controls.mouseButtons = { PAN: THREE.MOUSE.MIDDLE, ZOOM: false, ROTATE: THREE.MOUSE.RIGHT };
-    controls.dynamicSensibility = false;
+    controls.dynamicSensibility = true;
     controls.enableDamping = true;
     controls.invertRotate = true;
-    controls.rotateSpeed = 1.5;
+    controls.rotateSpeed = 1.3;
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
     scene.add(garment);
@@ -1410,9 +1408,7 @@ function animate() {
         onWindowResize()
     }
     if (progress_obj + progress_mtl == 200 && garment!==undefined) {
-        camera.position.set(0, 0, obj_size + 1)
-        controls.sensibility = camera.position.distanceTo(O) / 1.2;
-        gui_options.sensibility = camera.position.distanceTo(O) / 1.2;
+        camera.position.set(0, 0, obj_size + 1);
         var lack = false;
         var all_empty = true;
         progress_obj = progress_mtl = -1;
@@ -1471,8 +1467,7 @@ function animate() {
     $(".up-area").css({ "width": $(".dg.main").css("width") })
     $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
     if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
-    let p = new THREE.Vector3(0, 0, camera_patch.position.z)
-    controls_patch.sensibility = p.distanceTo(O) / 1.2
+    controls_patch.sensibility = camera_patch.position.z / 1.2
     requestAnimationFrame(animate);
     render();
     stats.end();
