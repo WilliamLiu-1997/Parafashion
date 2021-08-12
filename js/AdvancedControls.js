@@ -113,6 +113,8 @@ class AdvancedControls extends EventDispatcher {
 		};
 
 		this.reset = function () {
+			let old_target = scope.target;
+			scope.target = false;
 
 			scope.object.position.copy(scope.position0);
 			scope.object.zoom = scope.zoom0;
@@ -124,6 +126,8 @@ class AdvancedControls extends EventDispatcher {
 			scope.dispatchEvent(changeEvent);
 
 			scope.update();
+
+			scope.target = old_target;
 
 			state = STATE.NONE;
 
@@ -215,7 +219,7 @@ class AdvancedControls extends EventDispatcher {
 
 					let Sphere_ = new Spherical();
 					Sphere_.setFromVector3(position.clone().sub(target));
-					Sphere_.theta += Sphere_current.theta - Sphere_last.theta;
+					Sphere_.theta += Sphere_current.theta - Sphere_last.theta; 
 
 					let Sphere_location_ = new Vector3();
 					Sphere_location_.setFromSpherical(Sphere_).add(target);
