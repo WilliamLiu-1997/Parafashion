@@ -1,7 +1,6 @@
 import {
 	EventDispatcher,
 	MOUSE,
-	Quaternion,
 	Vector2,
 	Vector3
 } from '../three.js/build/three.module.js';
@@ -169,21 +168,21 @@ class CameraControls extends EventDispatcher {
 				if (scope.enableDamping) {
 
 					scope.angleX += angleXDelta * scope.dampingFactor * 1.2;
-					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.2, Math.PI / 2.001))
+					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.2, Math.PI / 2.001));
 
 				} else {
 
 					scope.angleX += angleXDelta * 1.5;
-					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * 1.5, Math.PI / 2.001))
+					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * 1.5, Math.PI / 2.001));
 
 				}
 
-				scope.look.x = Math.sin(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
-				scope.look.z = -Math.cos(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY))
-				scope.look.y = Math.sin(scope.angleY)
-				scope.look.normalize()
+				scope.look.x = Math.sin(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY));
+				scope.look.z = -Math.cos(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY));
+				scope.look.y = Math.sin(scope.angleY);
+				scope.look.normalize();
 
-				position.z = Math.min(scope.maxZ, Math.max(scope.minZ, position.z))
+				position.z = Math.min(scope.maxZ, Math.max(scope.minZ, position.z));
 
 				let look = position.clone();
 				look.add(scope.look);
