@@ -48,7 +48,7 @@ class CameraControls extends EventDispatcher {
 		// Set to true to enable damping (inertia)
 		// If damping is enabled, you must call controls.update() in your animation loop
 		this.enableDamping = false;
-		this.dampingFactor = 0.12;
+		this.dampingFactor = 0.1;
 
 		// "look" sets the direction of the focus
 		this.look = new Vector3();
@@ -168,8 +168,8 @@ class CameraControls extends EventDispatcher {
 
 				if (scope.enableDamping) {
 
-					scope.angleX += angleXDelta * scope.dampingFactor;
-					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor, Math.PI / 2.001))
+					scope.angleX += angleXDelta * scope.dampingFactor * 1.2;
+					scope.angleY = Math.max(-Math.PI / 2.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.2, Math.PI / 2.001))
 
 				} else {
 
@@ -191,8 +191,8 @@ class CameraControls extends EventDispatcher {
 
 				if (scope.enableDamping === true) {
 
-					angleXDelta *= (1 - scope.dampingFactor);
-					angleYDelta *= (1 - scope.dampingFactor);
+					angleXDelta *= (1 - scope.dampingFactor * 1.2);
+					angleYDelta *= (1 - scope.dampingFactor * 1.2);
 					panOffset.multiplyScalar(1 - scope.dampingFactor);
 
 				} else {
