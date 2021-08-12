@@ -48,7 +48,7 @@ class CameraControls extends EventDispatcher {
 		// Set to true to enable damping (inertia)
 		// If damping is enabled, you must call controls.update() in your animation loop
 		this.enableDamping = false;
-		this.dampingFactor = 0.1;
+		this.dampingFactor = 0.12;
 
 		// "look" sets the direction of the focus
 		this.look = new Vector3();
