@@ -194,12 +194,10 @@ var gui_options = {
     Reset_Camera: function () {
         controls.reset();
         controls_patch.reset();
-        if (gui) {  }
     },
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        if (gui) {  }
     },
     reset: function () {
         let num = garment.children[0].children.length;
