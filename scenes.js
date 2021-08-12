@@ -1,6 +1,7 @@
 import * as THREE from './three.js/build/three.module.js';
 import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
+import { AdvancedControls } from './js/AdvancedControls.js';
 import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
 import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
@@ -379,7 +380,7 @@ var Material = {
                     selected[0].material[selected[1]] = n.material[selected[1]].clone()
                     selected_patch[0].material = n.material[selected[1]].clone()
                     Obj_to_GUI(n.material[selected[1]])
-                    
+
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
@@ -392,7 +393,7 @@ var Material = {
                     selected[0].material = n.material.clone()
                     selected_patch[0].material = n.material.clone()
                     Obj_to_GUI(n.material)
-                    
+
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
@@ -409,7 +410,7 @@ var Material = {
             selected[0].material[selected[1]] = default_set
             selected_patch[0].material = selected[0].material[selected[1]].clone()
             Obj_to_GUI(selected[0].material[selected[1]])
-            
+
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
 
@@ -421,7 +422,7 @@ var Material = {
             selected[0].material = default_set
             selected_patch[0].material = selected[0].material.clone()
             Obj_to_GUI(selected[0].material)
-            
+
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
         }
@@ -472,7 +473,7 @@ var TextureParams = {
             }
         }
         Texture_to_GUI()
-        
+
     },
 };
 
@@ -548,7 +549,7 @@ function init() {
     composer.setSize(window.innerWidth, window.innerHeight);
     // controls
 
-    controls = new CameraControls(camera, renderer.domElement);
+    controls = new AdvancedControls(camera, renderer.domElement);
     controls.mouseButtons = { PAN: THREE.MOUSE.MIDDLE, ZOOM: false, ROTATE: THREE.MOUSE.RIGHT };
     controls.dynamicSensibility = true;
     controls.enableDamping = true;
@@ -650,7 +651,7 @@ function animate() {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
-    if (progress_obj + progress_mtl == 200 && garment!==undefined) {
+    if (progress_obj + progress_mtl == 200 && garment !== undefined) {
         camera.position.set(0, 0, obj_size + 1);
         var lack = false;
         var all_empty = true;
@@ -763,6 +764,9 @@ function onmouseDown(event) {
             drawing = true;
         } else {
             select_cut(pointer, camera, event);
+            if (controls !== undefined) {
+                if (cut_obj.length === 1)controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
+            }
         }
     }
     else if (event.button == 0) {
@@ -775,6 +779,16 @@ function onmouseDown(event) {
         if (!mouse_down && cover) { cover_recovery(); }
         if (cover) {
             select_material(pointer, camera, pointer_patch, camera_patch, event);
+            if (controls !== undefined) {
+                if (selected.length === 1) {
+                    controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                } else if (selected.length === 2) {
+                    selected_obj.geometry.computeBoundingBox();
+                    console.log(selected_obj.geometry.boundingBox)
+                    controls.target = new Vector3(selected_obj.geometry.boundingBox.min.clone().add(selected_obj.geometry.boundingBox.max).multiplyScalar(0.5)).multiply(selected_obj.scale).add(selected_obj.parent.position);
+                }
+
+            }
             if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) || pointer.y < (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) load_material()
         }
         cover = false;
@@ -839,6 +853,9 @@ function select_recovery() {
     selected = []
     selected_patch = []
     cut_obj = []
+    if (controls !== undefined) {
+        controls.target = false;
+    }
 }
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
