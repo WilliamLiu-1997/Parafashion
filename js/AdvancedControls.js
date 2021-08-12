@@ -226,9 +226,6 @@ class AdvancedControls extends EventDispatcher {
 				look.add(scope.look);
 				scope.object.lookAt(look);
 
-				// scope.object.rotateOnWorldAxis(target,new Vector3(1,0,0),scope.angleY - last_angleY);
-				// //scope.object.rotation.y +=(angleXDelta * scope.dampingFactor * 1.2);
-
 				if (scope.enableDamping === true) {
 
 					angleXDelta *= (1 - scope.dampingFactor * 1.2);

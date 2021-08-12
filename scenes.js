@@ -783,9 +783,8 @@ function onmouseDown(event) {
                 if (selected.length === 1) {
                     controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
                 } else if (selected.length === 2) {
-                    selected_obj.geometry.computeBoundingBox();
-                    console.log(selected_obj.geometry.boundingBox)
-                    controls.target = new Vector3(selected_obj.geometry.boundingBox.min.clone().add(selected_obj.geometry.boundingBox.max).multiplyScalar(0.5)).multiply(selected_obj.scale).add(selected_obj.parent.position);
+                    selected_obj.geometry.computeBoundingSphere();
+                    controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
                 }
 
             }
