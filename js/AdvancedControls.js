@@ -176,6 +176,8 @@ class AdvancedControls extends EventDispatcher {
 				}
 
 				let last_look = scope.look.clone();
+				let last_angleX = scope.angleX;
+				let last_angleY = scope.angleY;
 
 				var low, high;
 				if (angleY_gap > 0) {
@@ -204,11 +206,11 @@ class AdvancedControls extends EventDispatcher {
 				scope.look.normalize();
 
 				if (target) {
-
-					let Sphere_last = new Spherical();
-					Sphere_last.setFromVector3(last_look);
-					let Sphere_current = new Spherical();
-					Sphere_current.setFromVector3(scope.look);
+					
+					let last_phi = Math.acos(last_look.y);
+					let current_phi = Math.acos(scope.look.y);
+					let last_theta = Math.atan2(last_look.x, last_look.z);
+					let current_theta = Math.atan2(scope.look.x, scope.look.z);
 
 					let plane = new Plane();
 					let normal_ = new Vector3(0, 1, 0);
@@ -221,7 +223,7 @@ class AdvancedControls extends EventDispatcher {
 
 					let Sphere = new Spherical();
 					Sphere.setFromVector3(position.clone().sub(target));
-					Sphere.phi -= Sphere_current.phi - Sphere_last.phi;
+					Sphere.phi -= current_phi - last_phi;
 					angleY_gap = scope.angleY - Sphere.phi + Math.PI / 2;
 
 					let Sphere_location = new Vector3();
@@ -231,7 +233,7 @@ class AdvancedControls extends EventDispatcher {
 
 					let Sphere_ = new Spherical();
 					Sphere_.setFromVector3(position.clone().sub(target));
-					Sphere_.theta += Sphere_current.theta - Sphere_last.theta;
+					Sphere_.theta += current_theta - last_theta;
 
 					let Sphere_location_ = new Vector3();
 					Sphere_location_.setFromSpherical(Sphere_).add(target);
