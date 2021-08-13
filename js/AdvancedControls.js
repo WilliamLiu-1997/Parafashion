@@ -180,9 +180,9 @@ class AdvancedControls extends EventDispatcher {
 				var low, high;
 				if (angleY_gap > 0) {
 					low = angleY_gap;
-					high = 0;
+					high = -0.0001;
 				} else {
-					low = 0;
+					low = 0.0001;
 					high = angleY_gap;
 				}
 
