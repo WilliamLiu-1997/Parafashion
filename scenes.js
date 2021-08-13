@@ -565,7 +565,7 @@ function init_patch() {
     camera_patch = new THREE.PerspectiveCamera(
         45,
         $("#container_patch").width() / window.innerHeight / 0.78,
-        0.01,
+        0.1,
         1000
     );
     camera_patch.position.set(0, 0, 2);
