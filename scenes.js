@@ -623,7 +623,7 @@ function animate() {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
-    if (progress_obj + progress_mtl == 200 && garment !== undefined) {
+    if (progress_obj + progress_mtl == 200 && garment.children[0].children !== undefined) {
         camera.position.set(0, 0, obj_size + 1);
         var lack = false;
         var all_empty = true;
@@ -675,7 +675,7 @@ function animate() {
         GUI_init();
 
     }
-    else if (progress_obj + progress_mtl == -2 && garment !== undefined) {
+    else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
         gui.updateDisplay();
     }
 
