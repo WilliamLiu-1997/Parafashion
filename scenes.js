@@ -54,12 +54,12 @@ var garments_mtl = "./leggins/patch_smooth.mtl"
 var garments_obj = "./leggins/patch_smooth.obj"
 var garments_mtl = "./obj/village1/village_final.mtl"
 var garments_obj = "./obj/village1/village_final.obj"
-var garments_mtl = "./obj/tower/tower3.mtl"
-var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-// var garments_mtl = "./obj/S/S.mtl"
-// var garments_obj = "./obj/S/S.obj"
+var garments_mtl = "./obj/tower/tower3.mtl"
+var garments_obj = "./obj/tower/tower3.obj"
+var garments_mtl = "./obj/S/S.mtl"
+var garments_obj = "./obj/S/S.obj"
 // garments_mtl = false
 
 
