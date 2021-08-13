@@ -176,8 +176,6 @@ class AdvancedControls extends EventDispatcher {
 				}
 
 				let last_look = scope.look.clone();
-				let last_angleX = scope.angleX;
-				let last_angleY = scope.angleY;
 
 				var low, high;
 				if (angleY_gap > 0) {
@@ -206,7 +204,7 @@ class AdvancedControls extends EventDispatcher {
 				scope.look.normalize();
 
 				if (target) {
-					
+
 					let last_phi = Math.acos(last_look.y);
 					let current_phi = Math.acos(scope.look.y);
 					let last_theta = Math.atan2(last_look.x, last_look.z);
@@ -238,6 +236,7 @@ class AdvancedControls extends EventDispatcher {
 					let Sphere_location_ = new Vector3();
 					Sphere_location_.setFromSpherical(Sphere_).add(target);
 					position.copy(Sphere_location_);
+
 				}
 
 				let look = position.clone();
