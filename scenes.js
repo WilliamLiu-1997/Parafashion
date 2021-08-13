@@ -765,7 +765,10 @@ function onmouseDown(event) {
         } else {
             select_cut(pointer, camera, event);
             if (controls !== undefined) {
-                if (cut_obj.length === 1)controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
+                if (cut_obj.length === 1) {
+                    controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
+                    controls.rotateSpeed = 2;
+                }
             }
         }
     }
@@ -782,9 +785,11 @@ function onmouseDown(event) {
             if (controls !== undefined) {
                 if (selected.length === 1) {
                     controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                    controls.rotateSpeed = 2;
                 } else if (selected.length === 2) {
                     selected_obj.geometry.computeBoundingSphere();
                     controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
+                    controls.rotateSpeed = 2;
                 }
 
             }
@@ -854,6 +859,7 @@ function select_recovery() {
     cut_obj = []
     if (controls !== undefined) {
         controls.target = false;
+        controls.rotateSpeed = 1.3;
     }
 }
 
@@ -1699,8 +1705,17 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                     }
                 })
                 let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-                if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
-                obj_size = Math.max(1, scale_value)
+                if (scale_value <= 1) {
+                    obj_size = 1
+                }
+                else if (scale_value > 1 && scale_value < 400) {
+                    scale_value /= Math.sqrt(scale_value)
+                    obj_size = scale_value
+                }
+                else {
+                    scale_value /= 20
+                    obj_size = 20
+                }
                 root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
                 root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                 newobj.add(root);
@@ -1741,8 +1756,17 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                             }
                         })
                         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-                        if (scale_value > 1) { scale_value /= Math.sqrt(scale_value) }
-                        obj_size = Math.max(1, scale_value)
+                        if (scale_value <= 1) {
+                            obj_size = 1
+                        }
+                        else if (scale_value > 1 && scale_value < 400) {
+                            scale_value /= Math.sqrt(scale_value)
+                            obj_size = scale_value
+                        }
+                        else {
+                            scale_value /= 20
+                            obj_size=20
+                        }
                         root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
                         root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                         newobj.add(root);
@@ -1755,6 +1779,151 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
         return newobj;
     }
 }
+
+function array_default_material_clone(array, clone) {
+    var result = []
+    for (var i = 0; i < array.length; i++) {
+        if (array[i].envMap !== undefined) { array[i].envMap = null }
+        if (array[i].map === null) { array[i].map = default_texture; }
+        if (clone) result.push(array[i].clone())
+        else result.push(array[i])
+    }
+    return result
+}
+
+
+function patch_loader(garment, scale, num) {
+    max_radius = 0;
+    let first = false;
+    let max_height = 0;
+    let newobj = obj3D.clone();
+    let last_x = -Infinity;
+    let last_y = 4;
+    for (let x = 0; x < num; x++) {
+        let patch_geo = garment.children[0].children[x].geometry.clone();
+        let patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_default_material_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
+
+        if (patch_geo.groups && patch_geo.groups.length > 0) {
+            let group_3d = new THREE.Group();
+            for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
+                if (last_x > scale * 5) {
+                    last_x = -Infinity;
+                    last_y -= max_height * 1.5;
+                    max_height = 0
+                }
+                let individual_patch = individual_garmentToPatch(patch_geo, individual_i)
+                let normals = [];
+                let individual_uv = individual_patch.attributes.uv.array;
+                for (let i = 0; i < individual_uv.length; i++) {
+                    if ((i + 1) % 6 == 0) {
+                        let x1 = individual_uv[i - 5]
+                        let y1 = individual_uv[i - 4]
+                        let x2 = individual_uv[i - 3]
+                        let y2 = individual_uv[i - 2]
+                        let x3 = individual_uv[i - 1]
+                        let y3 = individual_uv[i]
+                        let a = y3 - y1
+                        let b = x1 - x3
+                        let c = x3 * y1 - x1 * y3
+                        if (a * x2 + b * y2 + c >= 0) {
+                            normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
+                        } else {
+                            normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
+                        }
+                    }
+                }
+                individual_patch.deleteAttribute("normal");
+                individual_patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
+                let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
+                individual_patch.computeBoundingBox();
+                let x_max = individual_patch.boundingBox.max.x;
+                let y_max = individual_patch.boundingBox.max.y;
+                let x_min = individual_patch.boundingBox.min.x;
+                let y_min = individual_patch.boundingBox.min.y;
+                let radius_x = (x_max - x_min);
+                let radius_y = (y_max - y_min);
+                max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
+                max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
+                max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
+                if (!first) {
+                    last_x = (-radius_x / 2) * scale
+                    last_y = (radius_y / 2) * scale
+                    first = (-radius_x / 2) * scale;
+                }
+                last_x = last_x == -Infinity ? first : last_x;
+                patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
+                last_x += (radius_x) * 1.5 * scale;
+                patch_map.scale.set(scale, scale, scale);
+                patch_map.name = randomString();
+                group_3d.add(patch_map);
+            }
+            group_3d.name = garment.children[0].children[x].name;
+            newobj.add(group_3d)
+        }
+        else {
+            if (last_x > scale * 5) {
+                last_x = -Infinity;
+                last_y -= max_height * 1.5;
+                max_height = 0
+            }
+            patch_geo = individual_garmentToPatch(patch_geo, 0);
+            let normals = [];
+            let patch_geo_uv = patch_geo.attributes.uv.array;
+            for (let i = 0; i < patch_geo_uv.length; i++) {
+                if ((i + 1) % 6 == 0) {
+                    let x1 = patch_geo_uv[i - 5]
+                    let y1 = patch_geo_uv[i - 4]
+                    let x2 = patch_geo_uv[i - 3]
+                    let y2 = patch_geo_uv[i - 2]
+                    let x3 = patch_geo_uv[i - 1]
+                    let y3 = patch_geo_uv[i]
+                    let a = y3 - y1
+                    let b = x1 - x3
+                    let c = x3 * y1 - x1 * y3
+                    if (a * x2 + b * y2 + c >= 0) {
+                        normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
+                    } else {
+                        normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
+                    }
+                }
+            }
+            patch_geo.deleteAttribute("normal");
+            patch_geo.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
+            let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
+            patch_map.name = garment.children[0].children[x].name;
+            patch_geo.computeBoundingBox();
+            let x_max = patch_geo.boundingBox.max.x;
+            let y_max = patch_geo.boundingBox.max.y;
+            let x_min = patch_geo.boundingBox.min.x;
+            let y_min = patch_geo.boundingBox.min.y;
+            let radius_x = (x_max - x_min);
+            let radius_y = (y_max - y_min);
+            max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
+            max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
+            max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
+            if (!first) {
+                last_x = (-radius_x / 2) * scale
+                last_y = (radius_y / 2) * scale
+                first = (-radius_x / 2) * scale;
+            }
+            last_x = last_x == -Infinity ? first * scale : last_x;
+            patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
+            last_x += radius_x * 1.5 * scale;
+            patch_map.scale.set(scale, scale, scale);
+            newobj.add(patch_map);
+        }
+    }
+    if (max_radius > 1) { max_radius /= Math.sqrt(max_radius) }
+    newobj.traverse(function (child) {
+        if (child.type === 'Mesh') {
+            child.scale.multiplyScalar(scale / max_radius)
+            child.position.multiplyScalar(scale / max_radius)
+        }
+    })
+    return newobj
+}
+
+
 
 
 
@@ -1770,7 +1939,7 @@ function GUI_init() {
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'Unselect');
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
-    folder_basic.add(controls, 'sensibility', 0.5, 20, 0.1).name("Camera Sensibility");
+    folder_basic.add(controls, 'sensibility', 0.5, 100, 0.1).name("Camera Sensibility");
     folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
     folder_basic.open()
 
@@ -1968,156 +2137,6 @@ function GUI_init() {
     gui_options.Overall_Reflectivity = NaN
 
 }
-
-
-
-
-
-
-
-function array_default_material_clone(array, clone) {
-    var result = []
-    for (var i = 0; i < array.length; i++) {
-        if (array[i].envMap !== undefined) { array[i].envMap = null }
-        if (array[i].map === null) { array[i].map = default_texture; }
-        if (clone) result.push(array[i].clone())
-        else result.push(array[i])
-    }
-    return result
-}
-
-
-function patch_loader(garment, scale, num) {
-    max_radius = 0;
-    let first = false;
-    let max_height = 0;
-    let newobj = obj3D.clone();
-    let last_x = -Infinity;
-    let last_y = 4;
-    for (let x = 0; x < num; x++) {
-        let patch_geo = garment.children[0].children[x].geometry.clone();
-        let patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_default_material_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
-
-        if (patch_geo.groups && patch_geo.groups.length > 0) {
-            let group_3d = new THREE.Group();
-            for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
-                if (last_x > scale * 5) {
-                    last_x = -Infinity;
-                    last_y -= max_height * 1.5;
-                    max_height = 0
-                }
-                let individual_patch = individual_garmentToPatch(patch_geo, individual_i)
-                let normals = [];
-                let individual_uv = individual_patch.attributes.uv.array;
-                for (let i = 0; i < individual_uv.length; i++) {
-                    if ((i + 1) % 6 == 0) {
-                        let x1 = individual_uv[i - 5]
-                        let y1 = individual_uv[i - 4]
-                        let x2 = individual_uv[i - 3]
-                        let y2 = individual_uv[i - 2]
-                        let x3 = individual_uv[i - 1]
-                        let y3 = individual_uv[i]
-                        let a = y3 - y1
-                        let b = x1 - x3
-                        let c = x3 * y1 - x1 * y3
-                        if (a * x2 + b * y2 + c >= 0) {
-                            normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
-                        } else {
-                            normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
-                        }
-                    }
-                }
-                individual_patch.deleteAttribute("normal");
-                individual_patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
-                let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
-                individual_patch.computeBoundingBox();
-                let x_max = individual_patch.boundingBox.max.x;
-                let y_max = individual_patch.boundingBox.max.y;
-                let x_min = individual_patch.boundingBox.min.x;
-                let y_min = individual_patch.boundingBox.min.y;
-                let radius_x = (x_max - x_min);
-                let radius_y = (y_max - y_min);
-                max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
-                max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
-                max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
-                if (!first) {
-                    last_x = (-radius_x / 2) * scale
-                    last_y = (radius_y / 2) * scale
-                    first = (-radius_x / 2) * scale;
-                }
-                last_x = last_x == -Infinity ? first : last_x;
-                patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
-                last_x += (radius_x) * 1.5 * scale;
-                patch_map.scale.set(scale, scale, scale);
-                patch_map.name = randomString();
-                group_3d.add(patch_map);
-            }
-            group_3d.name = garment.children[0].children[x].name;
-            newobj.add(group_3d)
-        }
-        else {
-            if (last_x > scale * 5) {
-                last_x = -Infinity;
-                last_y -= max_height * 1.5;
-                max_height = 0
-            }
-            patch_geo = individual_garmentToPatch(patch_geo, 0);
-            let normals = [];
-            let patch_geo_uv = patch_geo.attributes.uv.array;
-            for (let i = 0; i < patch_geo_uv.length; i++) {
-                if ((i + 1) % 6 == 0) {
-                    let x1 = patch_geo_uv[i - 5]
-                    let y1 = patch_geo_uv[i - 4]
-                    let x2 = patch_geo_uv[i - 3]
-                    let y2 = patch_geo_uv[i - 2]
-                    let x3 = patch_geo_uv[i - 1]
-                    let y3 = patch_geo_uv[i]
-                    let a = y3 - y1
-                    let b = x1 - x3
-                    let c = x3 * y1 - x1 * y3
-                    if (a * x2 + b * y2 + c >= 0) {
-                        normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
-                    } else {
-                        normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
-                    }
-                }
-            }
-            patch_geo.deleteAttribute("normal");
-            patch_geo.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
-            let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
-            patch_map.name = garment.children[0].children[x].name;
-            patch_geo.computeBoundingBox();
-            let x_max = patch_geo.boundingBox.max.x;
-            let y_max = patch_geo.boundingBox.max.y;
-            let x_min = patch_geo.boundingBox.min.x;
-            let y_min = patch_geo.boundingBox.min.y;
-            let radius_x = (x_max - x_min);
-            let radius_y = (y_max - y_min);
-            max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
-            max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
-            max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
-            if (!first) {
-                last_x = (-radius_x / 2) * scale
-                last_y = (radius_y / 2) * scale
-                first = (-radius_x / 2) * scale;
-            }
-            last_x = last_x == -Infinity ? first * scale : last_x;
-            patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
-            last_x += radius_x * 1.5 * scale;
-            patch_map.scale.set(scale, scale, scale);
-            newobj.add(patch_map);
-        }
-    }
-    if (max_radius > 1) { max_radius /= Math.sqrt(max_radius) }
-    newobj.traverse(function (child) {
-        if (child.type === 'Mesh') {
-            child.scale.multiplyScalar(scale / max_radius)
-            child.position.multiplyScalar(scale / max_radius)
-        }
-    })
-    return newobj
-}
-
 
 
 

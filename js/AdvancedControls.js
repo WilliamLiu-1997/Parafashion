@@ -32,10 +32,9 @@ class AdvancedControls extends EventDispatcher {
 		this.o = new Vector3(0, 0, 0);
 
 		this.object = object;
-		this.target = false;
 
-		this.minZ = -Infinity
-		this.maxZ = Infinity
+		//The target of the focus. Tt should be set a vector or false. If a vector is given, the rotation will be centered on it.
+		this.target = false;
 
 		// The sensibility of panning and Dolly
 		this.sensibility = 1;
@@ -52,8 +51,8 @@ class AdvancedControls extends EventDispatcher {
 		this.enableDamping = false;
 		this.dampingFactor = 0.1;
 
-		// "look" sets the direction of the focus
-		this.look = new Vector3();
+		// "look" sets the direction of the focus, this should not be changed
+		this.look = new Vector3(this.o.clone().sub(this.object.position)).normalize();
 
 		// How far you can dolly and pan ( PerspectiveCamera only )
 		this.maxDistance = Infinity;
@@ -143,7 +142,11 @@ class AdvancedControls extends EventDispatcher {
 
 				if (scope.dynamicSensibility) {
 
-					scope.sensibility = Math.max(1, scope.object.position.y);
+					if (target) {
+						scope.sensibility = scope.object.position.distanceTo(target);
+					}
+					else { scope.sensibility = Math.max(1, scope.object.position.y); }
+
 
 				}
 
@@ -174,20 +177,29 @@ class AdvancedControls extends EventDispatcher {
 
 				let last_look = scope.look.clone();
 
+				var low, high;
+				if (angleY_gap > 0) {
+					low = angleY_gap;
+					high = 0;
+				} else {
+					low = 0;
+					high = angleY_gap;
+				}
+
 				if (scope.enableDamping) {
 
 					scope.angleX += angleXDelta * scope.dampingFactor * 1.2;
-					scope.angleY = Math.max(-Math.PI / 2 + 0.001, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.2, Math.PI / 2 - 0.001));
+					scope.angleY = Math.max(-Math.PI / 2 + 0.001 + low, Math.min(scope.angleY + angleYDelta * scope.dampingFactor * 1.2, Math.PI / 2 - 0.001 + high));
 
 				} else {
 
 					scope.angleX += angleXDelta * 1.5;
-					scope.angleY = Math.max(-Math.PI / 2 + 0.001, Math.min(scope.angleY + angleYDelta * 1.5, Math.PI / 2 - 0.001));
+					scope.angleY = Math.max(-Math.PI / 2 + 0.001 + low, Math.min(scope.angleY + angleYDelta * 1.5, Math.PI / 2 - 0.001 + high));
 
 				}
 
-				scope.look.x = Math.sin(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY));
-				scope.look.z = -Math.cos(scope.angleX) * (Math.PI / 2 - Math.abs(scope.angleY));
+				scope.look.x = Math.sin(scope.angleX) * Math.cos(scope.angleY);
+				scope.look.z = -Math.cos(scope.angleX) * Math.cos(scope.angleY);
 				scope.look.y = Math.sin(scope.angleY);
 				scope.look.normalize();
 
@@ -210,7 +222,7 @@ class AdvancedControls extends EventDispatcher {
 					let Sphere = new Spherical();
 					Sphere.setFromVector3(position.clone().sub(target));
 					Sphere.phi -= Sphere_current.phi - Sphere_last.phi;
-
+					angleY_gap = scope.angleY - Sphere.phi + Math.PI / 2;
 
 					let Sphere_location = new Vector3();
 					Sphere_location.setFromSpherical(Sphere).add(target);
@@ -219,7 +231,7 @@ class AdvancedControls extends EventDispatcher {
 
 					let Sphere_ = new Spherical();
 					Sphere_.setFromVector3(position.clone().sub(target));
-					Sphere_.theta += Sphere_current.theta - Sphere_last.theta; 
+					Sphere_.theta += Sphere_current.theta - Sphere_last.theta;
 
 					let Sphere_location_ = new Vector3();
 					Sphere_location_.setFromSpherical(Sphere_).add(target);
@@ -281,6 +293,7 @@ class AdvancedControls extends EventDispatcher {
 
 		var angleXDelta = 0;
 		var angleYDelta = 0;
+		var angleY_gap = 0;
 
 		var panOffset = new Vector3();
 
