@@ -145,7 +145,7 @@ class AdvancedControls extends EventDispatcher {
 					if (target) {
 						scope.sensibility = Math.max(0.1,scope.object.position.distanceTo(target));
 					}
-					else { scope.sensibility = Math.max(1, scope.object.position.y); }
+					else { scope.sensibility = Math.max(1, Math.abs(scope.object.position.y)); }
 
 
 				}
@@ -320,13 +320,13 @@ class AdvancedControls extends EventDispatcher {
 
 			if (scope.invertRotate) {
 
-				angleXDelta += angleX * 0.64;
-				angleYDelta -= angleY * 0.32;
+				angleXDelta -= angleX * 0.64;
+				angleYDelta += angleY * 0.32;
 
 			} else {
 
-				angleXDelta -= angleX * 0.64;
-				angleYDelta += angleY * 0.32;
+				angleXDelta += angleX * 0.64;
+				angleYDelta -= angleY * 0.32;
 
 			}
 

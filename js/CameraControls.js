@@ -135,7 +135,7 @@ class CameraControls extends EventDispatcher {
 
 				if (scope.dynamicSensibility) {
 
-					scope.sensibility = Math.max(1, scope.object.position.y);
+					scope.sensibility = Math.max(1, Math.abs(scope.object.position.y));
 
 				}
 

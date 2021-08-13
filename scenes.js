@@ -526,7 +526,6 @@ function init() {
     controls = new AdvancedControls(camera, renderer.domElement);
     controls.dynamicSensibility = true;
     controls.enableDamping = true;
-    controls.invertRotate = true;
     controls.rotateSpeed = 1.3;
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
