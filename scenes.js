@@ -214,20 +214,7 @@ var gui_options = {
                 }
             }
         })
-        patch.traverse(function (child) {
-            if (child.type === "Mesh") {
-                child.geometry.dispose()
-                if (Array.isArray(child.material)) {
-                    for (let m = 0; m < child.material.length; m++) {
-                        child.material[m].dispose()
-                    }
-                } else { child.material.dispose() }
-            }
-        })
-        scene_patch.remove(patch)
-        patch = patch_loader(garment, 1, num);
-        patch.name = "patch";
-        scene_patch.add(patch);
+        reload_patch(garment, 1, num);
         select_recovery()
         url = ""
         let liStr = "";
@@ -256,20 +243,7 @@ var gui_options = {
                 }
             }
         })
-        patch.traverse(function (child) {
-            if (child.type === "Mesh") {
-                child.geometry.dispose()
-                if (Array.isArray(child.material)) {
-                    for (let m = 0; m < child.material.length; m++) {
-                        child.material[m].dispose()
-                    }
-                } else { child.material.dispose() }
-            }
-        })
-        scene_patch.remove(patch)
-        patch = patch_loader(garment, 1, num);
-        patch.name = "patch";
-        scene_patch.add(patch);
+        reload_patch(garment, 1, num);
         select_recovery()
         url = ""
         let liStr = "";
@@ -1889,6 +1863,27 @@ function patch_loader(garment, scale, num) {
     })
     return newobj
 }
+
+
+
+
+function reload_patch(garment, scale, num) {
+    patch.traverse(function (child) {
+        if (child.type === "Mesh") {
+            child.geometry.dispose()
+            if (Array.isArray(child.material)) {
+                for (let m = 0; m < child.material.length; m++) {
+                    child.material[m].dispose()
+                }
+            } else { child.material.dispose() }
+        }
+    })
+    scene_patch.remove(patch)
+    patch = patch_loader(garment, scale, num);
+    patch.name = "patch";
+    scene_patch.add(patch);
+}
+
 
 
 function GUI_init() {
