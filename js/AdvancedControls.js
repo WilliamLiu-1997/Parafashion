@@ -16,7 +16,7 @@ import {
 
 // Compared to OrbitControls:
 // 1. It can dolly forward/backward (instead of dolly in/out) and pan left/right/up/down.
-// 2. Rotation is centered on the camera itself.
+// 2. Rotation is centered on the camera itself by default. If the target is set, the rotation will be centered on the target.
 
 class AdvancedControls extends EventDispatcher {
 
