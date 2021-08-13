@@ -216,20 +216,7 @@ var gui_options = {
                 }
             }
         })
-        patch.traverse(function (child) {
-            if (child.type === "Mesh") {
-                child.geometry.dispose()
-                if (Array.isArray(child.material)) {
-                    for (let m = 0; m < child.material.length; m++) {
-                        child.material[m].dispose()
-                    }
-                } else { child.material.dispose() }
-            }
-        })
-        scene_patch.remove(patch)
-        patch = patch_loader(garment, 1, num);
-        patch.name = "patch";
-        scene_patch.add(patch);
+        reload_patch(garment, 1, num);
         select_recovery()
         url = ""
         let liStr = "";
@@ -258,20 +245,7 @@ var gui_options = {
                 }
             }
         })
-        patch.traverse(function (child) {
-            if (child.type === "Mesh") {
-                child.geometry.dispose()
-                if (Array.isArray(child.material)) {
-                    for (let m = 0; m < child.material.length; m++) {
-                        child.material[m].dispose()
-                    }
-                } else { child.material.dispose() }
-            }
-        })
-        scene_patch.remove(patch)
-        patch = patch_loader(garment, 1, num);
-        patch.name = "patch";
-        scene_patch.add(patch);
+        reload_patch(garment, 1, num);
         select_recovery()
         url = ""
         let liStr = "";
@@ -1764,7 +1738,7 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                         }
                         else {
                             scale_value /= 20
-                            obj_size=20
+                            obj_size = 20
                         }
                         root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
                         root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
@@ -1923,7 +1897,22 @@ function patch_loader(garment, scale, num) {
 }
 
 
-
+function reload_patch(garment, scale, num) {
+    patch.traverse(function (child) {
+        if (child.type === "Mesh") {
+            child.geometry.dispose()
+            if (Array.isArray(child.material)) {
+                for (let m = 0; m < child.material.length; m++) {
+                    child.material[m].dispose()
+                }
+            } else { child.material.dispose() }
+        }
+    })
+    scene_patch.remove(patch)
+    patch = patch_loader(garment, scale, num);
+    patch.name = "patch";
+    scene_patch.add(patch);
+}
 
 
 
