@@ -37,7 +37,7 @@ let last_select_patch = [];
 var max_radius = 0;
 var textureloader = new THREE.TextureLoader();
 let default_texture = textureloader.load("./texture/default.jpg");
-let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3 })
+let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, map: default_texture, side: THREE.DoubleSide })
 let obj_size = 1;
 
 var url = ""
@@ -232,14 +232,12 @@ var gui_options = {
                 if (Array.isArray(child.material)) {
                     for (let m = 0; m < child.material.length; m++) {
                         let default_set = default_material.clone()
-                        default_set.map = default_texture;
                         default_set.color.set(randomColor())
                         child.material[m] = default_set
                     }
                 }
                 else {
                     let default_set = default_material.clone()
-                    default_set.map = default_texture;
                     default_set.color.set(randomColor())
                     child.material = default_set
                 }
@@ -379,7 +377,6 @@ var Material = {
         Overall_Reflectivity_NaN()
         if (selected.length == 2) {
             let default_set = default_material.clone()
-            default_set.map = default_texture;
             default_set.color.set(randomColor())
             selected[0].material[selected[1]] = default_set
             selected_patch[0].material = selected[0].material[selected[1]].clone()
@@ -391,7 +388,6 @@ var Material = {
         }
         else if (selected.length == 1) {
             let default_set = default_material.clone()
-            default_set.map = default_texture;
             default_set.color.set(randomColor())
             selected[0].material = default_set
             selected_patch[0].material = selected[0].material.clone()
@@ -1203,14 +1199,12 @@ function select_cut(cover_pointer, cover_camera, event) {
             if (Array.isArray(intersects[0].object.material)) {
                 for (let m = 0; m < intersects[0].object.material.length; m++) {
                     let default_set = default_material.clone()
-                    default_set.map = default_texture;
                     default_set.color.set(randomColor())
                     intersects[0].object.material[m] = default_set
                 }
             }
             else {
                 let default_set = default_material.clone()
-                default_set.map = default_texture;
                 default_set.color.set(randomColor())
                 intersects[0].object.material = default_set
             }
@@ -1617,7 +1611,7 @@ function Display(show_env, patch_env, light) {
 }
 
 
-function obj_loader(url_obj, url_mtl, scale, double = false) {
+function obj_loader(url_obj, url_mtl, scale, double = true) {
     original = []
     let onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
@@ -1637,7 +1631,6 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
     let newmtl = new MTLLoader();
     if (double) {
         newmtl.setMaterialOptions({ side: THREE.DoubleSide });
-        default_material.side = THREE.DoubleSide;
     }
     if (!url_mtl) {
         progress_mtl = 100
@@ -1655,14 +1648,14 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                         if (child.geometry.groups.length > 0) {
                             for (let group_i = 0; group_i < child.geometry.groups.length; group_i++) {
                                 let default_m = default_material.clone()
-                                default_m.map = default_texture;
+                                if (!double) { default_m.side = THREE.FrontSide }
                                 default_m.color.set(randomColor())
                                 child.material.push(default_m);
                             }
                         }
                         else {
                             let default_m = default_material.clone()
-                            default_m.map = default_texture;
+                            if (!double) { default_m.side = THREE.FrontSide }
                             default_m.color.set(randomColor())
                             child.material = default_m;
                         }
@@ -1938,9 +1931,9 @@ function GUI_init() {
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     // other options: "BathRoom", 'Church', "Gallery", "Square"
     folder_env_global = folder_env.addFolder("Material Global Settings")
-    folder_env_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     folder_env_global.add(gui_options, "reset").name('Materials Recovery')
     folder_env_global.add(gui_options, "set_default").name('Random Materials')
+    folder_env_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     folder_env_global.open()
     folder_env.open()
 
