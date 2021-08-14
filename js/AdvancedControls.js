@@ -143,7 +143,7 @@ class AdvancedControls extends EventDispatcher {
 				if (scope.dynamicSensibility) {
 
 					if (target) {
-						scope.sensibility = Math.max(0.1,scope.object.position.distanceTo(target));
+						scope.sensibility = Math.max(0.1, scope.object.position.distanceTo(target));
 					}
 					else { scope.sensibility = Math.max(1, Math.abs(scope.object.position.y)); }
 
@@ -171,7 +171,7 @@ class AdvancedControls extends EventDispatcher {
 
 				if (distance > scope.maxDistance) {
 
-					position.multiplyScalar(scope.maxDistance / distance);
+					position.add(position.clone().multiplyScalar(scope.maxDistance / distance).sub(position).multiplyScalar(0.01 * scope.sensibility));
 
 				}
 

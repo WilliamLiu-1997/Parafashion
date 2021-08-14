@@ -476,7 +476,7 @@ function init() {
         0.01,
         1000
     );
-    camera.position.set(0, 0, 2);
+    camera.position.set(0, 0.5, 2);
 
     cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
 
@@ -535,7 +535,7 @@ function init() {
 
 
     var helper = new THREE.GridHelper(200, 200, 0x999999, 0x666666);
-    helper.position.y = -0.5;
+    helper.position.y = 0;
     helper.material.opacity = 0.25;
     helper.material.transparent = true;
     scene.add(helper);
@@ -565,7 +565,7 @@ function init_patch() {
     camera_patch.position.set(0, 0, 2);
 
     cameralight_patch = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
-    cameralight_patch.position.set(0, 0.5, 0)
+    cameralight_patch.position.set(0, 0, 0)
     camera_patch.add(cameralight_patch);
     scene_patch.add(camera_patch);
     env_light_patch = new THREE.AmbientLight(0xffffff, 0.2);
@@ -624,7 +624,8 @@ function animate() {
         onWindowResize()
     }
     if (progress_obj + progress_mtl == 200 && garment.children[0].children !== undefined) {
-        camera.position.set(0, 0, obj_size + 1);
+        camera.position.set(0, obj_size / 2, obj_size * 2);
+        controls.saveState();
         var lack = false;
         var all_empty = true;
         progress_obj = progress_mtl = -1;
@@ -633,7 +634,8 @@ function animate() {
         patch = patch_loader(garment, 1, num);
         patch.name = "patch";
         scene_patch.add(patch);
-        camera_patch.position.set(0, 0, 1 + Math.max(1, max_radius))
+        camera_patch.position.set(0, 0, 2 * Math.max(1, max_radius));
+        controls_patch.saveState();
         camera_patch.far = max_radius * 50;
         controls_patch.maxZ = max_radius * 20;
         controls_patch.minZ = 0.1;
@@ -1688,7 +1690,7 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                     scale_value /= 20
                     obj_size = 20
                 }
-                root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
+                root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
                 root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                 newobj.add(root);
             },
@@ -1739,7 +1741,7 @@ function obj_loader(url_obj, url_mtl, scale, double = false) {
                             scale_value /= 20
                             obj_size = 20
                         }
-                        root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value - 0.5, -(z_min + z_max) / 2 / scale_value);
+                        root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
                         root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                         newobj.add(root);
                     },
