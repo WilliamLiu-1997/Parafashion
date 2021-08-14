@@ -486,8 +486,8 @@ function init() {
     scene.add(env_light);
 
 
-    point_helper_geo = new THREE.ConeGeometry(0.001, 0.01, 10, 10);
-    point_helper_geo.translate(0, 0.005, 0);
+    point_helper_geo = new THREE.CylinderGeometry(0.0005, 0.0005, 0.008, 10);
+    point_helper_geo.translate(0, 0.004, 0);
     point_helper_geo.rotateX(Math.PI / 2);
     point_helper = new THREE.Mesh(point_helper_geo, new THREE.MeshNormalMaterial({ visible: false }));
     scene.add(point_helper);
