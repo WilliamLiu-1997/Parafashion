@@ -2166,12 +2166,7 @@ function Reflectivity() {
     Materials.MeshPhongMaterial.reflectivity = gui_options.Overall_Reflectivity
     Materials.MeshPhysicalMaterial.reflectivity = gui_options.Overall_Reflectivity
 
-    if (selected.length == 2) {
-
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
-    }
-    else if (selected.length == 1) {
-
+    if (selected.length == 2 || selected.length == 1) {
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
     }
 }
@@ -2623,7 +2618,6 @@ function GUI_to_Obj(obj_material_original) {
     }
     GUI_to_Texture()
 }
-
 
 function load_material() {
     if (selected.length == 2) {
