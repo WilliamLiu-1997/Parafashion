@@ -679,6 +679,7 @@ function animate() {
     }
     else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
         gui.updateDisplay();
+        point_helper.scale.setLength(camera.position.distanceTo(point_helper.position) * 5);
     }
 
     $("#texture_container").css({ "max-height": window.innerHeight * 0.91 * 0.45 })
