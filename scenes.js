@@ -12,6 +12,7 @@ import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats, point_helper_geo, point_helper;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
+let cut_component;
 var tanFOV;
 var windowHeight;
 var tanFOV_patch;
@@ -42,7 +43,7 @@ let obj_size = 1;
 var url = ""
 
 let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
-var folder_basic, folder_env, folder_env_global, material_folder, basic_texture, lambert_texture, phong_texture, matcap_texture, toon_texture, standard_texture, physical_texture;
+var folder_basic, folder_env, folder_material_global, material_folder, basic_texture, lambert_texture, phong_texture, matcap_texture, toon_texture, standard_texture, physical_texture;
 
 
 var garments_obj = "./leggins/leggins_patch.obj";
@@ -81,7 +82,7 @@ let outlinePass_params_select = {
     rotate: false,
     usePatternTexture: false,
     visibleEdgeColor: "#ffffff",
-    hiddenEdgeColor: "#333333"
+    hiddenEdgeColor: "#444444"
 };
 
 
@@ -200,6 +201,7 @@ var gui_options = {
         cover_recovery();
     },
     reset: function () {
+        select_recovery()
         let num = garment.children[0].children.length;
         garment.traverse(function (child) {
             if (child.type === "Mesh") {
@@ -216,7 +218,6 @@ var gui_options = {
             }
         })
         reload_patch(garment, 1, num);
-        select_recovery()
         url = ""
         let liStr = "";
         $('.list-drag').html(liStr);
@@ -225,6 +226,7 @@ var gui_options = {
         Overall_Reflectivity_NaN()
     },
     set_default: function () {
+        select_recovery()
         let num = garment.children[0].children.length;
         garment.traverse(function (child) {
             if (child.type === "Mesh") {
@@ -243,7 +245,6 @@ var gui_options = {
             }
         })
         reload_patch(garment, 1, num);
-        select_recovery()
         url = ""
         let liStr = "";
         $('.list-drag').html(liStr);
@@ -256,6 +257,7 @@ var gui_options = {
     Enable_Patch_Background: false,
     cut: false,
     Mode: "Customizing Material",
+    focus: false,
 }
 
 
@@ -812,6 +814,13 @@ function mouseMove(event) {
 
 
 function cover_recovery() {
+    covered_obj.traverse(function (obj) {
+        if (obj.type === 'Mesh') {
+            obj.geometry.dispose();
+            obj.material.dispose();
+        }
+    })
+    scene.remove(covered_obj);
     outlinePass.selectedObjects = []
     outlinePass_patch.selectedObjects = []
     last_cover = []
@@ -819,6 +828,14 @@ function cover_recovery() {
 }
 
 function select_recovery() {
+    selected_obj.traverse(function (obj) {
+        if (obj.type === 'Mesh') {
+            obj.geometry.dispose();
+            obj.material.dispose();
+        }
+    })
+    scene.remove(selected_obj);
+    show_all(garment);
     material_folder.hide()
     outlinePass_select.selectedObjects = []
     outlinePass_patch_select.selectedObjects = []
@@ -1195,29 +1212,29 @@ function select_cut(cover_pointer, cover_camera, event) {
         var num = patch ? patch.children.length : 0;
 
         if (last_select.length != 1 || last_select[0] != intersects[0].object) {
-            if (Array.isArray(intersects[0].object.material)) {
-                for (let m = 0; m < intersects[0].object.material.length; m++) {
-                    let default_set = default_material.clone()
-                    default_set.color.set(randomColor())
-                    intersects[0].object.material[m] = default_set
-                }
-            }
-            else {
-                let default_set = default_material.clone()
-                default_set.color.set(randomColor())
-                intersects[0].object.material = default_set
-            }
-            for (let o = 0; o < original.length; o++) {
-                if (original[o].name === intersects[0].object.name) {
-                    original[o].geometry.dispose()
-                    if (Array.isArray(original[o].material)) {
-                        for (let m = 0; m < original[o].material.length; m++) {
-                            original[o].material[m].dispose()
-                        }
-                    } else { original[o].material.dispose() }
-                    original[o] = intersects[0].object.clone()
-                }
-            }
+            // if (Array.isArray(intersects[0].object.material)) {
+            //     for (let m = 0; m < intersects[0].object.material.length; m++) {
+            //         let default_set = default_material.clone()
+            //         default_set.color.set(randomColor())
+            //         intersects[0].object.material[m] = default_set
+            //     }
+            // }
+            // else {
+            //     let default_set = default_material.clone()
+            //     default_set.color.set(randomColor())
+            //     intersects[0].object.material = default_set
+            // }
+            // for (let o = 0; o < original.length; o++) {
+            //     if (original[o].name === intersects[0].object.name) {
+            //         original[o].geometry.dispose()
+            //         if (Array.isArray(original[o].material)) {
+            //             for (let m = 0; m < original[o].material.length; m++) {
+            //                 original[o].material[m].dispose()
+            //             }
+            //         } else { original[o].material.dispose() }
+            //         original[o] = intersects[0].object.clone()
+            //     }
+            // }
             cut_obj = [intersects[0].object];
             outlinePass_select.selectedObjects = [intersects[0].object];
             last_select = []
@@ -1234,6 +1251,44 @@ function select_cut(cover_pointer, cover_camera, event) {
 
     }
 
+}
+
+function hide_others(garment, cut_obj) {
+
+    if (Array.isArray(cut_obj[0].material)) {
+        for (let i in cut_obj[0].material) {
+            cut_obj[0].material[i] = cut_obj[0].material[i].clone()
+        }
+    } else { cut_obj[0].material = cut_obj[0].material.clone() }
+
+    garment.traverse(function (child) {
+        if (child.type === "Mesh" && child !== cut_obj[0]) {
+            if (Array.isArray(child.material)) {
+                for (let i in child.material) {
+                    child.material[i].visible = false;
+                }
+            }
+            else {
+                child.material.visible = false;
+            }
+        }
+    })
+}
+
+function show_all(garment) {
+    gui_options.focus = false;
+    garment.traverse(function (child) {
+        if (child.type === "Mesh") {
+            if (Array.isArray(child.material)) {
+                for (let i of child.material) {
+                    i.visible = true;
+                }
+            }
+            else {
+                child.material.visible = true;
+            }
+        }
+    })
 }
 
 
@@ -1919,7 +1974,11 @@ function GUI_init() {
 
     folder_basic = gui.addFolder("Basic")
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
-    folder_basic.add(gui_options, 'Unselect');
+    cut_component = folder_basic.addFolder("Control");
+    cut_component.add(gui_options, 'Unselect');
+    cut_component.add(gui_options, 'focus').onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
+    cut_component.open();
+    cut_component.hide();
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     folder_basic.add(controls, 'sensibility', 0.5, 100, 0.1).name("Camera Sensibility");
     folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
@@ -1929,11 +1988,11 @@ function GUI_init() {
     folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     // other options: "BathRoom", 'Church', "Gallery", "Square"
-    folder_env_global = folder_env.addFolder("Material Global Settings")
-    folder_env_global.add(gui_options, "reset").name('Materials Recovery')
-    folder_env_global.add(gui_options, "set_default").name('Random Materials')
-    folder_env_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
-    folder_env_global.open()
+    folder_material_global = gui.addFolder("Material Global Settings")
+    folder_material_global.add(gui_options, "reset").name('Materials Recovery')
+    folder_material_global.add(gui_options, "set_default").name('Random Materials')
+    folder_material_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
+    folder_material_global.open()
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
@@ -1944,7 +2003,7 @@ function GUI_init() {
     material_folder.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     material_folder.add(Material, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update_Param())
     material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
-    material_folder.add(Material, "visible").onChange(() => Material_Update_Param())
+    //material_folder.add(Material, "visible").onChange(() => Material_Update_Param())
     material_folder.open()
     material_folder.hide()
 
@@ -2645,11 +2704,18 @@ function load_material() {
 
 function Change_Mode() {
     if (gui_options.Mode == "Cutting Model") {
-        $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After marking a model for cutting, we will remove its materials and they cannot be recovered!&nbsp;&nbsp;</div>');
+        $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After drawing a line for cutting, we will remove its materials and they cannot be recovered!&nbsp;&nbsp;</div>');
+        gui_options.cut = true;
+        cut_component.show();
+        cut_component.open();
         setTimeout(function () { $("#cut_alert").fadeOut(500); }, 3000)
         setTimeout(function () { $("#alert_cut").html("") }, 3500)
     }
-    gui_options.Mode == "Customizing Material" ? gui_options.cut = false : gui_options.cut = true;
+    else if (gui_options.Mode == "Customizing Material") {
+        cut_component.hide();
+        gui_options.cut = false;
+    }
+
     cover_recovery()
     select_recovery()
     url = ""
