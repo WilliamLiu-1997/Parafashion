@@ -1,7 +1,6 @@
 import * as THREE from './three.js/build/three.module.js';
 import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
-import { AdvancedControls } from './js/AdvancedControls.js';
 import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
 import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
@@ -519,7 +518,7 @@ function init() {
     composer.setSize(window.innerWidth, window.innerHeight);
     // controls
 
-    controls = new AdvancedControls(camera, renderer.domElement);
+    controls = new CameraControls(camera, renderer.domElement);
     controls.dynamicSensibility = true;
     controls.enableDamping = true;
     controls.rotateSpeed = 1.3;
