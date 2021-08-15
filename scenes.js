@@ -531,7 +531,7 @@ function init() {
     scene.add(covered_obj);
 
 
-    var helper = new THREE.GridHelper(200, 200, 0x999999, 0x666666);
+    var helper = new THREE.GridHelper(100, 100, 0x999999, 0x666666);
     helper.position.y = 0;
     helper.material.opacity = 0.25;
     helper.material.transparent = true;
@@ -636,7 +636,7 @@ function animate() {
         camera_patch.far = max_radius * 50;
         controls_patch.maxZ = max_radius * 20;
         controls_patch.minZ = 0.1;
-        controls.maxDistance = Math.min(100, obj_size * 10);
+        controls.maxDistance = 50;
         for (var i = 0; i < original.length; i++) {
             if (original[i].geometry.groups.length > 0) {
                 original[i].material = original[i].material.slice(0)
@@ -1980,7 +1980,7 @@ function GUI_init() {
     cut_component.open();
     cut_component.hide();
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
-    folder_basic.add(controls, 'sensibility', 0.1, 100, 0.1).name("Camera Sensibility");
+    folder_basic.add(controls, 'sensibility', 0.1, 50, 0.1).name("Camera Sensibility");
     folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
     folder_basic.open()
 
