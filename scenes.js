@@ -2418,7 +2418,6 @@ function Material_Update(reflecttivity_change = false) {
 function Material_Update_Param(reflecttivity_change = false) {
     if (reflecttivity_change) {
         gui_options.Overall_Reflectivity = 0
-
         gui_options.Overall_Reflectivity = NaN
     }
     if (selected.length == 2) {
