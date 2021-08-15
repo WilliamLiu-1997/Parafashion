@@ -208,6 +208,14 @@ class CameraControls extends EventDispatcher {
 
 				if (target) {
 
+					let Sphere_ = new Spherical();
+					Sphere_.setFromVector3(position.clone().sub(target));
+					Sphere_.theta -= scope.angleX - last_angleX;
+
+					let Sphere_location_ = new Vector3();
+					Sphere_location_.setFromSpherical(Sphere_).add(target);
+					position.copy(Sphere_location_);
+
 					let plane = new Plane();
 					let normal_ = new Vector3(0, 1, 0);
 					plane.setFromCoplanarPoints(position, position.clone().add(scope.look), position.clone().add(normal_));
@@ -226,14 +234,6 @@ class CameraControls extends EventDispatcher {
 					Sphere_location.setFromSpherical(Sphere).add(target);
 					position.copy(Sphere_location);
 					position.add(gap);
-
-					let Sphere_ = new Spherical();
-					Sphere_.setFromVector3(position.clone().sub(target));
-					Sphere_.theta -= scope.angleX - last_angleX;
-
-					let Sphere_location_ = new Vector3();
-					Sphere_location_.setFromSpherical(Sphere_).add(target);
-					position.copy(Sphere_location_);
 
 				}
 				else {
