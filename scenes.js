@@ -223,7 +223,7 @@ var gui_options = {
         $('.list-drag').html(liStr);
         $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
-        Overall_Reflectivity_NaN()
+        gui_options.Overall_Reflectivity = NaN
     },
     set_default: function () {
         select_recovery()
@@ -250,7 +250,7 @@ var gui_options = {
         $('.list-drag').html(liStr);
         $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
-        Overall_Reflectivity_NaN()
+        gui_options.Overall_Reflectivity = NaN
     },
     Overall_Reflectivity: 0,
     env: "None",
@@ -345,7 +345,7 @@ var Material_Type_Folder = {
 
 var Material = {
     reset: function () {
-        Overall_Reflectivity_NaN()
+        gui_options.Overall_Reflectivity = NaN
         if (selected.length == 2) {
             let name = selected[0].name
             for (var n of original) {
@@ -375,7 +375,7 @@ var Material = {
         else { return }
     },
     set_default: function () {
-        Overall_Reflectivity_NaN()
+        gui_options.Overall_Reflectivity = NaN
         if (selected.length == 2) {
             let default_set = default_material.clone()
             default_set.color.set(randomColor())
@@ -2182,10 +2182,6 @@ function GUI_init() {
 
 
 
-
-function Overall_Reflectivity_NaN() {
-    gui_options.Overall_Reflectivity = NaN
-}
 
 function Reflectivity() {
     if (gui_options.Overall_Reflectivity === NaN) return;
