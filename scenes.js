@@ -809,10 +809,10 @@ function onmouseDown(event) {
         }
     }
     else if (shift) {
-        if (event.button == 2) {
+        if (event.button == 0) {
             texture_state = 1;
         }
-        else if (event.button == 0) {
+        else if (event.button == 2) {
             texture_state = 2;
         }
     }
@@ -901,13 +901,14 @@ function mouseMove(event) {
         }
     }
     else if (shift) {
+        let targetDistance = 1000 / window.innerHeight*Math.tan((camera_patch.fov / 2) * Math.PI / 180.0) * 2;
         if (texture_state === 1) {
-            TextureParams.offset.x -= (Math.cos(TextureParams.rotation) * deltaX + Math.sin(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1200 * (TextureParams.repeat.x + TextureParams.repeat.y)
-            TextureParams.offset.y -= (-Math.sin(TextureParams.rotation) * deltaX + Math.cos(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1200 * (TextureParams.repeat.x + TextureParams.repeat.y)
+            TextureParams.offset.x -= (Math.cos(TextureParams.rotation) * deltaX + Math.sin(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1200 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance
+            TextureParams.offset.y -= (-Math.sin(TextureParams.rotation) * deltaX + Math.cos(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1200 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
-            TextureParams.rotation -= 0.002 * (deltaX - deltaY)
+            TextureParams.rotation -= 0.002 * (deltaX - deltaY) * targetDistance
             GUI_to_Texture_Param()
         }
     }
