@@ -393,11 +393,11 @@ class CameraControls extends EventDispatcher {
 
 
 				if (scope.object.isPerspectiveCamera) {
-				// half of the fov is center to top of screen
-				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0)*2;
+					// half of the fov is center to top of screen
+					let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0) * 2;
 
-					panLeft(deltaX * targetDistance/ element.clientHeight, scope.object.matrix);
-					panUp(deltaY * targetDistance/ element.clientHeight, scope.object.matrix);
+					panLeft(deltaX * targetDistance / element.clientHeight, scope.object.matrix);
+					panUp(deltaY * targetDistance / element.clientHeight, scope.object.matrix);
 
 				} else if (scope.object.isOrthographicCamera) {
 
@@ -422,7 +422,7 @@ class CameraControls extends EventDispatcher {
 			let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 			if (scope.object.isPerspectiveCamera) {
-				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0);
+				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0) * 2;
 
 				moveForward(-100 * scope.sensibility * targetDistance * dollyScale / element.clientHeight, scope.object.matrix);
 
@@ -446,8 +446,9 @@ class CameraControls extends EventDispatcher {
 			let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
 			if (scope.object.isPerspectiveCamera) {
+				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0) * 2;
 
-				moveForward(100 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
+				moveForward(100 * scope.sensibility * targetDistance * dollyScale / element.clientHeight, scope.object.matrix);
 
 			} else if (scope.object.isOrthographicCamera) {
 
