@@ -37,6 +37,7 @@ let last_select_patch = [];
 var max_radius = 0;
 var textureloader = new THREE.TextureLoader();
 let default_texture = textureloader.load("./texture/default.jpg");
+default_texture.wrapS = default_texture.wrapT = THREE.RepeatWrapping;
 let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, map: default_texture, side: THREE.DoubleSide })
 let obj_size = 1;
 let shift = false;
