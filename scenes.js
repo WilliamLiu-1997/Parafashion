@@ -2248,11 +2248,11 @@ function Texture_to_GUI() {
     let liStr = `<img src="${url}"/>`;
     $('.list-drag').html(liStr);
     $(".tip").hide();
+    GUI_to_Texture()
     // if (url) {
     //     obj_material[current] = textureloader.load(url)
     //     selected_patch[0].material[current] = textureloader.load(url)
     // }
-    //GUI_to_Texture()
 
 }
 
