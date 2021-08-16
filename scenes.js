@@ -733,8 +733,8 @@ function onKeyDown(e) {
     switch (e.keyCode) {
         case 16:
             shift = true;
-            controls.dispose();
-            controls_patch.dispose();
+            controls.stop=true;
+            controls_patch.stop = true;
             break;
     }
 };
@@ -743,14 +743,15 @@ function onKeyUp(e) {
     switch (e.keyCode) {
         case 16:
             shift = false;
-            controls.restart();
-            controls_patch.restart();
+            controls.stop = false;
+            controls_patch.stop = false;
             break;
     }
 };
 
 
 function onmouseDown(event) {
+    event.preventDefault();
     mouse_down = true;
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
