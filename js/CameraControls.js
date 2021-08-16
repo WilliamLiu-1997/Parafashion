@@ -175,7 +175,7 @@ class CameraControls extends EventDispatcher {
 
 				if (distance > scope.maxDistance) {
 
-					position.add(position.clone().multiplyScalar(scope.maxDistance / distance).sub(position).multiplyScalar(0.1));
+					position.add(position.clone().multiplyScalar(scope.maxDistance / distance).sub(position).multiplyScalar(0.2));
 
 				}
 
