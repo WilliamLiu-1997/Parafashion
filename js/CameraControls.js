@@ -391,10 +391,13 @@ class CameraControls extends EventDispatcher {
 
 				let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-				if (scope.object.isPerspectiveCamera) {
 
-					panLeft(deltaX/1000 , scope.object.matrix);
-					panUp(deltaY/1000, scope.object.matrix);
+				if (scope.object.isPerspectiveCamera) {
+				// half of the fov is center to top of screen
+				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0)*2;
+
+					panLeft(deltaX * targetDistance/ element.clientHeight, scope.object.matrix);
+					panUp(deltaY * targetDistance/ element.clientHeight, scope.object.matrix);
 
 				} else if (scope.object.isOrthographicCamera) {
 
@@ -416,9 +419,12 @@ class CameraControls extends EventDispatcher {
 
 		function dollyForward(dollyScale) {
 
-			if (scope.object.isPerspectiveCamera) {
+			let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-				moveForward(-100 * scope.sensibility * dollyScale / 1000, scope.object.matrix);
+			if (scope.object.isPerspectiveCamera) {
+				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0);
+
+				moveForward(-100 * scope.sensibility * targetDistance * dollyScale / element.clientHeight, scope.object.matrix);
 
 			} else if (scope.object.isOrthographicCamera) {
 
@@ -437,9 +443,11 @@ class CameraControls extends EventDispatcher {
 
 		function dollyBackward(dollyScale) {
 
+			let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
+
 			if (scope.object.isPerspectiveCamera) {
 
-				moveForward(100 * scope.sensibility * dollyScale / 1000, scope.object.matrix);
+				moveForward(100 * scope.sensibility * dollyScale / element.clientHeight, scope.object.matrix);
 
 			} else if (scope.object.isOrthographicCamera) {
 
