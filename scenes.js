@@ -752,7 +752,7 @@ function onKeyDown(e) {
                 set_cursor(0)
             }
             break;
-        case 17:
+        case 32:
             ctrl = true;
             controls.mouseButtons.ROTATE = THREE.MOUSE.LEFT;
             break;
@@ -767,7 +767,7 @@ function onKeyUp(e) {
             controls_patch.stop = false;
             set_cursor(0)
             break;
-        case 17:
+        case 32:
             ctrl = false;
             controls.mouseButtons.ROTATE = THREE.MOUSE.MIDDLE;
             break;
