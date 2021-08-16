@@ -40,7 +40,12 @@ let default_texture = textureloader.load("./texture/default.jpg");
 default_texture.wrapS = default_texture.wrapT = THREE.RepeatWrapping;
 let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, map: default_texture, side: THREE.DoubleSide })
 let obj_size = 1;
+
+
 let shift = false;
+let ctrl = false;
+let mouse_position = new THREE.Vector2();
+let texture_state = 0;
 
 var url = ""
 
@@ -540,6 +545,7 @@ function init() {
     window.addEventListener("mouseup", onmouseUp, false);
     window.addEventListener("keydown", onKeyDown, false);
     window.addEventListener("keyup", onKeyUp, false);
+    window.addEventListener("wheel", onMouseWheel, false);
 }
 
 
@@ -726,9 +732,29 @@ function onWindowResize() {
 function onKeyDown(e) {
     switch (e.keyCode) {
         case 16:
-            shift = true;
-            controls.stop=true;
-            controls_patch.stop = true;
+            let obj = document.getElementById("panel_box");
+            if (mouse_position.x > obj.offsetLeft
+                && mouse_position.x < (obj.offsetLeft + obj.clientWidth)
+                && mouse_position.y > obj.offsetTop
+                && mouse_position.y < (obj.offsetTop + obj.clientHeight)
+                && !gui_options.cut
+                && selected.length > 0
+                && !mouse_down) {
+                set_cursor(1)
+                shift = true;
+                controls.stop = true;
+                controls_patch.stop = true;
+            }
+            else if (!mouse_down) {
+                shift = false;
+                controls.stop = false;
+                controls_patch.stop = false;
+                set_cursor(0)
+            }
+            break;
+        case 17:
+            ctrl = true;
+            controls.mouseButtons.ROTATE = THREE.MOUSE.LEFT;
             break;
     }
 };
@@ -739,16 +765,37 @@ function onKeyUp(e) {
             shift = false;
             controls.stop = false;
             controls_patch.stop = false;
+            set_cursor(0)
+            break;
+        case 17:
+            ctrl = false;
+            controls.mouseButtons.ROTATE = THREE.MOUSE.MIDDLE;
             break;
     }
 };
 
+function set_cursor(n) {
+
+    if (n === 0) {
+        document.getElementById("panel_box").style.cursor = "auto"
+    }
+    else if (n === 1) {
+        document.getElementById("panel_box").style.cursor = "move"
+    }
+}
+
 
 function onmouseDown(event) {
     mouse_down = true;
+
+    if (ctrl) {
+        return;
+    }
+    
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
-            controls.enabled = false; controls_patch.enabled = false;
+            controls.stop = true;
+            controls_patch.stop = true;
             mouseMove(event)
             drawing = true;
         } else {
@@ -761,71 +808,115 @@ function onmouseDown(event) {
             }
         }
     }
-    else if (event.button == 0) {
-        let obj = document.getElementById("panel_box");
-        pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-        pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-        pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
-        pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
-
-        if (!mouse_down && cover) { cover_recovery(); }
-        if (cover) {
-            select_material(pointer, camera, pointer_patch, camera_patch, event);
-            if (controls !== undefined) {
-                if (selected.length === 1) {
-                    controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
-                    controls.rotateSpeed = 2.5;
-                } else if (selected.length === 2) {
-                    selected_obj.geometry.computeBoundingSphere();
-                    controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
-                    controls.rotateSpeed = 2.5;
-                }
-
-            }
-            if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) || pointer.y < (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) load_material()
+    else if (shift) {
+        if (event.button == 0) {
+            texture_state = 1;
         }
-        cover = false;
+        else if (event.button == 2) {
+            texture_state = 2;
+        }
     }
-    else if (event.button == 1) { cover = false; }
-    else if (event.button == 2) { cover = false; }
+    else {
+        if (event.button == 0) {
+            let obj = document.getElementById("panel_box");
+            pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+            pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+            pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
+            pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
+
+            if (!mouse_down && cover) { cover_recovery(); }
+            if (cover) {
+                select_material(pointer, camera, pointer_patch, camera_patch, event);
+                if (controls !== undefined) {
+                    if (selected.length === 1) {
+                        controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                        controls.rotateSpeed = 2.5;
+                    } else if (selected.length === 2) {
+                        selected_obj.geometry.computeBoundingSphere();
+                        controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
+                        controls.rotateSpeed = 2.5;
+                    }
+
+                }
+                if (pointer.x < 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) || pointer.y < (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) load_material()
+            }
+            cover = false;
+        }
+        else if (event.button == 1) { cover = false; }
+        else if (event.button == 2) { cover = false; }
+    }
 }
 
 function onmouseUp(event) {
+
     mouse_down = false;
     if (event.button == 0 && gui_options.cut) {
-        controls.enabled = true; controls_patch.enabled = true;
+        controls.stop = false;
+        controls_patch.stop = false;
         drawing = false;
     }
-    else if (event.button == 0) {
-        cover = true;
-        cover_recovery()
+    else if (shift) {
+        texture_state = 0;
     }
-    else if (event.button == 1) {
-        cover = true;
-        cover_recovery()
-    }
-    else if (event.button == 2) {
-        cover = true;
-        cover_recovery()
+    else {
+        if (event.button == 0) {
+            cover = true;
+            cover_recovery()
+        }
+        else if (event.button == 1) {
+            cover = true;
+            cover_recovery()
+        }
+        else if (event.button == 2) {
+            cover = true;
+            cover_recovery()
+        }
     }
 }
 
 function mouseMove(event) {
+
     let obj = document.getElementById("panel_box");
+    mouse_position.set(event.clientX, event.clientY)
     pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
     pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
     pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
     pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
-    if (cut_obj.length > 0) {
-        on_cut(pointer, camera, event)
+
+
+
+    if (gui_options.cut) {
+        if (cut_obj.length > 0) {
+            on_cut(pointer, camera, event)
+            if (drawing) {
+
+            }
+        }
+        else {
+            cover_cut(pointer, camera, event);
+        }
     }
-    if (drawing) {
+    else if (shift) {
 
     }
-    else if (gui_options.cut) { cover_cut(pointer, camera, event); }
     else if (cover) {
         cover_material(pointer, camera, pointer_patch, camera_patch, event);
+    }
+}
+
+function onMouseWheel(e) {
+    if (shift && !mouse_down) {
+        if (e.deltaY > 0) {
+            TextureParams.rotation -= 0.05
+            TextureParams.center.set(0.5, 0.5)
+            GUI_to_Texture_Param()
+        }
+        if (e.deltaY < 0) {
+            TextureParams.rotation += 0.05
+            TextureParams.center.set(0.5, 0.5)
+            GUI_to_Texture_Param()
+        }
     }
 }
 
