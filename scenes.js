@@ -39,6 +39,7 @@ var textureloader = new THREE.TextureLoader();
 let default_texture = textureloader.load("./texture/default.jpg");
 let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, map: default_texture, side: THREE.DoubleSide })
 let obj_size = 1;
+let shift = false;
 
 var url = ""
 
@@ -543,6 +544,8 @@ function init() {
     window.addEventListener("resize", onWindowResize);
     window.addEventListener("mousedown", onmouseDown, false);
     window.addEventListener("mouseup", onmouseUp, false);
+    window.addEventListener("keydown", onKeyDown, false);
+    window.addEventListener("keyup", onKeyUp, false);
 }
 
 
@@ -725,6 +728,26 @@ function onWindowResize() {
         effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.78 / window.devicePixelRatio);
     }
 }
+
+function onKeyDown(e) {
+    switch (e.keyCode) {
+        case 16:
+            shift = true;
+            controls.dispose();
+            controls_patch.dispose();
+            break;
+    }
+};
+
+function onKeyUp(e) {
+    switch (e.keyCode) {
+        case 16:
+            shift = false;
+            controls.restart();
+            controls_patch.restart();
+            break;
+    }
+};
 
 
 function onmouseDown(event) {
