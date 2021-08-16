@@ -686,7 +686,7 @@ function animate() {
     $(".up-area").css({ "width": $(".dg.main").css("width") })
     $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
     if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
-    controls_patch.sensibility = camera_patch.position.z / 1.2
+    controls_patch.sensibility = camera_patch.position.z * 1.12
     requestAnimationFrame(animate);
     render();
     stats.end();
@@ -791,7 +791,7 @@ function onmouseDown(event) {
     if (ctrl) {
         return;
     }
-    
+
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
             controls.stop = true;
@@ -880,7 +880,7 @@ function mouseMove(event) {
     mouse_position.set(event.clientX, event.clientY)
     let deltaX = mouse_position.x - last_position.x
     let deltaY = last_position.y - mouse_position.y
-    
+
     pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
     pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
     pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
@@ -907,7 +907,7 @@ function mouseMove(event) {
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
-            TextureParams.rotation -= 0.002 * (deltaX - deltaY) 
+            TextureParams.rotation -= 0.002 * (deltaX - deltaY)
             GUI_to_Texture_Param()
         }
     }
@@ -2181,13 +2181,13 @@ function GUI_init() {
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    phong_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    phong_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    phong_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    phong_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    phong_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    phong_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
+    // phong_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
+    // phong_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
+    // phong_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
+    // phong_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
+    // phong_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
+    // phong_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
+    // phong_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     phong_texture.add(TextureParams, "remove").name("Remove Texture")
     phong_texture.open()
     Material_Type_Folder.MeshPhongMaterial.open()
