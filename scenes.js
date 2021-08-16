@@ -346,7 +346,7 @@ var Material = {
                 if (n.name == name) {
                     selected[0].material[selected[1]] = n.material[selected[1]].clone()
                     selected_patch[0].material = n.material[selected[1]].clone()
-                    Obj_to_GUI(n.material[selected[1]])
+                    load_material(n.material[selected[1]])
 
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
@@ -359,7 +359,7 @@ var Material = {
                 if (n.name == name) {
                     selected[0].material = n.material.clone()
                     selected_patch[0].material = n.material.clone()
-                    Obj_to_GUI(n.material)
+                    load_material(n.material)
 
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
@@ -375,7 +375,7 @@ var Material = {
             default_set.color.set(randomColor())
             selected[0].material[selected[1]] = default_set
             selected_patch[0].material = selected[0].material[selected[1]].clone()
-            Obj_to_GUI(selected[0].material[selected[1]])
+            load_material(selected[0].material[selected[1]])
 
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
@@ -386,7 +386,7 @@ var Material = {
             default_set.color.set(randomColor())
             selected[0].material = default_set
             selected_patch[0].material = selected[0].material.clone()
-            Obj_to_GUI(selected[0].material)
+            load_material(selected[0].material)
 
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
