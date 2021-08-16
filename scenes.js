@@ -752,7 +752,7 @@ function onKeyDown(e) {
                 set_cursor(0)
             }
             break;
-        case 32:
+        case 17:
             ctrl = true;
             controls.mouseButtons.ROTATE = THREE.MOUSE.LEFT;
             break;
@@ -767,7 +767,7 @@ function onKeyUp(e) {
             controls_patch.stop = false;
             set_cursor(0)
             break;
-        case 32:
+        case 17:
             ctrl = false;
             controls.mouseButtons.ROTATE = THREE.MOUSE.MIDDLE;
             break;
@@ -809,10 +809,10 @@ function onmouseDown(event) {
         }
     }
     else if (shift) {
-        if (event.button == 0) {
+        if (event.button == 2) {
             texture_state = 1;
         }
-        else if (event.button == 2) {
+        else if (event.button == 0) {
             texture_state = 2;
         }
     }
