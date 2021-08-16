@@ -44,7 +44,7 @@ let shift = false;
 var url = ""
 
 let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
-var folder_basic, folder_env, folder_material_global, material_folder, basic_texture, lambert_texture, phong_texture, matcap_texture, toon_texture, standard_texture, physical_texture;
+var folder_basic, folder_env, folder_material_global, material_folder, basic_texture, lambert_texture, phong_texture, toon_texture, standard_texture, physical_texture;
 
 
 var garments_obj = "./leggins/leggins_patch.obj";
@@ -289,12 +289,6 @@ var Materials = {
         specular: 0x111111,
         wireframe: false,
     },
-    'MeshMatcapMaterial': {
-        bumpScale: 1.0,
-        color: 0xffffff,
-        flatShading: false,
-        normalScale: new THREE.Vector2(1, 1),//vector2
-    },
     'MeshToonMaterial': {
         bumpScale: 1.0,
         color: 0xffffff,
@@ -338,7 +332,6 @@ var Material_Type_Folder = {
     // MeshDepthMaterial: null,
     MeshLambertMaterial: null,
     MeshPhongMaterial: null,
-    MeshMatcapMaterial: null,
     MeshToonMaterial: null,
     MeshStandardMaterial: null,
     MeshPhysicalMaterial: null,
@@ -751,7 +744,6 @@ function onKeyUp(e) {
 
 
 function onmouseDown(event) {
-    event.preventDefault();
     mouse_down = true;
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
@@ -2097,26 +2089,6 @@ function GUI_init() {
     phong_texture.open()
     Material_Type_Folder.MeshPhongMaterial.open()
 
-    Material_Type_Folder.MeshMatcapMaterial = material_folder.addFolder("Matcap Material")
-    Material_Type_Folder.MeshMatcapMaterial.addColor(Materials.MeshMatcapMaterial, "color").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "flatShading").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshMatcapMaterial.add(Materials.MeshMatcapMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    matcap_texture = Material_Type_Folder.MeshMatcapMaterial.addFolder("Texture")
-    matcap_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'matcap']).name("map").onChange(() => Texture_to_GUI())
-    matcap_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    matcap_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    matcap_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    matcap_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    matcap_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    matcap_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    matcap_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    matcap_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
-    matcap_texture.add(TextureParams, "remove").name("Remove Texture")
-    matcap_texture.open()
-    Material_Type_Folder.MeshMatcapMaterial.open()
-
 
     Material_Type_Folder.MeshToonMaterial = material_folder.addFolder("Toon Material")
     Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "color").onChange(() => Material_Update_Param())
@@ -2366,13 +2338,6 @@ function Obj_to_GUI(obj_material) {
             Materials.MeshPhongMaterial.wireframe = obj_material.wireframe
             break;
 
-        case "MeshMatcapMaterial":
-            Materials.MeshMatcapMaterial.color = obj_material.color.getHex()
-            Materials.MeshMatcapMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshMatcapMaterial.flatShading = obj_material.flatShading
-            Materials.MeshMatcapMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
-            break;
-
         case "MeshToonMaterial":
             Materials.MeshToonMaterial.color = obj_material.color.getHex()
             Materials.MeshToonMaterial.emissive = obj_material.emissive.getHex()
@@ -2505,17 +2470,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material1.wireframe = Materials.MeshPhongMaterial.wireframe
             break;
 
-        case "MeshMatcapMaterial":
-            obj_material.color.setHex(Materials.MeshMatcapMaterial.color)
-            obj_material.bumpScale = Materials.MeshMatcapMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshMatcapMaterial.flatShading
-            obj_material.normalScale.set(Materials.MeshMatcapMaterial.normalScale.x, Materials.MeshMatcapMaterial.normalScale.y)
-            obj_material1.color.setHex(Materials.MeshMatcapMaterial.color)
-            obj_material1.bumpScale = Materials.MeshMatcapMaterial.bumpScale
-            obj_material1.flatShading = Materials.MeshMatcapMaterial.flatShading
-            obj_material1.normalScale.set(Materials.MeshMatcapMaterial.normalScale.x, Materials.MeshMatcapMaterial.normalScale.y)
-            break;
-
         case "MeshToonMaterial":
             obj_material.color.setHex(Materials.MeshToonMaterial.color)
             obj_material.emissive.setHex(Materials.MeshToonMaterial.emissive)
@@ -2627,14 +2581,6 @@ function GUI_to_Obj(obj_material_original) {
             obj_material.reflectivity = Materials.MeshPhongMaterial.reflectivity
             obj_material.shininess = Materials.MeshPhongMaterial.shininess
             obj_material.wireframe = Materials.MeshPhongMaterial.wireframe
-            break;
-
-        case "MeshMatcapMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshMatcapMaterial({ map: default_texture, side: THREE.DoubleSide }) }
-            obj_material.color.setHex(Materials.MeshMatcapMaterial.color)
-            obj_material.bumpScale = Materials.MeshMatcapMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshMatcapMaterial.flatShading
-            obj_material.normalScale.set(Materials.MeshMatcapMaterial.normalScale.x, Materials.MeshMatcapMaterial.normalScale.y)
             break;
 
         case "MeshToonMaterial":
