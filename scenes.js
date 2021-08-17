@@ -900,7 +900,8 @@ function mouseMove(event) {
         }
     }
     else if (shift) {
-        let targetDistance = 1000 / window.innerHeight*Math.tan((camera_patch.fov / 2) * Math.PI / 180.0) * 2;
+        let targetDistance = 1000 / window.innerHeight * Math.tan((camera_patch.fov / 2) * Math.PI / 180.0) * 2;
+        
         if (texture_state === 1) {
             TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
             TextureParams.offset.x -= (Math.cos(TextureParams.rotation) * deltaX + Math.sin(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1200 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance
@@ -909,7 +910,8 @@ function mouseMove(event) {
         }
         if (texture_state === 2) {
             TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
-            TextureParams.rotation -= 0.002 * (deltaX - deltaY) * targetDistance
+            TextureParams.repeat.x *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1200 * targetDistance
+            TextureParams.repeat.y *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1200 * targetDistance
             GUI_to_Texture_Param()
         }
     }
@@ -922,13 +924,11 @@ function onMouseWheel(e) {
     if (shift && !mouse_down) {
         TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
         if (e.deltaY > 0) {
-            TextureParams.repeat.x *= 1.05
-            TextureParams.repeat.y *= 1.05
+            TextureParams.rotation -= 0.01
             GUI_to_Texture_Param()
         }
         if (e.deltaY < 0) {
-            TextureParams.repeat.x /= 1.05
-            TextureParams.repeat.y /= 1.05
+            TextureParams.rotation += 0.01
             GUI_to_Texture_Param()
         }
     }

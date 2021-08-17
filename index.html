@@ -76,7 +76,7 @@
     div.panel_box {
       position: absolute;
       top: 10%;
-      width: 20%;
+      width: 22%;
       min-width: 240px;
       z-index: 2;
       text-align: center;
@@ -320,7 +320,7 @@
           $("#hide-patches").text("Hide Patches");
           $("#scale-patches").css({ color: "#fff" });
           $(".panel_box").animate(
-            { width: "20%", minWidth: "240px" },
+            { width: "22%", minWidth: "240px" },
             450,
             function () {
               resize_patch = false;
@@ -369,7 +369,7 @@
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() == "<"
         ) {
-          $(".panel_box").animate({ width: "20%" }, 450, function () {
+          $(".panel_box").animate({ width: "22%" }, 450, function () {
             resize_patch = false;
           });
           $("#scale-patches").text(">");
