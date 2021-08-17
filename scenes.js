@@ -546,8 +546,7 @@ function init() {
     directional_light.castShadow = true;
     directional_light.shadow.camera.near = 0.1;
     directional_light.shadow.camera.far = 60;
-    directional_light.shadow.bias = -0.00012;
-
+    directional_light.shadow.bias = -0.00015;
     directional_light.position.set(0, 30, 0);
 
 
