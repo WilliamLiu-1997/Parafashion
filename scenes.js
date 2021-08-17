@@ -557,11 +557,12 @@ function init() {
     windowHeight = window.innerHeight;
 
     window.addEventListener("resize", onWindowResize);
-    window.addEventListener("mousedown", onmouseDown, false);
+    document.getElementById("container").addEventListener("mousedown", onmouseDown, false);
+    document.getElementById("container_patch").addEventListener("mousedown", onmouseDown_patch, false);
     window.addEventListener("mouseup", onmouseUp, false);
-    window.addEventListener("keydown", onKeyDown, false);
-    window.addEventListener("keyup", onKeyUp, false);
-    window.addEventListener("wheel", onMouseWheel, false);
+    document.getElementById("container_patch").addEventListener("keydown", onKeyDown, false);
+    document.getElementById("container_patch").addEventListener("keyup", onKeyUp, false);
+    document.getElementById("container_patch").addEventListener("wheel", onMouseWheel, false);
 
 
 }
@@ -877,6 +878,61 @@ function set_cursor(n) {
 
 
 function onmouseDown(event) {
+    mouse_down = true;
+
+    if (ctrl) {
+        return;
+    }
+
+    if (event.button == 0 && gui_options.cut) {
+        if (cut_obj.length > 0) {
+            controls.stop = true;
+            controls_patch.stop = true;
+            mouseMove(event)
+            drawing = true;
+        } else {
+            select_cut(pointer, camera, event);
+            if (controls !== undefined) {
+                if (cut_obj.length === 1) {
+                    controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
+                    controls.rotateSpeed = 2.5;
+                }
+            }
+        }
+    }
+    else {
+        if (event.button == 0) {
+            pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+            pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+
+            if (!mouse_down && cover) { cover_recovery(); }
+            if (cover) {
+                select_material(pointer, camera);
+                if (controls !== undefined) {
+                    if (selected.length === 1) {
+                        controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                        controls.rotateSpeed = 2.5;
+                    } else if (selected.length === 2) {
+                        selected_obj.geometry.computeBoundingSphere();
+                        controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
+                        controls.rotateSpeed = 2.5;
+                    }
+
+                }
+                if (find_new) {
+                    load_material()
+                    find_new = false;
+                }
+            }
+            cover = false;
+        }
+        else if (event.button == 1) { cover = false; }
+        else if (event.button == 2) { cover = false; }
+    }
+}
+
+
+function onmouseDown_patch(event) {
     mouse_down = true;
 
     if (ctrl) {
@@ -1247,24 +1303,86 @@ function cover_cut(cover_pointer, cover_camera, event) {
     }
 }
 
-function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
-    let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
-    let on_gui = false;
-    let on_tranforma = false;
-    if (gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2) { on_tranforma = true; }
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) { on_gui = true }
-    if (on_patch_button || on_gui || on_tranforma) {
-        return;
-    }
+
+function select_material(cover_pointer, cover_camera) {
     if (progress_obj + progress_mtl != -2) {
         select_recovery();
         return;
     }
-    let obj = document.getElementById("panel_box");
-    if (event.clientX > obj.offsetLeft
-        && event.clientX < (obj.offsetLeft + obj.clientWidth)
-        && event.clientY > obj.offsetTop
-        && event.clientY < (obj.offsetTop + obj.clientHeight)) {
+
+    raycaster.setFromCamera(cover_pointer, cover_camera);
+    var intersects = raycaster.intersectObject(garment, true);
+    if (intersects.length > 0) {
+        // console.log(intersects[ 0 ].face)
+        // console.log(intersects[ 0 ].point)
+        //console.log(intersects[0].object)
+        var group_num = intersects[0].object.geometry.groups.length;
+        var vertice_index = intersects[0].face.a;
+        var i = 0;
+        var num = patch ? patch.children.length : 0;
+        if (group_num > 0) {
+            for (i = 0; i < group_num; i++) {
+                if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
+            }
+            if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
+                find_new = true;
+                selected = [intersects[0].object, i]
+                selected_obj.traverse(function (obj) {
+                    if (obj.type === 'Mesh') {
+                        obj.geometry.dispose();
+                        obj.material.dispose();
+                    }
+                })
+                scene.remove(selected_obj);
+                var this_scale = intersects[0].object.parent.scale;
+                var this_position = intersects[0].object.parent.position;
+                var g = individual(intersects[0].object.geometry, i)
+                selected_obj = new THREE.Mesh(g);
+                selected_obj.material.transparent = true;
+                selected_obj.material.opacity = 0;
+                selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+                scene.add(selected_obj)
+                outlinePass_select.selectedObjects = [selected_obj];
+                last_select = []
+                last_select_patch = []
+                last_select.push(intersects[0].object, i)
+
+                for (var x = 0; x < num; x++) {
+                    if (patch && intersects[0].object.name == patch.children[x].name) {
+                        selected_patch = [patch.children[x].children[i]];
+                        outlinePass_patch_select.selectedObjects = [patch.children[x].children[i]];
+                        break;
+                    }
+                }
+            }
+        }
+        else {
+            if (last_select.length != 1 || last_select[0] != intersects[0].object) {
+                find_new = true;
+                selected = [intersects[0].object];
+                outlinePass_select.selectedObjects = [intersects[0].object];
+                last_select = []
+                last_select_patch = []
+                last_select.push(intersects[0].object)
+
+                for (var x = 0; x < num; x++) {
+                    if (patch && intersects[0].object.name == patch.children[x].name) {
+                        selected_patch = [patch.children[x]];
+                        outlinePass_patch_select.selectedObjects = [patch.children[x]];
+                        break;
+                    }
+                }
+            }
+        }
+    } else { select_recovery() }
+}
+
+function select_material_patch(cover_pointer_patch, cover_camera_patch) {
+    if (progress_obj + progress_mtl != -2) {
+        select_recovery();
+        return;
+    }
         raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
         var intersects = raycaster.intersectObject(patch, true);
         if (intersects.length > 0) {
@@ -1326,74 +1444,6 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                 }
             }
         } else { select_recovery() }
-    } else {
-        raycaster.setFromCamera(cover_pointer, cover_camera);
-        var intersects = raycaster.intersectObject(garment, true);
-        if (intersects.length > 0) {
-            // console.log(intersects[ 0 ].face)
-            // console.log(intersects[ 0 ].point)
-            //console.log(intersects[0].object)
-            var group_num = intersects[0].object.geometry.groups.length;
-            var vertice_index = intersects[0].face.a;
-            var i = 0;
-            var num = patch ? patch.children.length : 0;
-            if (group_num > 0) {
-                for (i = 0; i < group_num; i++) {
-                    if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
-                }
-                if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
-                    find_new = true;
-                    selected = [intersects[0].object, i]
-                    selected_obj.traverse(function (obj) {
-                        if (obj.type === 'Mesh') {
-                            obj.geometry.dispose();
-                            obj.material.dispose();
-                        }
-                    })
-                    scene.remove(selected_obj);
-                    var this_scale = intersects[0].object.parent.scale;
-                    var this_position = intersects[0].object.parent.position;
-                    var g = individual(intersects[0].object.geometry, i)
-                    selected_obj = new THREE.Mesh(g);
-                    selected_obj.material.transparent = true;
-                    selected_obj.material.opacity = 0;
-                    selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                    selected_obj.position.set(this_position.x, this_position.y, this_position.z);
-                    scene.add(selected_obj)
-                    outlinePass_select.selectedObjects = [selected_obj];
-                    last_select = []
-                    last_select_patch = []
-                    last_select.push(intersects[0].object, i)
-
-                    for (var x = 0; x < num; x++) {
-                        if (patch && intersects[0].object.name == patch.children[x].name) {
-                            selected_patch = [patch.children[x].children[i]];
-                            outlinePass_patch_select.selectedObjects = [patch.children[x].children[i]];
-                            break;
-                        }
-                    }
-                }
-            }
-            else {
-                if (last_select.length != 1 || last_select[0] != intersects[0].object) {
-                    find_new = true;
-                    selected = [intersects[0].object];
-                    outlinePass_select.selectedObjects = [intersects[0].object];
-                    last_select = []
-                    last_select_patch = []
-                    last_select.push(intersects[0].object)
-
-                    for (var x = 0; x < num; x++) {
-                        if (patch && intersects[0].object.name == patch.children[x].name) {
-                            selected_patch = [patch.children[x]];
-                            outlinePass_patch_select.selectedObjects = [patch.children[x]];
-                            break;
-                        }
-                    }
-                }
-            }
-        } else { select_recovery() }
-    }
 }
 
 function on_cut(cover_pointer, cover_camera, event) {
