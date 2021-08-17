@@ -37,6 +37,7 @@
       margin: 0px;
       overflow: hidden;
       scrollbar-width: none;
+      cursor: auto;
     }
 
     #info {
@@ -80,6 +81,7 @@
       min-width: 240px;
       z-index: 2;
       text-align: center;
+      cursor :auto
     }
 
     .btn:active.focus,
@@ -308,7 +310,7 @@
       }
       function hide_loading() {
         $("#loading").fadeOut(500);
-        $("#loading_background").fadeOut(800);
+        $("#loading_background").fadeOut(1000);
       }
 
       var render_patch_flag = true;
