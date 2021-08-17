@@ -949,7 +949,7 @@ function onmouseDown_patch(event) {
     else {
         if (event.button == 0) {
             pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
-            pointer_patch.y = - (event.clientY / (renderer_patch.domElement.clientHeight)) * 2 + 1;
+            pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
             if (!mouse_down && cover) { cover_recovery(); }
             if (cover) {
                 select_material_patch(pointer_patch, camera_patch);
@@ -1032,7 +1032,7 @@ function mouseMove_patch(event) {
     let deltaY = last_position.y - mouse_position.y
 
     pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
-    pointer_patch.y = - (event.clientY / (renderer_patch.domElement.clientHeight)) * 2 + 1;
+    pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
     if (shift) {
         let targetDistance = 1 / window.innerHeight * Math.tan((camera_patch.fov / 2) * Math.PI / 180.0) * 2;
