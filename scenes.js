@@ -780,7 +780,7 @@ function set_cursor(n) {
         document.getElementById("panel_box").style.cursor = "auto"
     }
     else if (n === 1) {
-        document.getElementById("panel_box").style.cursor = "move"
+        document.getElementById("panel_box").style.cursor = "grab"
     }
 }
 
