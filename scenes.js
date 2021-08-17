@@ -66,8 +66,8 @@ var garments_obj = "./leggins/patch.obj"
 // var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-// var garments_mtl = "./obj/tower/tower3.mtl"
-// var garments_obj = "./obj/tower/tower3.obj"
+var garments_mtl = "./obj/tower/tower3.mtl"
+var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // garments_mtl = false
@@ -1055,11 +1055,11 @@ function onMouseWheel(e) {
     if (shift && !mouse_down) {
         TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
         if (e.deltaY > 0) {
-            TextureParams.rotation -= 0.01
+            TextureParams.rotation -= 0.015
             GUI_to_Texture_Param()
         }
         if (e.deltaY < 0) {
-            TextureParams.rotation += 0.01
+            TextureParams.rotation += 0.015
             GUI_to_Texture_Param()
         }
     }
@@ -1422,7 +1422,7 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
 }
 
 function on_cut(cover_pointer, cover_camera, event) {
-    
+
     let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
     let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
     let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
