@@ -42,6 +42,7 @@ let default_texture = textureloader.load("./texture/default.jpg");
 default_texture.wrapS = default_texture.wrapT = THREE.RepeatWrapping;
 let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, map: default_texture, side: THREE.DoubleSide })
 let obj_size = 1;
+let find_new = false;
 
 
 let shift = false;
@@ -355,7 +356,7 @@ var Material = {
                 if (n.name == name) {
                     selected[0].material[selected[1]] = n.material[selected[1]].clone()
                     selected_patch[0].material = n.material[selected[1]].clone()
-                    load_material(n.material[selected[1]])
+                    load_material()
 
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
@@ -368,7 +369,7 @@ var Material = {
                 if (n.name == name) {
                     selected[0].material = n.material.clone()
                     selected_patch[0].material = n.material.clone()
-                    load_material(n.material)
+                    load_material()
 
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
@@ -384,7 +385,7 @@ var Material = {
             default_set.color.set(randomColor())
             selected[0].material[selected[1]] = default_set
             selected_patch[0].material = selected[0].material[selected[1]].clone()
-            load_material(selected[0].material[selected[1]])
+            load_material()
 
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
@@ -395,7 +396,7 @@ var Material = {
             default_set.color.set(randomColor())
             selected[0].material = default_set
             selected_patch[0].material = selected[0].material.clone()
-            load_material(selected[0].material)
+            load_material()
 
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
             return;
@@ -931,7 +932,10 @@ function onmouseDown(event) {
                 let on_tranforma = false;
                 if (gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2) { on_tranforma = true; }
                 if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) { on_gui = true }
-                if (!on_gui && !on_tranforma) { load_material() }
+                if (!on_gui && !on_tranforma && find_new) {
+                    load_material()
+                    find_new = false;
+                }
             }
             cover = false;
         }
@@ -1270,6 +1274,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                     if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
                 }
                 if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
+                    find_new = true;
                     selected_patch = [intersects[0].object];
                     selected_obj.traverse(function (obj) {
                         if (obj.type === 'Mesh') {
@@ -1304,6 +1309,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
             }
             else {
                 if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
+                    find_new = true;
                     outlinePass_patch_select.selectedObjects = [intersects[0].object];
                     last_select_patch = []
                     last_select = []
@@ -1334,6 +1340,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
                     if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
                 }
                 if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
+                    find_new = true;
                     selected = [intersects[0].object, i]
                     selected_obj.traverse(function (obj) {
                         if (obj.type === 'Mesh') {
@@ -1367,6 +1374,7 @@ function select_material(cover_pointer, cover_camera, cover_pointer_patch, cover
             }
             else {
                 if (last_select.length != 1 || last_select[0] != intersects[0].object) {
+                    find_new = true;
                     selected = [intersects[0].object];
                     outlinePass_select.selectedObjects = [intersects[0].object];
                     last_select = []
