@@ -932,7 +932,7 @@ function onmouseDown(event) {
 
 function onmouseDown_patch(event) {
     mouse_down = true;
-
+    let obj = document.getElementById("panel_box");
     if (ctrl) {
         return;
     }
@@ -1030,7 +1030,7 @@ function mouseMove_patch(event) {
     mouse_position.set(event.clientX, event.clientY)
     let deltaX = mouse_position.x - last_position.x
     let deltaY = last_position.y - mouse_position.y
-
+    let obj = document.getElementById("panel_box");
     pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
     pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
