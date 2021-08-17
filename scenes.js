@@ -60,14 +60,14 @@ var garments_obj = "./leggins/leggins_patch.obj";
 var garments_mtl = "./leggins/leggins_patch.obj.mtl";
 var garments_mtl = "./leggins/patch.mtl"
 var garments_obj = "./leggins/patch.obj"
-var garments_mtl = "./leggins/patch_smooth.mtl"
-var garments_obj = "./leggins/patch_smooth.obj"
-var garments_mtl = "./obj/village1/village_final.mtl"
-var garments_obj = "./obj/village1/village_final.obj"
+// var garments_mtl = "./leggins/patch_smooth.mtl"
+// var garments_obj = "./leggins/patch_smooth.obj"
+// var garments_mtl = "./obj/village1/village_final.mtl"
+// var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-var garments_mtl = "./obj/tower/tower3.mtl"
-var garments_obj = "./obj/tower/tower3.obj"
+// var garments_mtl = "./obj/tower/tower3.mtl"
+// var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // garments_mtl = false
@@ -530,6 +530,7 @@ function init() {
     controls = new CameraControls(camera, renderer.domElement);
     controls.dynamicSensibility = true;
     controls.enableDamping = true;
+    controls.dampingFactor = 0.15;
     controls.rotateSpeed = 1.3;
 
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
@@ -620,6 +621,7 @@ function init_patch() {
 
     controls_patch.dynamicSensibility = false;
     controls_patch.enableDamping = true;
+    controls_patch.dampingFactor = 0.15;
     controls_patch.enableKeys = false;
 
     controls_patch.enableRotate = false;
