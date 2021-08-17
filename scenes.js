@@ -61,8 +61,8 @@ var garments_mtl = "./leggins/patch_smooth.mtl"
 var garments_obj = "./leggins/patch_smooth.obj"
 var garments_mtl = "./obj/village1/village_final.mtl"
 var garments_obj = "./obj/village1/village_final.obj"
-// var garments_mtl = "./obj/city2/city2.mtl"
-// var garments_obj = "./obj/city2/city2.obj"
+var garments_mtl = "./obj/city2/city2.mtl"
+var garments_obj = "./obj/city2/city2.obj"
 var garments_mtl = "./obj/tower/tower3.mtl"
 var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
@@ -809,6 +809,7 @@ function onmouseDown(event) {
         }
     }
     else if (shift) {
+        event.preventDefault()
         if (event.button == 0) {
             texture_state = 1;
         }
@@ -887,8 +888,6 @@ function mouseMove(event) {
     pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
 
-
-
     if (gui_options.cut) {
         if (cut_obj.length > 0) {
             on_cut(pointer, camera, event)
@@ -903,11 +902,13 @@ function mouseMove(event) {
     else if (shift) {
         let targetDistance = 1000 / window.innerHeight*Math.tan((camera_patch.fov / 2) * Math.PI / 180.0) * 2;
         if (texture_state === 1) {
+            TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
             TextureParams.offset.x -= (Math.cos(TextureParams.rotation) * deltaX + Math.sin(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1200 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance
             TextureParams.offset.y -= (-Math.sin(TextureParams.rotation) * deltaX + Math.cos(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1200 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
+            TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
             TextureParams.rotation -= 0.002 * (deltaX - deltaY) * targetDistance
             GUI_to_Texture_Param()
         }
@@ -919,6 +920,7 @@ function mouseMove(event) {
 
 function onMouseWheel(e) {
     if (shift && !mouse_down) {
+        TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
         if (e.deltaY > 0) {
             TextureParams.repeat.x *= 1.05
             TextureParams.repeat.y *= 1.05
