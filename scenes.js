@@ -1104,11 +1104,10 @@ function select_recovery() {
 }
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
-    let on_gui = false;
-    let on_tranforma = false;
-    if (gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2) { on_tranforma = true; }
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) { on_gui = true }
-    if (on_gui || on_tranforma) {
+
+    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
+    let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
+    if (on_gui || on_transform) {
         cover_recovery();
         return;
     }
@@ -1239,11 +1238,10 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
 function cover_cut(cover_pointer, cover_camera, event) {
     if (cut_obj.length > 0) return;
 
-    let on_gui = false;
-    let on_tranforma = false;
-    if (gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2) { on_tranforma = true; }
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) { on_gui = true }
-    if (on_gui || on_tranforma) {
+    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
+    let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
+
+    if (on_gui || on_transform) {
         cover_recovery();
         return;
     }
@@ -1424,12 +1422,11 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
 }
 
 function on_cut(cover_pointer, cover_camera, event) {
+    
     let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
-    let on_gui = false;
-    let on_tranforma = false;
-    if (gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2) { on_tranforma = true; }
-    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) { on_gui = true }
-    if (on_patch_button || on_gui || on_tranforma) {
+    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
+    let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
+    if (on_patch_button || on_gui || on_transform) {
         point_helper.material.visible = false;
         return;
     }
