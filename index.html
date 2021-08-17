@@ -81,7 +81,7 @@
       min-width: 240px;
       z-index: 2;
       text-align: center;
-      cursor :auto
+      cursor: auto;
     }
 
     .btn:active.focus,
@@ -257,8 +257,6 @@
           id="hide-patches"
           type="button"
           class="btn"
-          data-toggle="collapse"
-          data-target="#panel-patches"
           style="
             background-color: rgb(60, 60, 60);
             border: 1px solid rgb(90, 90, 90);
@@ -290,7 +288,7 @@
       </div>
       <div
         id="panel-patches"
-        class="panel-collapse collapse in"
+        class="collapse in"
         style="background-color: rgba(0, 0, 0, 0.75)"
       >
         <div id="container_patch"></div>
@@ -317,8 +315,10 @@
       var patch_scaled = false;
       var resize_patch = false;
       function hidePatches() {
+        if (resize_patch) return;
         resize_patch = true;
-        $("#panel-patches").on("show.bs.collapse", function () {
+        if ($("#hide-patches").text() == "Show Patches") {
+          $("#panel-patches").collapse("show");
           $("#hide-patches").text("Hide Patches");
           $("#scale-patches").css({ color: "#fff" });
           $(".panel_box").animate(
@@ -331,8 +331,8 @@
           $("#scale-patches").text(">");
           render_patch_flag = true;
           patch_scaled = false;
-        });
-        $("#panel-patches").on("hide.bs.collapse", function () {
+        } else {
+          $("#panel-patches").collapse("hide");
           $("#hide-patches").text("Show Patches");
           $("#scale-patches").css({ color: "#aaa" });
           $(".panel_box").animate(
@@ -345,7 +345,7 @@
           $("#scale-patches").text(">");
           render_patch_flag = false;
           patch_scaled = false;
-        });
+        }
       }
       function scalePatches() {
         resize_patch = true;

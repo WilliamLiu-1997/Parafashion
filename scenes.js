@@ -623,7 +623,7 @@ function animate() {
         patch_panel_width = $("#container_patch").css("width")
         onWindowResize()
     }
-    if (progress_obj + progress_mtl == 200 && garment.children[0].children !== undefined) {
+    if (progress_obj + progress_mtl == 200 && garment !== undefined && garment.children !== undefined && garment.children[0].children !== undefined) {
         camera.position.set(0, obj_size / 2, obj_size * 2);
         controls.saveState();
         var lack = false;
