@@ -66,8 +66,8 @@ var garments_obj = "./leggins/patch.obj"
 // var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-var garments_mtl = "./obj/tower/tower3.mtl"
-var garments_obj = "./obj/tower/tower3.obj"
+// var garments_mtl = "./obj/tower/tower3.mtl"
+// var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // garments_mtl = false
@@ -731,8 +731,7 @@ function animate() {
             }
         }
 
-        document.getElementById("container").addEventListener("mousemove", mouseMove, false);
-        document.getElementById("container_patch").addEventListener("mousemove", mouseMove_patch, false);
+        document.addEventListener("mousemove", mouseMove, false);
 
         $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
@@ -835,10 +834,12 @@ function onKeyDown(e) {
                 && !mouse_down) {
                 set_cursor(1)
                 shift = true;
+                controls.stop = true;
                 controls_patch.stop = true;
             }
             else if (!mouse_down) {
                 shift = false;
+                controls.stop = false;
                 controls_patch.stop = false;
                 set_cursor(0)
             }
@@ -854,6 +855,7 @@ function onKeyUp(e) {
     switch (e.keyCode) {
         case 16:
             shift = false;
+            controls.stop = false;
             controls_patch.stop = false;
             set_cursor(0)
             break;
@@ -931,8 +933,10 @@ function onmouseDown(event) {
 
 
 function onmouseDown_patch(event) {
+
     mouse_down = true;
     let obj = document.getElementById("panel_box");
+
     if (ctrl) {
         return;
     }
@@ -1003,9 +1007,16 @@ function onmouseUp(event) {
 }
 
 function mouseMove(event) {
+    let last_position = mouse_position.clone();
+    let obj = document.getElementById("panel_box");
+    mouse_position.set(event.clientX, event.clientY)
+    let deltaX = mouse_position.x - last_position.x
+    let deltaY = last_position.y - mouse_position.y
 
     pointer.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
     pointer.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+    pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
+    pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
     if (!mouse_down && cover) { cover_recovery(); }
 
     if (gui_options.cut) {
@@ -1019,22 +1030,7 @@ function mouseMove(event) {
             cover_cut(pointer, camera, event);
         }
     }
-    else if (cover) {
-        cover_material(pointer, camera, event);
-    }
-}
-
-
-function mouseMove_patch(event) {
-    let last_position = mouse_position.clone();
-    mouse_position.set(event.clientX, event.clientY)
-    let deltaX = mouse_position.x - last_position.x
-    let deltaY = last_position.y - mouse_position.y
-    let obj = document.getElementById("panel_box");
-    pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
-    pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
-    if (!mouse_down && cover) { cover_recovery(); }
-    if (shift) {
+    else if (shift) {
         let targetDistance = 1 / window.innerHeight * Math.tan((camera_patch.fov / 2) * Math.PI / 180.0) * 2;
 
         if (texture_state === 1) {
@@ -1051,7 +1047,7 @@ function mouseMove_patch(event) {
         }
     }
     else if (cover) {
-        cover_material_patch(pointer_patch, camera_patch);
+        cover_material(pointer, camera, pointer_patch, camera_patch, event);
     }
 }
 
@@ -1107,134 +1103,138 @@ function select_recovery() {
     }
 }
 
-function cover_material(cover_pointer, cover_camera) {
+function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
+    let on_gui = false;
+    let on_tranforma = false;
+    if (gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2) { on_tranforma = true; }
+    if (pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)) { on_gui = true }
+    if (on_gui || on_tranforma) {
+        cover_recovery();
+        return;
+    }
     if (progress_obj + progress_mtl != -2) {
         cover_recovery();
         return;
     }
-    raycaster.setFromCamera(cover_pointer, cover_camera);
-    var intersects = raycaster.intersectObject(garment, true);
-    if (intersects.length > 0) {
-        // console.log(intersects[ 0 ].face)
-        // console.log(intersects[ 0 ].point)
-        var group_num = intersects[0].object.geometry.groups.length;
-        var vertice_index = intersects[0].face.a;
-        var i = 0;
-        var num = patch ? patch.children.length : 0;
-        if (group_num > 0) {
-            for (i = 0; i < group_num; i++) {
-                if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
-            }
-            if (last_cover.length != 2 || last_cover[1] != i || (last_cover[0] != intersects[0].object)) {
-                covered_obj.traverse(function (obj) {
-                    if (obj.type === 'Mesh') {
-                        obj.geometry.dispose();
-                        obj.material.dispose();
-                    }
-                })
-                scene.remove(covered_obj);
-                var this_scale = intersects[0].object.parent.scale;
-                var this_position = intersects[0].object.parent.position;
-                var g = individual(intersects[0].object.geometry, i)
-                covered_obj = new THREE.Mesh(g);
-                covered_obj.material.transparent = true;
-                covered_obj.material.opacity = 0;
-                covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                covered_obj.position.set(this_position.x, this_position.y, this_position.z);
-                scene.add(covered_obj)
-                outlinePass.selectedObjects = [covered_obj];
-                last_cover = []
-                last_cover.push(intersects[0].object, i)
+    let obj = document.getElementById("panel_box");
+    if (event.clientX > obj.offsetLeft
+        && event.clientX < (obj.offsetLeft + obj.clientWidth)
+        && event.clientY > obj.offsetTop
+        && event.clientY < (obj.offsetTop + obj.clientHeight)) {
 
-                for (var x = 0; x < num; x++) {
-                    if (patch && intersects[0].object.name == patch.children[x].name) {
-                        outlinePass_patch.selectedObjects = [patch.children[x].children[i]];
-                        break;
-                    }
+        raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
+        var intersects = raycaster.intersectObject(patch, true);
+        if (intersects.length > 0) {
+            // console.log(intersects[ 0 ].face)
+            // console.log(intersects[ 0 ].point)
+            if (intersects[0].object.parent instanceof THREE.Group) {
+                var i = 0;
+                for (i = 0; i < intersects[0].object.parent.children.length; i++) {
+                    if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
+                }
+                if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
+                    covered_obj.traverse(function (obj) {
+                        if (obj.type === 'Mesh') {
+                            obj.geometry.dispose();
+                            obj.material.dispose();
+                        }
+                    })
+                    scene.remove(covered_obj);
+                    outlinePass_patch.selectedObjects = [intersects[0].object];
+                    last_cover_patch = []
+                    last_cover_patch.push(intersects[0].object)
+
+                    garment.traverse(function (obj) {
+                        if (obj.type === "Mesh") {
+                            if (obj.name == intersects[0].object.parent.name) {
+                                var this_scale = obj.parent.scale;
+                                var this_position = obj.parent.position;
+                                var g = individual(obj.geometry, i)
+                                covered_obj = new THREE.Mesh(g);
+                                covered_obj.material.transparent = true;
+                                covered_obj.material.opacity = 0;
+                                covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                                covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+                                scene.add(covered_obj)
+                                outlinePass.selectedObjects = [covered_obj];
+                            }
+                        }
+                    })
                 }
             }
-        }
-        else {
-            if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
-                outlinePass.selectedObjects = [intersects[0].object];
-                last_cover = []
-                last_cover.push(intersects[0].object)
-
-                for (var x = 0; x < num; x++) {
-                    if (patch && intersects[0].object.name == patch.children[x].name) {
-                        outlinePass_patch.selectedObjects = [patch.children[x]];
-                        break;
-                    }
+            else {
+                if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
+                    outlinePass_patch.selectedObjects = [intersects[0].object];
+                    last_cover_patch = []
+                    last_cover_patch.push(intersects[0].object)
+                    garment.traverse(function (obj) {
+                        if (obj.type === "Mesh" && obj.name == intersects[0].object.name) {
+                            outlinePass.selectedObjects = [obj];
+                        }
+                    })
                 }
             }
-        }
-    } else { cover_recovery() }
-}
-
-
-
-
-function cover_material_patch(cover_pointer_patch, cover_camera_patch) {
-    if (progress_obj + progress_mtl != -2) {
-        cover_recovery();
-        return;
-    }
-    raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
-    var intersects = raycaster.intersectObject(patch, true);
-    if (intersects.length > 0) {
-        // console.log(intersects[ 0 ].face)
-        // console.log(intersects[ 0 ].point)
-        if (intersects[0].object.parent instanceof THREE.Group) {
+        } else { cover_recovery() }
+    } else {
+        raycaster.setFromCamera(cover_pointer, cover_camera);
+        var intersects = raycaster.intersectObject(garment, true);
+        if (intersects.length > 0) {
+            // console.log(intersects[ 0 ].face)
+            // console.log(intersects[ 0 ].point)
+            var group_num = intersects[0].object.geometry.groups.length;
+            var vertice_index = intersects[0].face.a;
             var i = 0;
-            for (i = 0; i < intersects[0].object.parent.children.length; i++) {
-                if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
-            }
-            if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
-                covered_obj.traverse(function (obj) {
-                    if (obj.type === 'Mesh') {
-                        obj.geometry.dispose();
-                        obj.material.dispose();
-                    }
-                })
-                scene.remove(covered_obj);
-                outlinePass_patch.selectedObjects = [intersects[0].object];
-                last_cover_patch = []
-                last_cover_patch.push(intersects[0].object)
+            var num = patch ? patch.children.length : 0;
+            if (group_num > 0) {
+                for (i = 0; i < group_num; i++) {
+                    if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
+                }
+                if (last_cover.length != 2 || last_cover[1] != i || (last_cover[0] != intersects[0].object)) {
+                    covered_obj.traverse(function (obj) {
+                        if (obj.type === 'Mesh') {
+                            obj.geometry.dispose();
+                            obj.material.dispose();
+                        }
+                    })
+                    scene.remove(covered_obj);
+                    var this_scale = intersects[0].object.parent.scale;
+                    var this_position = intersects[0].object.parent.position;
+                    var g = individual(intersects[0].object.geometry, i)
+                    covered_obj = new THREE.Mesh(g);
+                    covered_obj.material.transparent = true;
+                    covered_obj.material.opacity = 0;
+                    covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                    covered_obj.position.set(this_position.x, this_position.y, this_position.z);
+                    scene.add(covered_obj)
+                    outlinePass.selectedObjects = [covered_obj];
+                    last_cover = []
+                    last_cover.push(intersects[0].object, i)
 
-                garment.traverse(function (obj) {
-                    if (obj.type === "Mesh") {
-                        if (obj.name == intersects[0].object.parent.name) {
-                            var this_scale = obj.parent.scale;
-                            var this_position = obj.parent.position;
-                            var g = individual(obj.geometry, i)
-                            covered_obj = new THREE.Mesh(g);
-                            covered_obj.material.transparent = true;
-                            covered_obj.material.opacity = 0;
-                            covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
-                            covered_obj.position.set(this_position.x, this_position.y, this_position.z);
-                            scene.add(covered_obj)
-                            outlinePass.selectedObjects = [covered_obj];
+                    for (var x = 0; x < num; x++) {
+                        if (patch && intersects[0].object.name == patch.children[x].name) {
+                            outlinePass_patch.selectedObjects = [patch.children[x].children[i]];
+                            break;
                         }
                     }
-                })
+                }
             }
-        }
-        else {
-            if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
-                outlinePass_patch.selectedObjects = [intersects[0].object];
-                last_cover_patch = []
-                last_cover_patch.push(intersects[0].object)
-                garment.traverse(function (obj) {
-                    if (obj.type === "Mesh" && obj.name == intersects[0].object.name) {
-                        outlinePass.selectedObjects = [obj];
+            else {
+                if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
+                    outlinePass.selectedObjects = [intersects[0].object];
+                    last_cover = []
+                    last_cover.push(intersects[0].object)
+
+                    for (var x = 0; x < num; x++) {
+                        if (patch && intersects[0].object.name == patch.children[x].name) {
+                            outlinePass_patch.selectedObjects = [patch.children[x]];
+                            break;
+                        }
                     }
-                })
+                }
             }
-        }
-    } else { cover_recovery() }
+        } else { cover_recovery() }
+    }
 }
-
-
 
 function cover_cut(cover_pointer, cover_camera, event) {
     if (cut_obj.length > 0) return;
