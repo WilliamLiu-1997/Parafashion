@@ -323,7 +323,7 @@
           $("#scale-patches").css({ color: "#fff" });
           $(".panel_box").animate(
             { width: "22%", minWidth: "240px" },
-            450,
+            350,
             function () {
               resize_patch = false;
             }
@@ -337,7 +337,7 @@
           $("#scale-patches").css({ color: "#aaa" });
           $(".panel_box").animate(
             { width: "5%", minWidth: "120px" },
-            450,
+            350,
             function () {
               resize_patch = false;
             }
@@ -360,7 +360,7 @@
                 window.innerWidth - 2 - $("#gui_container").width()
               ),
             },
-            450,
+            350,
             function () {
               resize_patch = false;
               patch_scaled = true;
@@ -371,7 +371,7 @@
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() == "<"
         ) {
-          $(".panel_box").animate({ width: "22%" }, 450, function () {
+          $(".panel_box").animate({ width: "22%" }, 350, function () {
             resize_patch = false;
           });
           $("#scale-patches").text(">");
