@@ -904,14 +904,14 @@ function mouseMove(event) {
         
         if (texture_state === 1) {
             TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
-            TextureParams.offset.x -= (Math.cos(TextureParams.rotation) * deltaX + Math.sin(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1.6 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance * Math.max(1, max_radius)
-            TextureParams.offset.y -= (-Math.sin(TextureParams.rotation) * deltaX + Math.cos(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1.6 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance * Math.max(1, max_radius)
+            TextureParams.offset.x -= (Math.cos(TextureParams.rotation) * deltaX + Math.sin(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1.56 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance * Math.max(1, max_radius)
+            TextureParams.offset.y -= (-Math.sin(TextureParams.rotation) * deltaX + Math.cos(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1.56 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance * Math.max(1, max_radius)
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
             TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
-            TextureParams.repeat.x *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1.6 * targetDistance * Math.max(1,max_radius)
-            TextureParams.repeat.y *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1.6 * targetDistance * Math.max(1, max_radius)
+            TextureParams.repeat.x *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1.56 * targetDistance * Math.max(1,max_radius)
+            TextureParams.repeat.y *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1.56 * targetDistance * Math.max(1, max_radius)
             GUI_to_Texture_Param()
         }
     }
