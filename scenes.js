@@ -15,9 +15,6 @@ let camera, cameralight, controls, scene, renderer, garment, gui, env_light, sta
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
 let cut_component;
-var tanFOV;
-var windowHeight;
-var tanFOV_patch;
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
 let obj3D = new THREE.Object3D();
@@ -553,8 +550,6 @@ function init() {
 
     directional_light.position.set(0, 30, 0);
 
-    tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
-    windowHeight = window.innerHeight;
 
     window.addEventListener("resize", onWindowResize);
     document.getElementById("container").addEventListener("mousedown", onmouseDown, false);
@@ -631,8 +626,6 @@ function init_patch() {
     // controls_patch.maxAzimuthAngle = Math.PI * 0.4;
     // controls_patch.minAzimuthAngle = -Math.PI * 0.4;
 
-
-    tanFOV_patch = Math.tan(((Math.PI / 180) * camera_patch.fov / 2));
 
 }
 
@@ -804,7 +797,6 @@ function onWindowResize() {
         $("#alert_size").html("");
     }
     camera.aspect = window.innerWidth / window.innerHeight;
-    camera.fov = (360 / Math.PI) * Math.atan(tanFOV * (window.innerHeight / windowHeight));
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
@@ -813,7 +805,6 @@ function onWindowResize() {
 
     if (render_patch_flag) {
         camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.78;
-        camera_patch.fov = (360 / Math.PI) * Math.atan(tanFOV_patch * (window.innerHeight / windowHeight));
         camera_patch.updateProjectionMatrix();
         renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
         composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
