@@ -195,7 +195,7 @@ var environment = {
 }
 
 var environment_light = {
-    Square: [0.4, 0.2], Park: [0.4, 0.2], PlayingRoom: [0.6, 0.4], Alley: [0.5, 0.3], Sky: [0.5, 0.7], Bridge: [0.5, 0.2], Gallery: [0.4, 0.6], None: [0.7, 0.3], Snow: [0.4, 0.2], LivingRoom: [0.35, 0.65], Street: [0.4, 0.6], Church: [0.2, 0.8], Restaurant: [0.5, 0.35], BedRoom: [0.4, 0.5], BathRoom: [0.35, 0.75], Town: [0.3, 0.2]
+    Square: [0.4, 0.2], Park: [0.4, 0.2], PlayingRoom: [0.6, 0.4], Alley: [0.5, 0.3], Sky: [0.5, 0.7], Bridge: [0.5, 0.2], Gallery: [0.4, 0.6], None: [0.7, 0.3], Snow: [0.4, 0.2], LivingRoom: [0.35, 0.65], Street: [0.4, 0.6], Church: [0.2, 0.8], Restaurant: [0.5, 0.35], BedRoom: [0.4, 0.5], BathRoom: [0.3, 0.7], Town: [0.3, 0.2]
 }
 
 var gui_options = {
@@ -329,7 +329,7 @@ var Materials = {
         clearcoatRoughness: 0.0,
         reflectivity: 0.5,
         sheen: 0x000000,//color
-        transmission: 0.0,
+        transmission: 0.001,
     },
 }
 
@@ -2386,7 +2386,7 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoatRoughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "transmission", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "transmission", 0.001, 1, 0.001).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
@@ -2663,6 +2663,7 @@ function Material_Update_Param(reflecttivity_change = false) {
 }
 
 function GUI_to_Obj_Param(obj_material, obj_material1) {
+
     obj_material.opacity = Material.opacity
     obj_material.transparent = Material.transparent
     obj_material.alphaTest = Material.alphaTest
@@ -2673,7 +2674,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
     obj_material1.alphaTest = Material.alphaTest
     obj_material1.side = Material.side === "FrontSide" ? THREE.FrontSide : Material.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
     obj_material1.visible = Material.visible
-
 
     switch (Material.material) {
         case "MeshBasicMaterial":
