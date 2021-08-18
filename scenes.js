@@ -2249,7 +2249,7 @@ function GUI_init() {
     cut_component.open();
     cut_component.hide();
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
-    folder_basic.add(controls, 'sensibility', 0.1, 50, 0.1).name("Camera Sensibility");
+    folder_basic.add(controls, 'sensibility', 0.1, 35, 0.1).name("Camera Sensibility");
     folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
     folder_basic.open()
 
@@ -2971,9 +2971,7 @@ function randomString(e) {
 }
 
 function randomColor() {
-    let c = Math.random() * 0xffffff
-    while (c > 0xccffff) { c = Math.random() * 0xffffff }
-    return c
+    return Math.random() * 0xccffff
 }
 
 document.querySelector('.up-area').addEventListener('click', texture_click)
