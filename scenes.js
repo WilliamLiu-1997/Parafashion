@@ -633,7 +633,7 @@ function init_transform() {
     renderer_transform = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
     renderer_transform.setPixelRatio(window.devicePixelRatio);
-    renderer_transform.setSize(window.innerHeight / 6, window.innerHeight / 6);
+    renderer_transform.setSize(window.innerHeight / 6.5, window.innerHeight / 6.5);
     document.getElementById("transform").appendChild(renderer_transform.domElement);
     camera_transform = new THREE.PerspectiveCamera(
         45,
@@ -641,7 +641,7 @@ function init_transform() {
         1,
         50
     );
-    camera_transform.position.set(0, 0, 25);
+    camera_transform.position.set(0, 0, 20);
 
     const dir = new THREE.Vector3(0, -1, 0);
 
@@ -654,7 +654,7 @@ function init_transform() {
     controls_transform = new TransformControls(camera_transform, renderer_transform.domElement);
     controls_transform.setMode("rotate");
     controls_transform.setSpace("local");
-    controls_transform.setSize(2.75);
+    controls_transform.setSize(3.5);
     controls_transform.setRotationSnap(THREE.MathUtils.degToRad(0.01));
 
     arrow = new THREE.Object3D();
@@ -760,7 +760,7 @@ function animate() {
         point_helper.scale.setLength(camera.position.distanceTo(point_helper.position) * 5);
         directional_light.position.copy(new THREE.Vector3(0, 30, 0).applyEuler(arrow.rotation));
         camera_transform.rotation.copy(camera.rotation)
-        camera_transform.position.copy(new THREE.Vector3(0, 0, 25).applyEuler(camera.rotation))
+        camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
 
     }
 
@@ -799,7 +799,7 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
-    renderer_transform.setSize(window.innerHeight / 6, window.innerHeight / 6);
+    renderer_transform.setSize(window.innerHeight / 6.5, window.innerHeight / 6.5);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
 
     if (render_patch_flag) {
