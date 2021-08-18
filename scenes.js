@@ -225,10 +225,6 @@ var gui_options = {
             }
         })
         reload_patch(garment, 1, num);
-        url = ""
-        let liStr = "";
-        $('.list-drag').html(liStr);
-        $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
         gui_options.Overall_Reflectivity = NaN
     },
@@ -252,10 +248,6 @@ var gui_options = {
             }
         })
         reload_patch(garment, 1, num);
-        url = ""
-        let liStr = "";
-        $('.list-drag').html(liStr);
-        $(".tip").show();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         gui_options.Overall_Reflectivity = NaN
     },
@@ -312,7 +304,7 @@ var Materials = {
         flatShading: false,
         metalness: 0.0,
         normalScale: new THREE.Vector2(1, 1),//vector2
-        roughness: 1.0,
+        roughness: 0.5,
         wireframe: false,
     },
     'MeshPhysicalMaterial': {
@@ -323,7 +315,7 @@ var Materials = {
         flatShading: false,
         metalness: 0.0,
         normalScale: new THREE.Vector2(1, 1),//vector2
-        roughness: 1.0,
+        roughness: 0.5,
         wireframe: false,
         clearcoat: 0.0,
         clearcoatRoughness: 0.0,
@@ -747,7 +739,7 @@ function animate() {
                 lack = true
             }
         }
-        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that the patches we can get are <b>NOT</b> complete! Part of the textures may also cannot be set!&nbsp;&nbsp;</div>'); }
+        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that part of the textures may cannot be set!&nbsp;&nbsp;</div>'); }
 
 
         hide_loading();
@@ -1091,6 +1083,10 @@ function select_recovery() {
         controls.target = false;
         controls.rotateSpeed = 1.3;
     }
+    url = ""
+    let liStr = "";
+    $('.list-drag').html(liStr);
+    $(".tip").show();
 }
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
@@ -1290,6 +1286,7 @@ function select_material(cover_pointer, cover_camera) {
                 if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
             }
             if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
+                select_recovery()
                 find_new = true;
                 selected = [intersects[0].object, i]
                 selected_obj.traverse(function (obj) {
@@ -1324,6 +1321,7 @@ function select_material(cover_pointer, cover_camera) {
         }
         else {
             if (last_select.length != 1 || last_select[0] != intersects[0].object) {
+                select_recovery()
                 find_new = true;
                 selected = [intersects[0].object];
                 outlinePass_select.selectedObjects = [intersects[0].object];
@@ -1359,6 +1357,7 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                 if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
             }
             if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
+                select_recovery()
                 find_new = true;
                 selected_patch = [intersects[0].object];
                 selected_obj.traverse(function (obj) {
@@ -1394,6 +1393,7 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
         }
         else {
             if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
+                select_recovery()
                 find_new = true;
                 outlinePass_patch_select.selectedObjects = [intersects[0].object];
                 last_select_patch = []
@@ -2663,6 +2663,12 @@ function Material_Update_Param(reflecttivity_change = false) {
 }
 
 function GUI_to_Obj_Param(obj_material, obj_material1) {
+    if (Material.material === "MeshPhysicalMaterial" && Materials.MeshPhysicalMaterial.transmission > 0.001 && Material.opacity<1) {
+        Material.opacity = 1;
+        $("#alert_transmission").html('<div id="transmission_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Enable transmission (>0.001) will disable opacity! To adjustment opacity, please set transmission to min value (0.001)!&nbsp;&nbsp;</div>');
+        setTimeout(function () { $("#transmission_alert").fadeOut(500); }, 3000)
+        setTimeout(function () { $("#alert_transmission").html("") }, 3500)
+    }
 
     obj_material.opacity = Material.opacity
     obj_material.transparent = Material.transparent
@@ -2892,7 +2898,7 @@ function load_material() {
         selected[0].material[selected[1]] = selected[0].material[selected[1]].clone()
         selected_patch[0].material = selected_patch[0].material.clone()
         Material.material = selected[0].material[selected[1]].type;
-        for (var eachtype of Object.keys(Material_Type_Folder)) { Material_Type_Folder[eachtype].hide() }
+        for (var eachtype of Object.keys(Material_Type_Folder)) { if (Material.material != eachtype) Material_Type_Folder[eachtype].hide() }
         Material_Type_Folder[Material.material].show()
         material_folder.show()
         Obj_to_GUI(selected[0].material[selected[1]])
@@ -2902,7 +2908,7 @@ function load_material() {
         selected[0].material = selected[0].material.clone()
         selected_patch[0].material = selected_patch[0].material.clone()
         Material.material = selected[0].material.type;
-        for (var eachtype of Object.keys(Material_Type_Folder)) { Material_Type_Folder[eachtype].hide() }
+        for (var eachtype of Object.keys(Material_Type_Folder)) { if (Material.material != eachtype) Material_Type_Folder[eachtype].hide() }
         Material_Type_Folder[Material.material].show()
         material_folder.show()
         Obj_to_GUI(selected[0].material)
@@ -2928,15 +2934,11 @@ function Change_Mode() {
 
     cover_recovery()
     select_recovery()
-    url = ""
-    let liStr = "";
-    $('.list-drag').html(liStr);
-    $(".tip").show();
     return;
 }
 
 function Change_material() {
-    for (var eachtype of Object.keys(Material_Type_Folder)) { Material_Type_Folder[eachtype].hide() }
+    for (var eachtype of Object.keys(Material_Type_Folder)) { if (Material.material != eachtype) Material_Type_Folder[eachtype].hide() }
     Material_Type_Folder[Material.material].show()
     TextureParams.current = "map"
     Texture_to_GUI()
