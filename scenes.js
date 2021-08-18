@@ -41,6 +41,10 @@ let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), refle
 let obj_size = 1;
 let find_new = false;
 let pixelRatio = window.devicePixelRatio;
+var FPS = 60;
+var singleFrameTime = 1 / FPS;
+var timeStamp = 0;
+const clock = new THREE.Clock();
 
 
 let shift = false;
@@ -671,100 +675,105 @@ function init_transform() {
 
 
 function animate() {
-    stats.begin();
-    if (patch_panel_width != $("#container_patch").css("width")) {
-        patch_panel_width = $("#container_patch").css("width")
-        onWindowResize()
-    }
-    if (progress_obj + progress_mtl == 200 && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
-        camera.position.set(0, obj_size / 2, obj_size * 2);
-        controls.saveState();
-        var lack = false;
-        var all_empty = true;
-        progress_obj = progress_mtl = -1;
-        var num = garment.children[0].children.length;
+    var delta = clock.getDelta();
+    requestAnimationFrame(animate);
+    timeStamp += delta;
+    if (timeStamp > singleFrameTime) {
+        stats.begin();
+        if (patch_panel_width != $("#container_patch").css("width")) {
+            patch_panel_width = $("#container_patch").css("width")
+            onWindowResize()
+        }
+        if (progress_obj + progress_mtl == 200 && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
+            camera.position.set(0, obj_size / 2, obj_size * 2);
+            controls.saveState();
+            var lack = false;
+            var all_empty = true;
+            progress_obj = progress_mtl = -1;
+            var num = garment.children[0].children.length;
 
-        patch = patch_loader(garment, 1, num);
-        patch.name = "patch";
-        scene_patch.add(patch);
-        camera_patch.position.set(0, 0, 2 * Math.max(1, max_radius));
-        controls_patch.saveState();
-        camera_patch.far = max_radius * 50;
-        controls_patch.maxZ = max_radius * 20;
-        controls_patch.minZ = 0.1;
-        controls.maxDistance = 25;
-        if (obj_size < 3) {
-            directional_light.shadow.mapSize.width = 2048;
-            directional_light.shadow.mapSize.height = 2048;
-        }
-        else if (obj_size < 6) {
-            directional_light.shadow.mapSize.width = 4096;
-            directional_light.shadow.mapSize.height = 4096;
-        }
-        else {
-            directional_light.shadow.mapSize.width = 8192;
-            directional_light.shadow.mapSize.height = 8192;
-        }
-
-        directional_light.shadow.camera.left = -obj_size * 1.5;
-        directional_light.shadow.camera.right = obj_size * 1.5;
-        directional_light.shadow.camera.top = obj_size * 1.5;
-        directional_light.shadow.camera.bottom = -obj_size * 1.5;
-        for (var i = 0; i < original.length; i++) {
-            if (original[i].geometry.groups.length > 0) {
-                original[i].material = original[i].material.slice(0)
+            patch = patch_loader(garment, 1, num);
+            patch.name = "patch";
+            scene_patch.add(patch);
+            camera_patch.position.set(0, 0, 2 * Math.max(1, max_radius));
+            controls_patch.saveState();
+            camera_patch.far = max_radius * 50;
+            controls_patch.maxZ = max_radius * 20;
+            controls_patch.minZ = 0.1;
+            controls.maxDistance = 25;
+            if (obj_size < 3) {
+                directional_light.shadow.mapSize.width = 2048;
+                directional_light.shadow.mapSize.height = 2048;
             }
-        }
+            else if (obj_size < 6) {
+                directional_light.shadow.mapSize.width = 4096;
+                directional_light.shadow.mapSize.height = 4096;
+            }
+            else {
+                directional_light.shadow.mapSize.width = 8192;
+                directional_light.shadow.mapSize.height = 8192;
+            }
 
-        document.addEventListener("mousemove", mouseMove, false);
+            directional_light.shadow.camera.left = -obj_size * 1.5;
+            directional_light.shadow.camera.right = obj_size * 1.5;
+            directional_light.shadow.camera.top = obj_size * 1.5;
+            directional_light.shadow.camera.bottom = -obj_size * 1.5;
+            for (var i = 0; i < original.length; i++) {
+                if (original[i].geometry.groups.length > 0) {
+                    original[i].material = original[i].material.slice(0)
+                }
+            }
 
-        $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
-        onWindowResize();
+            document.addEventListener("mousemove", mouseMove, false);
 
-        for (var i = 0; i < num; i++) {
-            try {
-                var empty = true;
-                var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
-                if (!all_empty || i == 0) {
-                    for (var uv_index in uvarray) {
-                        if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
-                            empty = false;
+            $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
+            Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+            onWindowResize();
+
+            for (var i = 0; i < num; i++) {
+                try {
+                    var empty = true;
+                    var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
+                    if (!all_empty || i == 0) {
+                        for (var uv_index in uvarray) {
+                            if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
+                                empty = false;
+                            }
                         }
                     }
+                    !empty ? all_empty = false : all_empty = true;
                 }
-                !empty ? all_empty = false : all_empty = true;
+                catch (err) {
+                    console.warn(err + ". Using empty UVs instead.")
+                    lack = true
+                }
             }
-            catch (err) {
-                console.warn(err + ". Using empty UVs instead.")
-                lack = true
-            }
+            if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that part of the textures may cannot be set!&nbsp;&nbsp;</div>'); }
+
+
+            hide_loading();
+            GUI_init();
+
         }
-        if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that part of the textures may cannot be set!&nbsp;&nbsp;</div>'); }
+        else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
 
+            gui.updateDisplay();
+            point_helper.scale.setLength(camera.position.distanceTo(point_helper.position) * 5);
+            directional_light.position.copy(new THREE.Vector3(0, 30, 0).applyEuler(arrow.rotation));
+            camera_transform.rotation.copy(camera.rotation)
+            camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
 
-        hide_loading();
-        GUI_init();
+        }
 
+        $("#texture_container").css({ "max-height": window.innerHeight * 0.91 * 0.45 })
+        $(".up-area").css({ "width": $(".dg.main").css("width") })
+        $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
+        if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
+        controls_patch.sensibility = camera_patch.position.z
+        render();
+        stats.end();
+        timeStamp = timeStamp % singleFrameTime;
     }
-    else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
-
-        gui.updateDisplay();
-        point_helper.scale.setLength(camera.position.distanceTo(point_helper.position) * 5);
-        directional_light.position.copy(new THREE.Vector3(0, 30, 0).applyEuler(arrow.rotation));
-        camera_transform.rotation.copy(camera.rotation)
-        camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
-
-    }
-
-    $("#texture_container").css({ "max-height": window.innerHeight * 0.91 * 0.45 })
-    $(".up-area").css({ "width": $(".dg.main").css("width") })
-    $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
-    if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
-    controls_patch.sensibility = camera_patch.position.z
-    requestAnimationFrame(animate);
-    render();
-    stats.end();
 }
 
 function render() {
@@ -2669,7 +2678,7 @@ function Material_Update_Param(reflecttivity_change = false) {
 }
 
 function GUI_to_Obj_Param(obj_material, obj_material1) {
-    if (Material.material === "MeshPhysicalMaterial" && Materials.MeshPhysicalMaterial.transmission > 0.001 && Material.opacity<1) {
+    if (Material.material === "MeshPhysicalMaterial" && Materials.MeshPhysicalMaterial.transmission > 0.001 && Material.opacity < 1) {
         Material.opacity = 1;
         $("#alert_transmission").html('<div id="transmission_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Enable transmission (>0.001) will disable opacity! To adjustment opacity, please set transmission to min value (0.001)!&nbsp;&nbsp;</div>');
         setTimeout(function () { $("#transmission_alert").fadeOut(500); }, 3000)
