@@ -551,6 +551,7 @@ function init() {
     document.getElementById("container").addEventListener("mousedown", onmouseDown, false);
     document.getElementById("container_patch").addEventListener("mousedown", onmouseDown_patch, false);
     window.addEventListener("mouseup", onmouseUp, false);
+    document.addEventListener("mousemove", mouseMove, false);
     window.addEventListener("keydown", onKeyDown, false);
     window.addEventListener("keyup", onKeyUp, false);
     document.getElementById("container_patch").addEventListener("wheel", onMouseWheel, false);
@@ -723,8 +724,6 @@ function animate() {
                     original[i].material = original[i].material.slice(0)
                 }
             }
-
-            document.addEventListener("mousemove", mouseMove, false);
 
             $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
             Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
