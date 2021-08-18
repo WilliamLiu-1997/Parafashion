@@ -625,7 +625,7 @@ function init_transform() {
     renderer_transform = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
     renderer_transform.setPixelRatio(window.devicePixelRatio);
-    renderer_transform.setSize(window.innerHeight / 8, window.innerHeight / 8);
+    renderer_transform.setSize(window.innerHeight / 7, window.innerHeight / 7);
     document.getElementById("transform").appendChild(renderer_transform.domElement);
     camera_transform = new THREE.PerspectiveCamera(
         45,
@@ -791,7 +791,7 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight);
-    renderer_transform.setSize(window.innerHeight / 8, window.innerHeight / 8);
+    renderer_transform.setSize(window.innerHeight / 7, window.innerHeight / 7);
     effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
 
     if (render_patch_flag) {
