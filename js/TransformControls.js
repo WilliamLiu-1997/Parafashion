@@ -962,7 +962,7 @@ class TransformControlsGizmo extends Object3D {
 
 		const helperRotate = {
 			AXIS: [
-				[new Line(lineGeometry, matHelper.clone()), [- 1e3, 0, 0], null, [1e6, 1, 1], 'helper']
+				[new Line(lineGeometry, matHelper.clone()), [- 0.6, 0, 0], null, [1.2, 1, 1], 'helper']
 			]
 		};
 

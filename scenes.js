@@ -40,6 +40,7 @@ default_texture.wrapS = default_texture.wrapT = THREE.RepeatWrapping;
 let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, map: default_texture, side: THREE.DoubleSide })
 let obj_size = 1;
 let find_new = false;
+let pixelRatio = window.devicePixelRatio;
 
 
 let shift = false;
@@ -455,7 +456,7 @@ function init() {
     scene.background = new THREE.Color(0x181818);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(pixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -510,9 +511,9 @@ function init() {
     outlinePass_select.hiddenEdgeColor.set(outlinePass_params_select.hiddenEdgeColor);
 
     effectFXAA = new ShaderPass(FXAAShader);
-    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
+    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / pixelRatio, 1 / window.innerHeight / pixelRatio);
     composer.addPass(effectFXAA);
-    composer.setPixelRatio(window.devicePixelRatio);
+    composer.setPixelRatio(pixelRatio);
     composer.setSize(window.innerWidth, window.innerHeight);
     // controls
 
@@ -558,7 +559,7 @@ function init_patch() {
     scene_patch = new THREE.Scene();
     renderer_patch = new THREE.WebGLRenderer({ alpha: true, antialias: true, logarithmicDepthBuffer: true });
 
-    renderer_patch.setPixelRatio(window.devicePixelRatio);
+    renderer_patch.setPixelRatio(pixelRatio);
     renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
     document.getElementById("container_patch").appendChild(renderer_patch.domElement);
     camera_patch = new THREE.PerspectiveCamera(
@@ -599,9 +600,9 @@ function init_patch() {
     outlinePass_patch_select.hiddenEdgeColor.set(outlinePass_params_select.hiddenEdgeColor);
 
     effectFXAA_patch = new ShaderPass(FXAAShader);
-    effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.78 / window.devicePixelRatio);
+    effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / pixelRatio, 1 / window.innerHeight / 0.78 / pixelRatio);
     composer_patch.addPass(effectFXAA_patch);
-    composer_patch.setPixelRatio(window.devicePixelRatio);
+    composer_patch.setPixelRatio(pixelRatio);
     composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
 
     controls_patch = new CameraControls(camera_patch, renderer_patch.domElement);
@@ -624,7 +625,7 @@ function init_transform() {
     scene_transform = new THREE.Scene();
     renderer_transform = new THREE.WebGLRenderer({ alpha: true, antialias: true });
 
-    renderer_transform.setPixelRatio(window.devicePixelRatio);
+    renderer_transform.setPixelRatio(pixelRatio);
     renderer_transform.setSize(window.innerHeight / 7, window.innerHeight / 7);
     document.getElementById("transform").appendChild(renderer_transform.domElement);
     camera_transform = new THREE.PerspectiveCamera(
@@ -790,16 +791,21 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(pixelRatio);
     composer.setSize(window.innerWidth, window.innerHeight);
+    composer.setPixelRatio(pixelRatio);
     renderer_transform.setSize(window.innerHeight / 7, window.innerHeight / 7);
-    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / window.devicePixelRatio, 1 / window.innerHeight / window.devicePixelRatio);
+    renderer_transform.setPixelRatio(pixelRatio);
+    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / pixelRatio, 1 / window.innerHeight / pixelRatio);
 
     if (render_patch_flag) {
         camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.78;
         camera_patch.updateProjectionMatrix();
         renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
+        renderer_patch.setPixelRatio(pixelRatio);
         composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
-        effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / window.devicePixelRatio, 1 / window.innerHeight / 0.78 / window.devicePixelRatio);
+        composer_patch.setPixelRatio(pixelRatio);
+        effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / pixelRatio, 1 / window.innerHeight / 0.78 / pixelRatio);
     }
 }
 
