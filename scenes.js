@@ -326,7 +326,7 @@ var Materials = {
         clearcoatRoughness: 0.0,
         reflectivity: 0.5,
         sheen: 0x000000,//color
-        transmission: 0.001,
+        transmission: 0,
     },
 }
 
@@ -2406,7 +2406,7 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoatRoughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "transmission", 0.001, 1, 0.001).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "transmission", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update_Param())
@@ -2685,9 +2685,9 @@ function Material_Update_Param(reflecttivity_change = false) {
 }
 
 function GUI_to_Obj_Param(obj_material, obj_material1) {
-    if (Material.material === "MeshPhysicalMaterial" && Materials.MeshPhysicalMaterial.transmission > 0.001 && Material.opacity < 1) {
+    if (Material.material === "MeshPhysicalMaterial" && Materials.MeshPhysicalMaterial.transmission > 0 && Material.opacity < 1) {
         Material.opacity = 1;
-        $("#alert_transmission").html('<div id="transmission_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Enable transmission (>0.001) will disable opacity! To adjustment opacity, please set transmission to min value (0.001)!&nbsp;&nbsp;</div>');
+        $("#alert_transmission").html('<div id="transmission_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Enable transmission will disable opacity! To adjustment opacity, please set transmission to 0!&nbsp;&nbsp;</div>');
         setTimeout(function () { $("#transmission_alert").fadeOut(500); }, 3000)
         setTimeout(function () { $("#alert_transmission").html("") }, 3500)
     }
@@ -2801,6 +2801,7 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.metalness = Materials.MeshPhysicalMaterial.metalness
             obj_material.roughness = Materials.MeshPhysicalMaterial.roughness
             obj_material.wireframe = Materials.MeshPhysicalMaterial.wireframe
+            obj_material.needsUpdate=true
             obj_material1.color.setHex(Materials.MeshPhysicalMaterial.color)
             if (obj_material1.sheen) obj_material1.sheen.setHex(Materials.MeshPhysicalMaterial.sheen)
             else obj_material1.sheen = new THREE.Color(Materials.MeshPhysicalMaterial.sheen)
@@ -2816,6 +2817,7 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material1.metalness = Materials.MeshPhysicalMaterial.metalness
             obj_material1.roughness = Materials.MeshPhysicalMaterial.roughness
             obj_material1.wireframe = Materials.MeshPhysicalMaterial.wireframe
+            obj_material1.needsUpdate = true
             break;
     }
 }
