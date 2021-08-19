@@ -2246,8 +2246,8 @@ function GUI_init() {
     cut_component.open();
     cut_component.hide();
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
-    folder_basic.add(controls, 'sensibility', 0.1, 35, 0.1).name("Camera Sensibility");
-    folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
+    // folder_basic.add(controls, 'sensibility', 0.1, 35, 0.1).name("Camera Sensibility");
+    // folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
