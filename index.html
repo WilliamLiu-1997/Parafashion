@@ -338,7 +338,7 @@
             { width: "22%", minWidth: "240px" },
             350,
             function () {
-              resize_patch = false;
+              setTimeout(function(){resize_patch = false;},100)
             }
           );
           $("#scale-patches").text(">");
@@ -352,7 +352,7 @@
             { width: "5%", minWidth: "120px" },
             350,
             function () {
-              resize_patch = false;
+              setTimeout(function(){resize_patch = false;},100)
             }
           );
           $("#scale-patches").text(">");
@@ -375,7 +375,7 @@
             },
             350,
             function () {
-              resize_patch = false;
+              setTimeout(function(){resize_patch = false;},100)
               patch_scaled = true;
             }
           );
@@ -385,7 +385,7 @@
           $("#scale-patches").text() == "<"
         ) {
           $(".panel_box").animate({ width: "22%" }, 350, function () {
-            resize_patch = false;
+            setTimeout(function(){resize_patch = false;},100)
           });
           $("#scale-patches").text(">");
           patch_scaled = false;

@@ -789,8 +789,6 @@ function render() {
 function onWindowResize() {
     if (window.innerWidth < 980 && !resize_patch && $("#alert_size").html().length == 0) {
         $("#alert_size").html('<div id="size_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Your window width is too small. This web application is <b>NOT</b> compatible!&nbsp;&nbsp;</div>');
-        setTimeout(function () { $("#size_alert").fadeOut(500); }, 5000)
-        setTimeout(function () { $("#alert_size").html("") }, 5500)
     }
     else if (window.innerWidth >= 980) {
         $("#size_alert").hide();
