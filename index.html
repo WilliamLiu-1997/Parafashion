@@ -57,7 +57,7 @@
     #transform {
       display: none;
       position: absolute;
-      background-color: rgba(0,0,0,0);
+      background-color: rgba(0, 0, 0, 0);
       left: 50%;
       top: 40px;
       z-index: 9;
@@ -99,6 +99,19 @@
     .btn:focus {
       outline: 0px auto -webkit-focus-ring-color;
       outline-offset: 2px;
+    }
+
+    .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    .btn-group > .btn:last-child:not(:first-child),
+    .btn-group > .dropdown-toggle:not(:first-child) {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
     }
 
     #gui_container {
@@ -308,8 +321,7 @@
     <div id="info">
       <p>Parafashion</p>
     </div>
-    <div id="transform">
-    </div>
+    <div id="transform"></div>
     <div id="vertice_num"></div>
     <script>
       show_loading();
@@ -338,7 +350,9 @@
             { width: "22%", minWidth: "240px" },
             350,
             function () {
-              setTimeout(function(){resize_patch = false;},100)
+              setTimeout(function () {
+                resize_patch = false;
+              }, 100);
             }
           );
           $("#scale-patches").text(">");
@@ -352,7 +366,9 @@
             { width: "5%", minWidth: "120px" },
             350,
             function () {
-              setTimeout(function(){resize_patch = false;},100)
+              setTimeout(function () {
+                resize_patch = false;
+              }, 100);
             }
           );
           $("#scale-patches").text(">");
@@ -375,7 +391,9 @@
             },
             350,
             function () {
-              setTimeout(function(){resize_patch = false;},100)
+              setTimeout(function () {
+                resize_patch = false;
+              }, 100);
               patch_scaled = true;
             }
           );
@@ -385,7 +403,9 @@
           $("#scale-patches").text() == "<"
         ) {
           $(".panel_box").animate({ width: "22%" }, 350, function () {
-            setTimeout(function(){resize_patch = false;},100)
+            setTimeout(function () {
+              resize_patch = false;
+            }, 100);
           });
           $("#scale-patches").text(">");
           patch_scaled = false;
