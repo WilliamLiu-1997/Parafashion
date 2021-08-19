@@ -2240,12 +2240,12 @@ function GUI_init() {
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(gui_options.light));
     //folder_basic.add(directional_light, 'castShadow').name("Enable Shadow")
+    folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     cut_component = folder_basic.addFolder("Control");
     cut_component.add(gui_options, 'Unselect');
     cut_component.add(gui_options, 'focus').onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
     cut_component.open();
     cut_component.hide();
-    folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     // folder_basic.add(controls, 'sensibility', 0.1, 35, 0.1).name("Camera Sensibility");
     // folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
     folder_basic.open()
