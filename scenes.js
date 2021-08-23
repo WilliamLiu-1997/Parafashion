@@ -1004,7 +1004,6 @@ function onmouseUp(event) {
         drawing = false;
     }
     else if (shift) {
-        event.preventDefault();
         texture_state = 0;
         set_cursor(1)
         uv_offset = false;
