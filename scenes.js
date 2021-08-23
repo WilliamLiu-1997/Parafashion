@@ -1068,23 +1068,23 @@ function mouseMove(event) {
                 uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
                 if (selected.length === 1) {
                     for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
-                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
                         selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
                         selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
-                        selected_patch[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
-                        selected_patch[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
+                        selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                        selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
                     }
                 }
                 else if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
-                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
                         selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
                         selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
-                        selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
-                        selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
+                        selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
+                        selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
                     }
                 }
                 selected[0].geometry.attributes.uv.needsUpdate = true;
@@ -1096,28 +1096,26 @@ function mouseMove(event) {
         if (texture_state === 2) {
             if (intersects_scale&&intersects_scale.length > 0) {
                 if (!uv_offset) uv_offset = intersects_scale[0].uv.clone();
-                var uv_deltaX = -(intersects_scale[0].uv.x - uv_offset.x)
-                var uv_deltaY = -(intersects_scale[0].uv.y - uv_offset.y)
                 let scale = -(deltaY + deltaX)/500;
                 if (selected.length === 1) {
                     for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + (selected[0].geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
-                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + (selected[0].geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
                         selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + (selected_obj.geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
                         selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + (selected_obj.geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
-                        selected_patch[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + (selected[0].geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
-                        selected_patch[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + (selected[0].geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
+                        selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                        selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
                     }
                 }
                 else if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + (selected[0].geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
-                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + (selected[0].geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
                         selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + (selected_obj.geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
                         selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + (selected_obj.geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
-                        selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + (selected[0].geometry.attributes.uv.getX(i - start) - uv_offset.x) * scale)
-                        selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + (selected[0].geometry.attributes.uv.getY(i - start) - uv_offset.y) * scale)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
+                        selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
+                        selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
                     }
                 }
                 selected[0].geometry.attributes.uv.needsUpdate = true;
@@ -1125,10 +1123,6 @@ function mouseMove(event) {
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
             }
             GUI_to_Texture_Param()
-
-            // TextureParams.repeat.x *= 1 - (deltaY + deltaX) / 1000
-            // TextureParams.repeat.y *= 1 - (deltaY + deltaX) / 1000
-            // GUI_to_Texture_Param()
         }
     }
     else if (cover) {
@@ -1144,29 +1138,30 @@ function onMouseWheel(e) {
         raycaster.setFromCamera(pointer, camera);
         if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
         if (intersects.length > 0) {
-            if (!uv_offset) uv_offset = intersects[0].uv.clone();
-            var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
-            var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
-            uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
+            uv_offset = intersects[0].uv.clone();
             if (selected.length === 1) {
                 for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                    selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
-                    selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
-                    selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
-                    selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
-                    selected_patch[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
-                    selected_patch[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                    let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i), selected_obj.geometry.attributes.uv.getY(i))
+                    vec2.rotateAround(uv_offset, rotation)
+                    selected_obj.geometry.attributes.uv.setX(i, vec2.x)
+                    selected_obj.geometry.attributes.uv.setY(i, vec2.y)
+                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
+                    selected_patch[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected_patch[0].geometry.attributes.uv.setY(i, vec2.y)
                 }
             }
             else if (selected.length === 2) {
                 let start = selected[0].geometry.groups[selected[1]].start
                 for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                    selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
-                    selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
-                    selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
-                    selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
-                    selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
-                    selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                    let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i - start), selected_obj.geometry.attributes.uv.getY(i - start))
+                    vec2.rotateAround(uv_offset, rotation)
+                    selected_obj.geometry.attributes.uv.setX(i - start, vec2.x)
+                    selected_obj.geometry.attributes.uv.setY(i - start, vec2.y)
+                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
+                    selected_patch[0].geometry.attributes.uv.setX(i - start, vec2.x)
+                    selected_patch[0].geometry.attributes.uv.setY(i - start, vec2.y)
                 }
             }
             selected[0].geometry.attributes.uv.needsUpdate = true;
@@ -1174,15 +1169,6 @@ function onMouseWheel(e) {
             selected_patch[0].geometry.attributes.uv.needsUpdate = true;
         }
         GUI_to_Texture_Param()
-
-        if (e.deltaY > 0) {
-            TextureParams.rotation -= 0.015
-            GUI_to_Texture_Param()
-        }
-        if (e.deltaY < 0) {
-            TextureParams.rotation += 0.015
-            GUI_to_Texture_Param()
-        }
     }
 }
 
