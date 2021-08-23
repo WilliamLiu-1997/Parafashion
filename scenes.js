@@ -44,6 +44,7 @@ let pixelRatio = window.devicePixelRatio;
 var FPS = 60;
 var singleFrameTime = 1 / FPS;
 var timeStamp = 0;
+var uv_offset;
 const clock = new THREE.Clock();
 
 
@@ -256,7 +257,7 @@ var gui_options = {
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         gui_options.Overall_Reflectivity = NaN
     },
-    Overall_Reflectivity: 0,
+    Overall_Reflectivity: 1,
     env: "None",
     Enable_Patch_Background: false,
     cut: false,
@@ -555,7 +556,7 @@ function init() {
     document.addEventListener("mousemove", mouseMove, false);
     window.addEventListener("keydown", onKeyDown, false);
     window.addEventListener("keyup", onKeyUp, false);
-    document.getElementById("container_patch").addEventListener("wheel", onMouseWheel, false);
+    document.getElementById("container").addEventListener("wheel", onMouseWheel, false);
 
 
 }
@@ -820,10 +821,13 @@ function onKeyDown(e) {
     switch (e.keyCode) {
         case 16:
             let obj = document.getElementById("panel_box");
-            if (mouse_position.x > obj.offsetLeft
+            let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
+            let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
+            let on_patch = mouse_position.x > obj.offsetLeft
                 && mouse_position.x < (obj.offsetLeft + obj.clientWidth)
                 && mouse_position.y > obj.offsetTop
                 && mouse_position.y < (obj.offsetTop + obj.clientHeight)
+            if (!on_patch && !on_gui && !on_transform
                 && !gui_options.cut
                 && selected.length > 0
                 && !mouse_down) {
@@ -864,10 +868,10 @@ function onKeyUp(e) {
 function set_cursor(n) {
 
     if (n === 0) {
-        document.getElementById("panel_box").style.cursor = "auto"
+        document.getElementById("container").style.cursor = "auto"
     }
     else if (n === 1) {
-        document.getElementById("panel_box").style.cursor = "grab"
+        document.getElementById("container").style.cursor = "grab"
     }
 }
 
@@ -878,7 +882,6 @@ function onmouseDown(event) {
     if (ctrl) {
         return;
     }
-
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
             controls.stop = true;
@@ -893,6 +896,21 @@ function onmouseDown(event) {
                     controls.rotateSpeed = 2.5;
                 }
             }
+        }
+    }
+    else if (shift) {
+        event.preventDefault()
+        if (event.button == 0) {
+            raycaster.setFromCamera(pointer, camera);
+            if (selected.length === 1) var intersects = raycaster.intersectObject(selected[0], true);
+            if (selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+            if (intersects.length > 0) {
+                texture_state = 1;
+                uv_offset = intersects[0].uv.clone()
+            }
+        }
+        else if (event.button == 2) {
+            texture_state = 2;
         }
     }
     else {
@@ -936,42 +954,33 @@ function onmouseDown_patch(event) {
         return;
     }
 
-    if (shift) {
-        event.preventDefault()
-        if (event.button == 0) {
-            texture_state = 1;
-        }
-        else if (event.button == 2) {
-            texture_state = 2;
-        }
-    }
-    else {
-        if (event.button == 0) {
-            pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
-            pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
-            if (!mouse_down && cover) { cover_recovery(); }
-            if (cover) {
-                select_material_patch(pointer_patch, camera_patch);
-                if (controls !== undefined) {
-                    if (selected.length === 1) {
-                        controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
-                        controls.rotateSpeed = 2.5;
-                    } else if (selected.length === 2) {
-                        selected_obj.geometry.computeBoundingSphere();
-                        controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
-                        controls.rotateSpeed = 2.5;
-                    }
 
-                } if (find_new) {
-                    load_material()
-                    find_new = false;
+    if (event.button == 0) {
+        pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
+        pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
+        if (!mouse_down && cover) { cover_recovery(); }
+        if (cover) {
+            select_material_patch(pointer_patch, camera_patch);
+            if (controls !== undefined) {
+                if (selected.length === 1) {
+                    controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                    controls.rotateSpeed = 2.5;
+                } else if (selected.length === 2) {
+                    selected_obj.geometry.computeBoundingSphere();
+                    controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
+                    controls.rotateSpeed = 2.5;
                 }
+
+            } if (find_new) {
+                load_material()
+                find_new = false;
             }
-            cover = false;
         }
-        else if (event.button == 1) { cover = false; }
-        else if (event.button == 2) { cover = false; }
+        cover = false;
     }
+    else if (event.button == 1) { cover = false; }
+    else if (event.button == 2) { cover = false; }
+
 }
 
 function onmouseUp(event) {
@@ -1026,18 +1035,46 @@ function mouseMove(event) {
         }
     }
     else if (shift) {
-        let targetDistance = 1 / window.innerHeight * Math.tan((camera_patch.fov / 2) * Math.PI / 180.0) * 2;
+        let targetDistance = 1 / window.innerHeight * Math.tan((camera.fov / 2) * Math.PI / 180.0) * 2;
 
         if (texture_state === 1) {
-            TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
-            TextureParams.offset.x -= (Math.cos(TextureParams.rotation) * deltaX + Math.sin(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1.56 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance * Math.max(1, max_radius)
-            TextureParams.offset.y -= (-Math.sin(TextureParams.rotation) * deltaX + Math.cos(TextureParams.rotation) * deltaY) * camera_patch.position.z / 1.56 * (TextureParams.repeat.x + TextureParams.repeat.y) * targetDistance * Math.max(1, max_radius)
+            TextureParams.center.set(0.5, 0.5)
+            raycaster.setFromCamera(pointer, camera);
+            if (selected.length === 1) var intersects = raycaster.intersectObject(selected[0], true);
+            if (selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+            if (intersects.length > 0) {
+                var uv_deltaX = intersects[0].uv.x - uv_offset.x
+                var uv_deltaY = intersects[0].uv.y - uv_offset.y
+                uv_offset.copy(intersects[0].uv)
+                if (selected.length === 1) {
+                    for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
+                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
+                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                        selected_patch[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
+                        selected_patch[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                    }
+                }
+                else if (selected.length === 2) {
+                    let start=selected[0].geometry.groups[selected[1]].start
+                    for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
+                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
+                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                        selected_obj.geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                        selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                        selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                    }
+                }
+                selected_obj.geometry.attributes.uv.needsUpdate = true;
+                selected[0].geometry.attributes.uv.needsUpdate = true;
+                selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+            }
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
-            TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
-            TextureParams.repeat.x *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1.56 * targetDistance * Math.max(1, max_radius)
-            TextureParams.repeat.y *= 1 - (deltaY + deltaX) * camera_patch.position.z / 1.56 * targetDistance * Math.max(1, max_radius)
+            TextureParams.center.set(0.5, 0.5)
+            TextureParams.repeat.x *= 1 - (deltaY + deltaX) * targetDistance * obj_size
+            TextureParams.repeat.y *= 1 - (deltaY + deltaX) * targetDistance * obj_size
             GUI_to_Texture_Param()
         }
     }
@@ -1048,7 +1085,7 @@ function mouseMove(event) {
 
 function onMouseWheel(e) {
     if (shift && !mouse_down) {
-        TextureParams.center.set(selected_patch[0].geometry.boundingSphere.center.x, selected_patch[0].geometry.boundingSphere.center.y)
+        TextureParams.center.set(0.5, 0.5)
         if (e.deltaY > 0) {
             TextureParams.rotation -= 0.015
             GUI_to_Texture_Param()
@@ -2254,12 +2291,13 @@ function GUI_init() {
     folder_env = gui.addFolder("Environment")
     folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
+    folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     // other options: "BathRoom", 'Church', "Gallery", "Square"
-    folder_material_global = gui.addFolder("Material Global Settings")
-    folder_material_global.add(gui_options, "reset").name('Materials Recovery')
-    folder_material_global.add(gui_options, "set_default").name('Random Materials')
-    folder_material_global.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
-    folder_material_global.open()
+
+    // folder_material_global = gui.addFolder("Material Global Settings")
+    // folder_material_global.add(gui_options, "reset").name('Materials Recovery')
+    // folder_material_global.add(gui_options, "set_default").name('Random Materials')
+    // folder_material_global.open()
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
@@ -2461,11 +2499,11 @@ function Reflectivity() {
             if (Array.isArray(child.material)) {
                 for (let m = 0; m < child.material.length; m++) {
                     child.material[m] = child.material[m].clone()
-                    child.material[m].reflectivity = gui_options.Overall_Reflectivity
+                    if (child.material[m].reflectivity !== undefined) child.material[m].reflectivity = gui_options.Overall_Reflectivity
                 }
             } else {
                 child.material = child.material.clone()
-                child.material.reflectivity = gui_options.Overall_Reflectivity
+                if (child.material.reflectivity !== undefined) child.material.reflectivity = gui_options.Overall_Reflectivity
             }
         }
     })
@@ -2474,11 +2512,11 @@ function Reflectivity() {
             if (Array.isArray(child.material)) {
                 for (let m = 0; m < child.material.length; m++) {
                     child.material[m] = child.material[m].clone()
-                    child.material[m].reflectivity = gui_options.Overall_Reflectivity
+                    if (child.material[m].reflectivity !== undefined) child.material[m].reflectivity = gui_options.Overall_Reflectivity
                 }
             } else {
                 child.material = child.material.clone()
-                child.material.reflectivity = gui_options.Overall_Reflectivity
+                if (child.material.reflectivity !== undefined) child.material.reflectivity = gui_options.Overall_Reflectivity
             }
         }
     })
@@ -2654,8 +2692,8 @@ function Obj_to_GUI(obj_material) {
     }
 }
 
-function Material_Update(reflecttivity_change = false) {
-    if (reflecttivity_change) {
+function Material_Update(reflectivity_change = false) {
+    if (reflectivity_change) {
         gui_options.Overall_Reflectivity = NaN
     }
     if (selected.length == 2) {
@@ -2671,8 +2709,8 @@ function Material_Update(reflecttivity_change = false) {
 }
 
 
-function Material_Update_Param(reflecttivity_change = false) {
-    if (reflecttivity_change) {
+function Material_Update_Param(reflectivity_change = false) {
+    if (reflectivity_change) {
         gui_options.Overall_Reflectivity = NaN
     }
     if (selected.length == 2) {
@@ -2805,7 +2843,7 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.metalness = Materials.MeshPhysicalMaterial.metalness
             obj_material.roughness = Materials.MeshPhysicalMaterial.roughness
             obj_material.wireframe = Materials.MeshPhysicalMaterial.wireframe
-            obj_material.needsUpdate=true
+            obj_material.needsUpdate = true
             obj_material1.color.setHex(Materials.MeshPhysicalMaterial.color)
             if (obj_material1.sheen) obj_material1.sheen.setHex(Materials.MeshPhysicalMaterial.sheen)
             else obj_material1.sheen = new THREE.Color(Materials.MeshPhysicalMaterial.sheen)
