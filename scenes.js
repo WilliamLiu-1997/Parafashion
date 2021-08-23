@@ -46,6 +46,7 @@ var singleFrameTime = 1 / FPS;
 var timeStamp = 0;
 var uv_offset = false;
 var set_center = false;
+var intersects_scale=false;
 const clock = new THREE.Clock();
 
 
@@ -66,8 +67,8 @@ var garments_mtl = "./leggins/patch.mtl"
 var garments_obj = "./leggins/patch.obj"
 // var garments_mtl = "./leggins/patch_smooth.mtl"
 // var garments_obj = "./leggins/patch_smooth.obj"
-// var garments_mtl = "./obj/village1/village_final.mtl"
-// var garments_obj = "./obj/village1/village_final.obj"
+var garments_mtl = "./obj/village1/village_final.mtl"
+var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
 var garments_mtl = "./obj/tower/tower3.mtl"
@@ -925,10 +926,11 @@ function onmouseDown(event) {
             if (selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
             if (intersects.length > 0) {
                 texture_state = 1;
-                //uv_offset = intersects[0].uv.clone()
             }
         }
         else if (event.button == 2) {
+            raycaster.setFromCamera(pointer, camera);
+            if (selected.length === 1 || selected.length === 2) intersects_scale = raycaster.intersectObject(selected_obj, true);
             texture_state = 2;
         }
     }
@@ -1013,6 +1015,7 @@ function onmouseUp(event) {
     else if (shift) {
         texture_state = 0;
         uv_offset = false;
+        intersects_scale = false;
     }
     else {
         if (event.button == 0) {
@@ -1062,11 +1065,13 @@ function mouseMove(event) {
                 if (!uv_offset) uv_offset = intersects[0].uv.clone();
                 var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
                 var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
-                uv_offset.copy(intersects[0].uv)
+                uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
                 if (selected.length === 1) {
                     for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
                         selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
                         selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                        selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
+                        selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
                         selected_patch[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
                         selected_patch[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
                     }
@@ -1076,19 +1081,54 @@ function mouseMove(event) {
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
                         selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
                         selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                        selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
                         selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
                         selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
                     }
                 }
                 selected[0].geometry.attributes.uv.needsUpdate = true;
+                selected_obj.geometry.attributes.uv.needsUpdate = true;
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
             }
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
-            TextureParams.repeat.x *= 1 - (deltaY + deltaX) / 1000
-            TextureParams.repeat.y *= 1 - (deltaY + deltaX) / 1000
+            if (intersects_scale&&intersects_scale.length > 0) {
+                if (!uv_offset) uv_offset = intersects_scale[0].uv.clone();
+                var uv_deltaX = -(intersects_scale[0].uv.x - uv_offset.x)
+                var uv_deltaY = -(intersects_scale[0].uv.y - uv_offset.y)
+                let scale = -(deltaY + deltaX)/500;
+                if (selected.length === 1) {
+                    for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
+                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + (selected[0].geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
+                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + (selected[0].geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
+                        selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + (selected_obj.geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
+                        selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + (selected_obj.geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
+                        selected_patch[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + (selected[0].geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
+                        selected_patch[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + (selected[0].geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
+                    }
+                }
+                else if (selected.length === 2) {
+                    let start = selected[0].geometry.groups[selected[1]].start
+                    for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
+                        selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + (selected[0].geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
+                        selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + (selected[0].geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + (selected_obj.geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
+                        selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + (selected_obj.geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
+                        selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + (selected[0].geometry.attributes.uv.getX(i - start) - uv_offset.x) * scale)
+                        selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + (selected[0].geometry.attributes.uv.getY(i - start) - uv_offset.y) * scale)
+                    }
+                }
+                selected[0].geometry.attributes.uv.needsUpdate = true;
+                selected_obj.geometry.attributes.uv.needsUpdate = true;
+                selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+            }
             GUI_to_Texture_Param()
+
+            // TextureParams.repeat.x *= 1 - (deltaY + deltaX) / 1000
+            // TextureParams.repeat.y *= 1 - (deltaY + deltaX) / 1000
+            // GUI_to_Texture_Param()
         }
     }
     else if (cover) {
@@ -1098,6 +1138,43 @@ function mouseMove(event) {
 
 function onMouseWheel(e) {
     if (shift && !mouse_down) {
+        pointer.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
+        pointer.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
+        let rotation = e.deltaY > 0 ? -0.015 : 0.015
+        raycaster.setFromCamera(pointer, camera);
+        if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+        if (intersects.length > 0) {
+            if (!uv_offset) uv_offset = intersects[0].uv.clone();
+            var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
+            var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
+            uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
+            if (selected.length === 1) {
+                for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
+                    selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
+                    selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                    selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
+                    selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
+                    selected_patch[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
+                    selected_patch[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                }
+            }
+            else if (selected.length === 2) {
+                let start = selected[0].geometry.groups[selected[1]].start
+                for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
+                    selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
+                    selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
+                    selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                    selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                    selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                    selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                }
+            }
+            selected[0].geometry.attributes.uv.needsUpdate = true;
+            selected_obj.geometry.attributes.uv.needsUpdate = true;
+            selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+        }
+        GUI_to_Texture_Param()
+
         if (e.deltaY > 0) {
             TextureParams.rotation -= 0.015
             GUI_to_Texture_Param()
