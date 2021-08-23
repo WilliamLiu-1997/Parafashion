@@ -70,8 +70,8 @@ var garments_mtl = "./obj/village1/village_final.mtl"
 var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-var garments_mtl = "./obj/tower/tower3.mtl"
-var garments_obj = "./obj/tower/tower3.obj"
+// var garments_mtl = "./obj/tower/tower3.mtl"
+// var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // garments_mtl = false
@@ -1055,8 +1055,6 @@ function mouseMove(event) {
         }
     }
     else if (shift) {
-        let targetDistance = 1 / window.innerHeight * Math.tan((camera.fov / 2) * Math.PI / 180.0) * 2;
-
         if (texture_state === 1) {
             raycaster.setFromCamera(pointer, camera);
             if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
@@ -1088,8 +1086,8 @@ function mouseMove(event) {
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
-            TextureParams.repeat.x *= 1 - (deltaY + deltaX) * targetDistance * obj_size
-            TextureParams.repeat.y *= 1 - (deltaY + deltaX) * targetDistance * obj_size
+            TextureParams.repeat.x *= 1 - (deltaY + deltaX) / 1000
+            TextureParams.repeat.y *= 1 - (deltaY + deltaX) / 1000
             GUI_to_Texture_Param()
         }
     }
@@ -2367,7 +2365,7 @@ function GUI_init() {
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
     basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams,"set_center")
+    basic_texture.add(TextureParams, "set_center")
     // basic_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // basic_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // basic_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
