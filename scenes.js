@@ -45,7 +45,7 @@ var FPS = 60;
 var singleFrameTime = 1 / FPS;
 var timeStamp = 0;
 var uv_offset = false;
-var intersects_scale=false;
+var intersects_scale = false;
 const clock = new THREE.Clock();
 
 
@@ -877,6 +877,9 @@ function set_cursor(n) {
     else if (n === 2) {
         document.getElementById("container").style.cursor = "crosshair"
     }
+    else if (n === 3) {
+        document.getElementById("container").style.cursor = "grabbing"
+    }
 }
 
 
@@ -910,12 +913,16 @@ function onmouseDown(event) {
             if (selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
             if (intersects.length > 0) {
                 texture_state = 1;
+                set_cursor(3)
             }
         }
         else if (event.button == 2) {
             raycaster.setFromCamera(pointer, camera);
             if (selected.length === 1 || selected.length === 2) intersects_scale = raycaster.intersectObject(selected_obj, true);
-            texture_state = 2;
+            if (intersects_scale.length > 0) {
+                texture_state = 2;
+                set_cursor(3)
+            }
         }
     }
     else {
@@ -997,7 +1004,9 @@ function onmouseUp(event) {
         drawing = false;
     }
     else if (shift) {
+        event.preventDefault();
         texture_state = 0;
+        set_cursor(1)
         uv_offset = false;
         intersects_scale = false;
     }
@@ -1078,9 +1087,9 @@ function mouseMove(event) {
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
-            if (intersects_scale&&intersects_scale.length > 0) {
+            if (intersects_scale && intersects_scale.length > 0) {
                 if (!uv_offset) uv_offset = intersects_scale[0].uv.clone();
-                let scale = -(deltaY + deltaX)/500;
+                let scale = -(deltaY + deltaX) / 500;
                 if (selected.length === 1) {
                     for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
                         selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + (selected_obj.geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
@@ -1122,6 +1131,7 @@ function onMouseWheel(e) {
         raycaster.setFromCamera(pointer, camera);
         if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
         if (intersects.length > 0) {
+            set_cursor(3)
             uv_offset = intersects[0].uv.clone();
             if (selected.length === 1) {
                 for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
