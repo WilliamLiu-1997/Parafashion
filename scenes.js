@@ -1529,8 +1529,6 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                     if (obj.type === "Mesh" && obj.name == intersects[0].object.name) {
                         outlinePass_select.selectedObjects = [obj];
                         selected = [obj];
-
-
                         selected_obj.traverse(function (obj) {
                             if (obj.type === 'Mesh') {
                                 obj.geometry.dispose();
