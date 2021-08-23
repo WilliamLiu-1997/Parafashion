@@ -44,7 +44,8 @@ let pixelRatio = window.devicePixelRatio;
 var FPS = 60;
 var singleFrameTime = 1 / FPS;
 var timeStamp = 0;
-var uv_offset;
+var uv_offset = false;
+var set_center = false;
 const clock = new THREE.Clock();
 
 
@@ -65,8 +66,8 @@ var garments_mtl = "./leggins/patch.mtl"
 var garments_obj = "./leggins/patch.obj"
 // var garments_mtl = "./leggins/patch_smooth.mtl"
 // var garments_obj = "./leggins/patch_smooth.obj"
-// var garments_mtl = "./obj/village1/village_final.mtl"
-// var garments_obj = "./obj/village1/village_final.obj"
+var garments_mtl = "./obj/village1/village_final.mtl"
+var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
 var garments_mtl = "./obj/tower/tower3.mtl"
@@ -414,6 +415,10 @@ var TextureParams = {
     repeat: new THREE.Vector2(1, 1),
     rotation: 0,
     center: new THREE.Vector2(0.5, 0.5),
+    set_center: function () {
+        set_center = true;
+        set_cursor(2);
+    },
     remove: function () {
         if (TextureParams.current == "map") {
             if (selected.length == 2) {
@@ -873,6 +878,9 @@ function set_cursor(n) {
     else if (n === 1) {
         document.getElementById("container").style.cursor = "grab"
     }
+    else if (n === 2) {
+        document.getElementById("container").style.cursor = "crosshair"
+    }
 }
 
 
@@ -898,6 +906,17 @@ function onmouseDown(event) {
             }
         }
     }
+    else if (set_center) {
+        raycaster.setFromCamera(pointer, camera);
+        if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+        if (intersects.length > 0) {
+            var intersects = raycaster.intersectObject(selected[0], true);
+            TextureParams.center.set(intersects[0].uv.x, intersects[0].uv.y)
+            GUI_to_Texture_Param()
+        }
+        set_cursor(0)
+        set_center = false;
+    }
     else if (shift) {
         event.preventDefault()
         if (event.button == 0) {
@@ -906,7 +925,7 @@ function onmouseDown(event) {
             if (selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
             if (intersects.length > 0) {
                 texture_state = 1;
-                uv_offset = intersects[0].uv.clone()
+                //uv_offset = intersects[0].uv.clone()
             }
         }
         else if (event.button == 2) {
@@ -993,6 +1012,7 @@ function onmouseUp(event) {
     }
     else if (shift) {
         texture_state = 0;
+        uv_offset = false;
     }
     else {
         if (event.button == 0) {
@@ -1038,13 +1058,12 @@ function mouseMove(event) {
         let targetDistance = 1 / window.innerHeight * Math.tan((camera.fov / 2) * Math.PI / 180.0) * 2;
 
         if (texture_state === 1) {
-            TextureParams.center.set(0.5, 0.5)
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 1) var intersects = raycaster.intersectObject(selected[0], true);
-            if (selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+            if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
             if (intersects.length > 0) {
-                var uv_deltaX = intersects[0].uv.x - uv_offset.x
-                var uv_deltaY = intersects[0].uv.y - uv_offset.y
+                if (!uv_offset) uv_offset = intersects[0].uv.clone();
+                var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
+                var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
                 uv_offset.copy(intersects[0].uv)
                 if (selected.length === 1) {
                     for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
@@ -1055,24 +1074,20 @@ function mouseMove(event) {
                     }
                 }
                 else if (selected.length === 2) {
-                    let start=selected[0].geometry.groups[selected[1]].start
+                    let start = selected[0].geometry.groups[selected[1]].start
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
                         selected[0].geometry.attributes.uv.setX(i, selected[0].geometry.attributes.uv.getX(i) + uv_deltaX)
                         selected[0].geometry.attributes.uv.setY(i, selected[0].geometry.attributes.uv.getY(i) + uv_deltaY)
-                        selected_obj.geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
-                        selected_obj.geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
                         selected_patch[0].geometry.attributes.uv.setX(i - start, selected[0].geometry.attributes.uv.getX(i - start) + uv_deltaX)
                         selected_patch[0].geometry.attributes.uv.setY(i - start, selected[0].geometry.attributes.uv.getY(i - start) + uv_deltaY)
                     }
                 }
-                selected_obj.geometry.attributes.uv.needsUpdate = true;
                 selected[0].geometry.attributes.uv.needsUpdate = true;
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
             }
             GUI_to_Texture_Param()
         }
         if (texture_state === 2) {
-            TextureParams.center.set(0.5, 0.5)
             TextureParams.repeat.x *= 1 - (deltaY + deltaX) * targetDistance * obj_size
             TextureParams.repeat.y *= 1 - (deltaY + deltaX) * targetDistance * obj_size
             GUI_to_Texture_Param()
@@ -1085,7 +1100,6 @@ function mouseMove(event) {
 
 function onMouseWheel(e) {
     if (shift && !mouse_down) {
-        TextureParams.center.set(0.5, 0.5)
         if (e.deltaY > 0) {
             TextureParams.rotation -= 0.015
             GUI_to_Texture_Param()
@@ -1374,6 +1388,22 @@ function select_material(cover_pointer, cover_camera) {
                 select_recovery()
                 find_new = true;
                 selected = [intersects[0].object];
+                selected_obj.traverse(function (obj) {
+                    if (obj.type === 'Mesh') {
+                        obj.geometry.dispose();
+                        obj.material.dispose();
+                    }
+                })
+                scene.remove(selected_obj);
+                var this_scale = intersects[0].object.parent.scale;
+                var this_position = intersects[0].object.parent.position;
+                var g = individual(intersects[0].object.geometry, i)
+                selected_obj = new THREE.Mesh(g);
+                selected_obj.material.transparent = true;
+                selected_obj.material.opacity = 0;
+                selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+                scene.add(selected_obj)
                 outlinePass_select.selectedObjects = [intersects[0].object];
                 last_select = []
                 last_select_patch = []
@@ -1454,6 +1484,24 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                     if (obj.type === "Mesh" && obj.name == intersects[0].object.name) {
                         outlinePass_select.selectedObjects = [obj];
                         selected = [obj];
+
+
+                        selected_obj.traverse(function (obj) {
+                            if (obj.type === 'Mesh') {
+                                obj.geometry.dispose();
+                                obj.material.dispose();
+                            }
+                        })
+                        scene.remove(selected_obj);
+                        var this_scale = obj.parent.scale;
+                        var this_position = obj.parent.position;
+                        var g = individual(obj.geometry, i)
+                        selected_obj = new THREE.Mesh(g);
+                        selected_obj.material.transparent = true;
+                        selected_obj.material.opacity = 0;
+                        selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                        selected_obj.position.set(this_position.x, this_position.y, this_position.z);
+                        scene.add(selected_obj)
                     }
                 })
             }
@@ -2319,6 +2367,7 @@ function GUI_init() {
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
     basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    basic_texture.add(TextureParams,"set_center")
     // basic_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // basic_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // basic_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2342,6 +2391,7 @@ function GUI_init() {
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    lambert_texture.add(TextureParams, "set_center")
     // lambert_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // lambert_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // lambert_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2371,6 +2421,7 @@ function GUI_init() {
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    phong_texture.add(TextureParams, "set_center")
     // phong_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // phong_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // phong_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2396,6 +2447,7 @@ function GUI_init() {
     toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
     toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    toon_texture.add(TextureParams, "set_center")
     // toon_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // toon_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // toon_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2424,6 +2476,7 @@ function GUI_init() {
     standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
     standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    standard_texture.add(TextureParams, "set_center")
     // standard_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // standard_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // standard_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2458,6 +2511,7 @@ function GUI_init() {
     physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
     physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    physical_texture.add(TextureParams, "set_center")
     // physical_texture.add(TextureParams.offset, "x", -10, 10, 0.01).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // physical_texture.add(TextureParams.offset, "y", -10, 10, 0.01).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // physical_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.01).name("repeat.x").onChange(() => GUI_to_Texture_Param())
