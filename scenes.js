@@ -327,7 +327,7 @@ var Materials = {
         clearcoat: 0.0,
         clearcoatRoughness: 0.0,
         reflectivity: 0.5,
-        sheen: 0x000000,//color
+        sheenTint: 0x000000,//color
         transmission: 0,
         thickness: 0,
     },
@@ -2114,7 +2114,6 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                                 if (child.material.map === null) { child.material.map = default_texture; }
                                 child.castShadow = true;
                                 child.receiveShadow = true;
-                                child.geometry.computeFaceNormals();
 
                                 child.geometry.computeBoundingBox();
                                 x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
@@ -2490,7 +2489,7 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial = material_folder.addFolder("Physical Material")
     Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "color").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "emissive").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheen").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheenTint").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
@@ -2726,7 +2725,7 @@ function Obj_to_GUI(obj_material) {
 
         case "MeshPhysicalMaterial":
             Materials.MeshPhysicalMaterial.color = obj_material.color.getHex()
-            Materials.MeshPhysicalMaterial.sheen = obj_material.sheen.getHex()
+            Materials.MeshPhysicalMaterial.sheenTint = obj_material.sheenTint.getHex()
             Materials.MeshPhysicalMaterial.emissive = obj_material.emissive.getHex()
             Materials.MeshPhysicalMaterial.emissiveIntensity = obj_material.emissiveIntensity
             Materials.MeshPhysicalMaterial.bumpScale = obj_material.bumpScale
@@ -2880,8 +2879,8 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
 
         case "MeshPhysicalMaterial":
             obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material.sheen) obj_material.sheen.setHex(Materials.MeshPhysicalMaterial.sheen)
-            else obj_material.sheen = new THREE.Color(Materials.MeshPhysicalMaterial.sheen)
+            if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
+            else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
             obj_material.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
             obj_material.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
             obj_material.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
@@ -2895,10 +2894,9 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.metalness = Materials.MeshPhysicalMaterial.metalness
             obj_material.roughness = Materials.MeshPhysicalMaterial.roughness
             obj_material.wireframe = Materials.MeshPhysicalMaterial.wireframe
-            obj_material.needsUpdate = true
             obj_material1.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material1.sheen) obj_material1.sheen.setHex(Materials.MeshPhysicalMaterial.sheen)
-            else obj_material1.sheen = new THREE.Color(Materials.MeshPhysicalMaterial.sheen)
+            if (obj_material1.sheenTint) obj_material1.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
+            else obj_material1.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
             obj_material1.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
             obj_material1.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
             obj_material1.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
@@ -2912,7 +2910,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material1.metalness = Materials.MeshPhysicalMaterial.metalness
             obj_material1.roughness = Materials.MeshPhysicalMaterial.roughness
             obj_material1.wireframe = Materials.MeshPhysicalMaterial.wireframe
-            obj_material1.needsUpdate = true
             break;
     }
 }
@@ -2985,8 +2982,8 @@ function GUI_to_Obj(obj_material_original) {
         case "MeshPhysicalMaterial":
             if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhysicalMaterial({ map: default_texture, side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material.sheen) obj_material.sheen.setHex(Materials.MeshPhysicalMaterial.sheen)
-            else obj_material.sheen = new THREE.Color(Materials.MeshPhysicalMaterial.sheen)
+            if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
+            else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
             obj_material.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
             obj_material.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
             obj_material.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
