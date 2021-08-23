@@ -1118,7 +1118,7 @@ function onMouseWheel(e) {
     if (shift && !mouse_down) {
         pointer.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
         pointer.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
-        let rotation = e.deltaY > 0 ? -0.015 : 0.015
+        let rotation = e.deltaY > 0 ? 0.015 : -0.015
         raycaster.setFromCamera(pointer, camera);
         if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
         if (intersects.length > 0) {
