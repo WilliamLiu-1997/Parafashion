@@ -45,7 +45,6 @@ var FPS = 60;
 var singleFrameTime = 1 / FPS;
 var timeStamp = 0;
 var uv_offset = false;
-var set_center = false;
 var intersects_scale=false;
 const clock = new THREE.Clock();
 
@@ -416,10 +415,6 @@ var TextureParams = {
     repeat: new THREE.Vector2(1, 1),
     rotation: 0,
     center: new THREE.Vector2(0.5, 0.5),
-    set_center: function () {
-        set_center = true;
-        set_cursor(2);
-    },
     remove: function () {
         if (TextureParams.current == "map") {
             if (selected.length == 2) {
@@ -906,17 +901,6 @@ function onmouseDown(event) {
                 }
             }
         }
-    }
-    else if (set_center) {
-        raycaster.setFromCamera(pointer, camera);
-        if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
-        if (intersects.length > 0) {
-            var intersects = raycaster.intersectObject(selected[0], true);
-            TextureParams.center.set(intersects[0].uv.x, intersects[0].uv.y)
-            GUI_to_Texture_Param()
-        }
-        set_cursor(0)
-        set_center = false;
     }
     else if (shift) {
         event.preventDefault()
@@ -2427,7 +2411,6 @@ function GUI_init() {
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
     basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams, "set_center").name("Reset Center")
     // basic_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // basic_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // basic_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2451,7 +2434,6 @@ function GUI_init() {
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams, "set_center").name("Reset Center")
     // lambert_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // lambert_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // lambert_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2481,7 +2463,6 @@ function GUI_init() {
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams, "set_center").name("Reset Center")
     // phong_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // phong_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // phong_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2507,7 +2488,6 @@ function GUI_init() {
     toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
     toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams, "set_center").name("Reset Center")
     // toon_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // toon_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // toon_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2536,7 +2516,6 @@ function GUI_init() {
     standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
     standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams, "set_center").name("Reset Center")
     // standard_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // standard_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // standard_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
@@ -2571,7 +2550,6 @@ function GUI_init() {
     physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
     physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams, "set_center").name("Reset Center")
     // physical_texture.add(TextureParams.offset, "x", -10, 10, 0.01).name("offset.x").onChange(() => GUI_to_Texture_Param())
     // physical_texture.add(TextureParams.offset, "y", -10, 10, 0.01).name("offset.y").onChange(() => GUI_to_Texture_Param())
     // physical_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.01).name("repeat.x").onChange(() => GUI_to_Texture_Param())
