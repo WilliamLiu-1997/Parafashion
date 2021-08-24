@@ -909,8 +909,7 @@ function onmouseDown(event) {
         event.preventDefault()
         if (event.button == 0) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 1) var intersects = raycaster.intersectObject(selected[0], true);
-            if (selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+            if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
             if (intersects.length > 0) {
                 texture_state = 1;
                 set_cursor(3)
@@ -1102,8 +1101,8 @@ function mouseMove(event) {
                 else if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + (selected_obj.geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
-                        selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + (selected_obj.geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + (selected_obj.geometry.attributes.uv.getX(i - start) - uv_offset.x) * scale)
+                        selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + (selected_obj.geometry.attributes.uv.getY(i - start) - uv_offset.y) * scale)
                         selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
                         selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
                         selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
