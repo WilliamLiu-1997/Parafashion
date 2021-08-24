@@ -1159,6 +1159,7 @@ function onMouseWheel(e) {
             selected[0].geometry.attributes.uv.needsUpdate = true;
             selected_obj.geometry.attributes.uv.needsUpdate = true;
             selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+            uv_offset = false;
         }
         GUI_to_Texture_Param()
     }
