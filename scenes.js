@@ -409,10 +409,6 @@ var Material = {
 var TextureParams = {
     current: "map",
     wrap: "clamp",
-    offset: new THREE.Vector2(0, 0),
-    repeat: new THREE.Vector2(1, 1),
-    rotation: 0,
-    center: new THREE.Vector2(0.5, 0.5),
     remove: function () {
 
             if (selected.length == 2) {
@@ -2400,13 +2396,6 @@ function GUI_init() {
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
     basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    // basic_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    // basic_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    // basic_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    // basic_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    // basic_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    // basic_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    // basic_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     basic_texture.add(TextureParams, "remove").name("Remove Texture")
     basic_texture.open()
     Material_Type_Folder.MeshBasicMaterial.open()
@@ -2423,13 +2412,6 @@ function GUI_init() {
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    // lambert_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    // lambert_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    // lambert_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    // lambert_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    // lambert_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    // lambert_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    // lambert_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     lambert_texture.add(TextureParams, "remove").name("Remove Texture")
     lambert_texture.open()
     Material_Type_Folder.MeshLambertMaterial.open()
@@ -2452,13 +2434,6 @@ function GUI_init() {
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    // phong_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    // phong_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    // phong_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    // phong_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    // phong_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    // phong_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    // phong_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     phong_texture.add(TextureParams, "remove").name("Remove Texture")
     phong_texture.open()
     Material_Type_Folder.MeshPhongMaterial.open()
@@ -2477,13 +2452,6 @@ function GUI_init() {
     toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
     toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    // toon_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    // toon_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    // toon_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    // toon_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    // toon_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    // toon_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    // toon_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     toon_texture.add(TextureParams, "remove").name("Remove Texture")
     toon_texture.open()
     Material_Type_Folder.MeshToonMaterial.open()
@@ -2505,13 +2473,6 @@ function GUI_init() {
     standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
     standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    // standard_texture.add(TextureParams.offset, "x", -10, 10, 0.1).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    // standard_texture.add(TextureParams.offset, "y", -10, 10, 0.1).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    // standard_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.1).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    // standard_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.1).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    // standard_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    // standard_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    // standard_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     standard_texture.add(TextureParams, "remove").name("Remove Texture")
     standard_texture.open()
     Material_Type_Folder.MeshStandardMaterial.open()
@@ -2539,13 +2500,6 @@ function GUI_init() {
     physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
     physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    // physical_texture.add(TextureParams.offset, "x", -10, 10, 0.01).name("offset.x").onChange(() => GUI_to_Texture_Param())
-    // physical_texture.add(TextureParams.offset, "y", -10, 10, 0.01).name("offset.y").onChange(() => GUI_to_Texture_Param())
-    // physical_texture.add(TextureParams.repeat, "x", 0.1, 10, 0.01).name("repeat.x").onChange(() => GUI_to_Texture_Param())
-    // physical_texture.add(TextureParams.repeat, "y", 0.1, 10, 0.01).name("repeat.y").onChange(() => GUI_to_Texture_Param())
-    // physical_texture.add(TextureParams, "rotation", -Math.PI, Math.PI, 0.01).onChange(() => GUI_to_Texture_Param())
-    // physical_texture.add(TextureParams.center, "x", 0, 1, 0.01).name("center.x").onChange(() => GUI_to_Texture_Param())
-    // physical_texture.add(TextureParams.center, "y", 0, 1, 0.01).name("center.y").onChange(() => GUI_to_Texture_Param())
     physical_texture.add(TextureParams, "remove").name("Remove Texture")
     physical_texture.open()
     Material_Type_Folder.MeshPhysicalMaterial.open()
@@ -2634,10 +2588,6 @@ function Texture_to_GUI() {
         return;
     }
     TextureParams.wrap = obj_material[current].wrapS === THREE.ClampToEdgeWrapping ? "clamp" : obj_material[current].wrapS === THREE.MirroredRepeatWrapping ? "mirror" : "repeat"
-    TextureParams.offset.set(obj_material.map.offset.x, obj_material.map.offset.y)
-    TextureParams.repeat.set(obj_material.map.repeat.x, obj_material.map.repeat.y)
-    TextureParams.rotation = obj_material.map.rotation
-    TextureParams.center.set(obj_material.map.center.x, obj_material.map.center.y)
     url = obj_material[current].image.src
     let liStr = `<img src="${url}"/>`;
     $('.list-drag').html(liStr);
