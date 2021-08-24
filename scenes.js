@@ -17,6 +17,8 @@ let scene_transform, camera_transform, renderer_transform, controls_transform, a
 let cut_component;
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
+let draw_line = [];
+let old_garment = [];
 let obj3D = new THREE.Object3D();
 let progress_obj = 0, progress_mtl = 0;
 let patch_panel_width = $("#container_patch").css("width");
@@ -35,7 +37,7 @@ let last_select = [];
 let last_select_patch = [];
 var max_radius = 0;
 var textureloader = new THREE.TextureLoader();
-let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3,side: THREE.DoubleSide })
+let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, side: THREE.DoubleSide })
 let obj_size = 1;
 let find_new = false;
 let pixelRatio = window.devicePixelRatio;
@@ -411,19 +413,19 @@ var TextureParams = {
     wrap: "clamp",
     remove: function () {
 
-            if (selected.length == 2) {
-                selected[0].material[selected[1]] = selected[0].material[selected[1]].clone()
-                selected_patch[0].material = selected_patch[0].material.clone()
-                selected[0].material[selected[1]][TextureParams.current] = null;
-                selected_patch[0].material[TextureParams.current] = null;
-            }
-            else if (selected.length == 1) {
-                selected[0].material = selected[0].material.clone()
-                selected_patch[0].material = selected_patch[0].material.clone()
-                selected[0].material[TextureParams.current] = null;
-                selected_patch[0].material[TextureParams.current] = null;
-            }
-        
+        if (selected.length == 2) {
+            selected[0].material[selected[1]] = selected[0].material[selected[1]].clone()
+            selected_patch[0].material = selected_patch[0].material.clone()
+            selected[0].material[selected[1]][TextureParams.current] = null;
+            selected_patch[0].material[TextureParams.current] = null;
+        }
+        else if (selected.length == 1) {
+            selected[0].material = selected[0].material.clone()
+            selected_patch[0].material = selected_patch[0].material.clone()
+            selected[0].material[TextureParams.current] = null;
+            selected_patch[0].material[TextureParams.current] = null;
+        }
+
         Texture_to_GUI()
 
     },
@@ -467,8 +469,8 @@ function init() {
     scene.add(env_light);
 
 
-    point_helper_geo = new THREE.CylinderGeometry(0.0005, 0.0005, 0.008, 10);
-    point_helper_geo.translate(0, 0.004, 0);
+    point_helper_geo = new THREE.CylinderGeometry(0.0003, 0.0003, 0.006, 10);
+    point_helper_geo.translate(0, 0.003, 0);
     point_helper_geo.rotateX(Math.PI / 2);
     point_helper = new THREE.Mesh(point_helper_geo, new THREE.MeshNormalMaterial({ visible: false }));
     scene.add(point_helper);
@@ -1021,7 +1023,7 @@ function mouseMove(event) {
         if (cut_obj.length > 0) {
             on_cut(pointer, camera, event)
             if (drawing) {
-
+                draw(pointer, camera, cut_obj)
             }
         }
         else {
@@ -1185,6 +1187,14 @@ function select_recovery() {
     let liStr = "";
     $('.list-drag').html(liStr);
     $(".tip").show();
+}
+
+function draw(pointer, camera, cut_obj) {
+    raycaster.setFromCamera(pointer, camera);
+    var intersects = raycaster.intersectObject(cut_obj[0], true);
+    if (intersects.length > 0) {
+        draw_line.push(intersects[0].point)
+    }
 }
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
@@ -2893,14 +2903,14 @@ function GUI_to_Obj(obj_material_original) {
 
     switch (Material.material) {
         case "MeshBasicMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshBasicMaterial({side: THREE.DoubleSide }) }
+            if (obj_material.type != Material.material) { obj_material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshBasicMaterial.color)
             obj_material.reflectivity = Materials.MeshBasicMaterial.reflectivity
             obj_material.wireframe = Materials.MeshBasicMaterial.wireframe
             break;
 
         case "MeshLambertMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshLambertMaterial({side: THREE.DoubleSide }) }
+            if (obj_material.type != Material.material) { obj_material = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshLambertMaterial.color)
             obj_material.emissive.setHex(Materials.MeshLambertMaterial.emissive)
             obj_material.emissiveIntensity = Materials.MeshLambertMaterial.emissiveIntensity
@@ -2909,7 +2919,7 @@ function GUI_to_Obj(obj_material_original) {
             break;
 
         case "MeshPhongMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhongMaterial({side: THREE.DoubleSide }) }
+            if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhongMaterial({ side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshPhongMaterial.color)
             obj_material.emissive.setHex(Materials.MeshPhongMaterial.emissive)
             obj_material.specular.setHex(Materials.MeshPhongMaterial.specular)
@@ -2923,7 +2933,7 @@ function GUI_to_Obj(obj_material_original) {
             break;
 
         case "MeshToonMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshToonMaterial({side: THREE.DoubleSide }) }
+            if (obj_material.type != Material.material) { obj_material = new THREE.MeshToonMaterial({ side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshToonMaterial.color)
             obj_material.emissive.setHex(Materials.MeshToonMaterial.emissive)
             obj_material.emissiveIntensity = Materials.MeshToonMaterial.emissiveIntensity
@@ -2933,7 +2943,7 @@ function GUI_to_Obj(obj_material_original) {
             break;
 
         case "MeshStandardMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshStandardMaterial({side: THREE.DoubleSide }) }
+            if (obj_material.type != Material.material) { obj_material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshStandardMaterial.color)
             obj_material.emissive.setHex(Materials.MeshStandardMaterial.emissive)
             obj_material.emissiveIntensity = Materials.MeshStandardMaterial.emissiveIntensity
@@ -2946,7 +2956,7 @@ function GUI_to_Obj(obj_material_original) {
             break;
 
         case "MeshPhysicalMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhysicalMaterial({side: THREE.DoubleSide }) }
+            if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
             if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
             else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
