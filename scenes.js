@@ -891,6 +891,7 @@ function onmouseDown(event) {
         }
     }
     else if (reset_position) {
+        reset_position = false;
         if (shift) { set_cursor(1) } else { set_cursor(0) }
         raycaster.setFromCamera(pointer, camera);
         if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
@@ -990,7 +991,6 @@ function onmouseDown_patch(event) {
 function onmouseUp(event) {
 
     mouse_down = false;
-    reset_position = false;
     if (event.button == 0 && gui_options.cut) {
         controls.stop = false;
         controls_patch.stop = false;
