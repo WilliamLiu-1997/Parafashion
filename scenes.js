@@ -528,7 +528,7 @@ function init() {
     directional_light.castShadow = true;
     directional_light.shadow.camera.near = 0.1;
     directional_light.shadow.camera.far = 60;
-    directional_light.shadow.bias = -0.00015;
+    directional_light.shadow.bias = -0.0001;
     directional_light.position.set(0, 30, 0);
 
 
@@ -687,11 +687,7 @@ function animate() {
             controls_patch.maxZ = max_radius * 20;
             controls_patch.minZ = 0.1;
             controls.maxDistance = 25;
-            if (obj_size < 3) {
-                directional_light.shadow.mapSize.width = 2048;
-                directional_light.shadow.mapSize.height = 2048;
-            }
-            else if (obj_size < 6) {
+            if (obj_size < 5) {
                 directional_light.shadow.mapSize.width = 4096;
                 directional_light.shadow.mapSize.height = 4096;
             }
