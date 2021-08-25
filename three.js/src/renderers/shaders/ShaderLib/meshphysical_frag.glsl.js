@@ -3,7 +3,6 @@ export default /* glsl */`
 
 #ifdef PHYSICAL
 	#define IOR
-	#define CLEARCOAT
 	#define SPECULAR
 #endif
 
@@ -30,7 +29,7 @@ uniform float opacity;
 	#endif
 #endif
 
-#ifdef CLEARCOAT
+#ifdef USE_CLEARCOAT
 	uniform float clearcoat;
 	uniform float clearcoatRoughness;
 #endif
@@ -49,6 +48,7 @@ varying vec3 vViewPosition;
 #include <uv2_pars_fragment>
 #include <map_pars_fragment>
 #include <alphamap_pars_fragment>
+#include <alphatest_pars_fragment>
 #include <aomap_pars_fragment>
 #include <lightmap_pars_fragment>
 #include <emissivemap_pars_fragment>
@@ -107,7 +107,7 @@ void main() {
 
 	vec3 outgoingLight = totalDiffuse + totalSpecular + totalEmissiveRadiance;
 
-	#ifdef CLEARCOAT
+	#ifdef USE_CLEARCOAT
 
 		float dotNVcc = saturate( dot( geometry.clearcoatNormal, geometry.viewDir ) );
 
@@ -117,8 +117,7 @@ void main() {
 
 	#endif
 
-	gl_FragColor = vec4( outgoingLight, diffuseColor.a );
-
+	#include <output_fragment>
 	#include <tonemapping_fragment>
 	#include <encodings_fragment>
 	#include <fog_fragment>

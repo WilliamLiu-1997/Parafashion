@@ -139,6 +139,12 @@ function WebGLMaterials( properties ) {
 
 		}
 
+		if ( material.alphaTest > 0 ) {
+
+			uniforms.alphaTest.value = material.alphaTest;
+
+		}
+
 		const envMap = properties.get( material ).envMap;
 
 		if ( envMap ) {
@@ -351,6 +357,12 @@ function WebGLMaterials( properties ) {
 
 		}
 
+		if ( material.alphaTest > 0 ) {
+
+			uniforms.alphaTest.value = material.alphaTest;
+
+		}
+
 		// uv repeat and offset setting priorities
 		// 1. color map
 		// 2. alpha map
@@ -396,6 +408,12 @@ function WebGLMaterials( properties ) {
 		if ( material.alphaMap ) {
 
 			uniforms.alphaMap.value = material.alphaMap;
+
+		}
+
+		if ( material.alphaTest > 0 ) {
+
+			uniforms.alphaTest.value = material.alphaTest;
 
 		}
 
@@ -580,31 +598,35 @@ function WebGLMaterials( properties ) {
 
 		uniforms.ior.value = material.ior; // also part of uniforms common
 
-		uniforms.clearcoat.value = material.clearcoat;
-		uniforms.clearcoatRoughness.value = material.clearcoatRoughness;
-
 		if ( material.sheenTint ) uniforms.sheenTint.value.copy( material.sheenTint );
 
-		if ( material.clearcoatMap ) {
+		if ( material.clearcoat > 0 ) {
 
-			uniforms.clearcoatMap.value = material.clearcoatMap;
+			uniforms.clearcoat.value = material.clearcoat;
+			uniforms.clearcoatRoughness.value = material.clearcoatRoughness;
 
-		}
+			if ( material.clearcoatMap ) {
 
-		if ( material.clearcoatRoughnessMap ) {
+				uniforms.clearcoatMap.value = material.clearcoatMap;
 
-			uniforms.clearcoatRoughnessMap.value = material.clearcoatRoughnessMap;
+			}
 
-		}
+			if ( material.clearcoatRoughnessMap ) {
 
-		if ( material.clearcoatNormalMap ) {
+				uniforms.clearcoatRoughnessMap.value = material.clearcoatRoughnessMap;
 
-			uniforms.clearcoatNormalScale.value.copy( material.clearcoatNormalScale );
-			uniforms.clearcoatNormalMap.value = material.clearcoatNormalMap;
+			}
 
-			if ( material.side === BackSide ) {
+			if ( material.clearcoatNormalMap ) {
 
-				uniforms.clearcoatNormalScale.value.negate();
+				uniforms.clearcoatNormalScale.value.copy( material.clearcoatNormalScale );
+				uniforms.clearcoatNormalMap.value = material.clearcoatNormalMap;
+
+				if ( material.side === BackSide ) {
+
+					uniforms.clearcoatNormalScale.value.negate();
+
+				}
 
 			}
 
