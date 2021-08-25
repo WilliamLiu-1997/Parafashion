@@ -38,10 +38,10 @@ class CameraControls extends EventDispatcher {
 		//The target of the focus. Tt should be set a vector or false. If a vector is given, the rotation will be centered on it.
 		this.target = false;
 
-		// The sensibility of panning and Dolly
-		this.sensibility = 1;
-		// Dynamically change the sensibility according to the distance between the object and center of the scene
-		this.dynamicSensibility = true;
+		// The sensitivity of panning and Dolly
+		this.sensitivity = 1;
+		// Dynamically change the sensitivity according to the distance between the object and center of the scene
+		this.dynamicSensitivity = true;
 
 		this.domElement = (domElement !== undefined) ? domElement : document;
 
@@ -144,12 +144,12 @@ class CameraControls extends EventDispatcher {
 				let position = scope.object.position;
 				let target = scope.target;
 
-				if (scope.dynamicSensibility) {
+				if (scope.dynamicSensitivity) {
 
 					if (target) {
-						scope.sensibility = Math.max(0.1, scope.object.position.distanceTo(target));
+						scope.sensitivity = Math.max(0.1, scope.object.position.distanceTo(target));
 					}
-					else { scope.sensibility = Math.max(1, Math.abs(scope.object.position.y)); }
+					else { scope.sensitivity = Math.max(1, Math.abs(scope.object.position.y)); }
 
 
 				}
@@ -423,7 +423,7 @@ class CameraControls extends EventDispatcher {
 
 				let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0) * 2000;
-				moveForward(-0.1 * scope.sensibility * targetDistance / element.clientHeight * dollyScale, scope.object.matrix);
+				moveForward(-0.1 * scope.sensitivity * targetDistance / element.clientHeight * dollyScale, scope.object.matrix);
 
 			} else if (scope.object.isOrthographicCamera) {
 
@@ -446,7 +446,7 @@ class CameraControls extends EventDispatcher {
 
 				let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0) * 2000;
-				moveForward(0.1 * scope.sensibility * targetDistance / element.clientHeight * dollyScale, scope.object.matrix);
+				moveForward(0.1 * scope.sensitivity * targetDistance / element.clientHeight * dollyScale, scope.object.matrix);
 
 			} else if (scope.object.isOrthographicCamera) {
 
@@ -529,7 +529,7 @@ class CameraControls extends EventDispatcher {
 
 			panDelta.subVectors(panEnd, panStart);
 
-			pan(panDelta.x * scope.sensibility, panDelta.y * scope.sensibility);
+			pan(panDelta.x * scope.sensitivity, panDelta.y * scope.sensitivity);
 
 			panStart.copy(panEnd);
 
@@ -604,12 +604,12 @@ class CameraControls extends EventDispatcher {
 						break;
 
 					case scope.keys.LEFT:
-						pan(20 * scope.keyPanSpeed * scope.sensibility, 0);
+						pan(20 * scope.keyPanSpeed * scope.sensitivity, 0);
 						scope.update();
 						break;
 
 					case scope.keys.RIGHT:
-						pan(- 20 * scope.keyPanSpeed * scope.sensibility, 0);
+						pan(- 20 * scope.keyPanSpeed * scope.sensitivity, 0);
 						scope.update();
 						break;
 
@@ -690,7 +690,7 @@ class CameraControls extends EventDispatcher {
 
 			panDelta.subVectors(panEnd, panStart);
 
-			pan(panDelta.x * scope.sensibility, panDelta.y * scope.sensibility);
+			pan(panDelta.x * scope.sensitivity, panDelta.y * scope.sensitivity);
 
 			panStart.copy(panEnd);
 

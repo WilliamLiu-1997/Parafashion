@@ -507,7 +507,7 @@ function init() {
     // controls
 
     controls = new CameraControls(camera, renderer.domElement);
-    controls.dynamicSensibility = true;
+    controls.dynamicSensitivity = true;
     controls.enableDamping = true;
     controls.dampingFactor = 0.15;
     controls.rotateSpeed = 1.3;
@@ -597,7 +597,7 @@ function init_patch() {
 
     controls_patch = new CameraControls(camera_patch, renderer_patch.domElement);
 
-    controls_patch.dynamicSensibility = false;
+    controls_patch.dynamicSensitivity = false;
     controls_patch.enableDamping = true;
     controls_patch.dampingFactor = 0.15;
     controls_patch.enableKeys = false;
@@ -753,7 +753,7 @@ function animate() {
         $(".up-area").css({ "width": $(".dg.main").css("width") })
         $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
-        controls_patch.sensibility = camera_patch.position.z
+        controls_patch.sensitivity = camera_patch.position.z
         render();
         stats.end();
         timeStamp = timeStamp % singleFrameTime;
@@ -2371,8 +2371,8 @@ function GUI_init() {
     cut_component.add(gui_options, 'focus').onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
     cut_component.open();
     cut_component.hide();
-    // folder_basic.add(controls, 'sensibility', 0.1, 35, 0.1).name("Camera Sensibility");
-    // folder_basic.add(controls, 'dynamicSensibility').name("Dynamic Sensibility");
+    // folder_basic.add(controls, 'sensitivity', 0.1, 35, 0.1).name("Camera Sensitivity");
+    // folder_basic.add(controls, 'dynamicSensitivity').name("Dynamic Sensitivity");
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
