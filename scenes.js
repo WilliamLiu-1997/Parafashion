@@ -51,6 +51,7 @@ const clock = new THREE.Clock();
 
 let shift = false;
 let ctrl = false;
+let reset_position = false;
 let mouse_position = new THREE.Vector2();
 let texture_state = 0;
 
@@ -411,6 +412,10 @@ var Material = {
 var TextureParams = {
     current: "map",
     wrap: "clamp",
+    reset_position: function () {
+        reset_position = true;
+        set_cursor(2);
+    },
     remove: function () {
 
         if (selected.length == 2) {
@@ -809,13 +814,15 @@ function onKeyDown(e) {
             if (!on_patch && !on_gui && !on_transform
                 && !gui_options.cut
                 && selected.length > 0
-                && !mouse_down) {
+                && !mouse_down
+                && !reset_position) {
                 set_cursor(1)
                 shift = true;
                 controls.stop = true;
                 controls_patch.stop = true;
             }
-            else if (!mouse_down) {
+            else if (!mouse_down
+                && !reset_position) {
                 shift = false;
                 controls.stop = false;
                 controls_patch.stop = false;
@@ -835,7 +842,7 @@ function onKeyUp(e) {
             shift = false;
             controls.stop = false;
             controls_patch.stop = false;
-            set_cursor(0)
+            if (!reset_position) set_cursor(0)
             break;
         case 17:
             ctrl = false;
@@ -881,6 +888,14 @@ function onmouseDown(event) {
                     controls.rotateSpeed = 2.5;
                 }
             }
+        }
+    }
+    else if (reset_position) {
+        if (shift) { set_cursor(1) } else { set_cursor(0) }
+        raycaster.setFromCamera(pointer, camera);
+        if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+        if (intersects.length > 0) {
+            reset_texture_position(intersects)
         }
     }
     else if (shift) {
@@ -975,6 +990,7 @@ function onmouseDown_patch(event) {
 function onmouseUp(event) {
 
     mouse_down = false;
+    reset_position = false;
     if (event.button == 0 && gui_options.cut) {
         controls.stop = false;
         controls_patch.stop = false;
@@ -1000,6 +1016,38 @@ function onmouseUp(event) {
             cover_recovery()
         }
     }
+}
+
+function reset_texture_position(intersects) {
+    if (intersects.length > 0) {
+        var uv_deltaX = -(intersects[0].uv.x - 0.5)
+        var uv_deltaY = -(intersects[0].uv.y - 0.5)
+        if (selected.length === 1) {
+            for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
+                selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
+                selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
+                selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
+                selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
+            }
+        }
+        else if (selected.length === 2) {
+            let start = selected[0].geometry.groups[selected[1]].start
+            for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
+                selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
+                selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
+                selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
+                selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
+            }
+        }
+        selected[0].geometry.attributes.uv.needsUpdate = true;
+        selected_obj.geometry.attributes.uv.needsUpdate = true;
+        selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+    }
+    GUI_to_Texture_Param()
 }
 
 function mouseMove(event) {
@@ -2404,6 +2452,7 @@ function GUI_init() {
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
     basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    basic_texture.add(TextureParams, "reset_position").name("Reset Texture Position")
     basic_texture.add(TextureParams, "remove").name("Remove Texture")
     basic_texture.open()
     Material_Type_Folder.MeshBasicMaterial.open()
@@ -2420,6 +2469,7 @@ function GUI_init() {
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    lambert_texture.add(TextureParams, "reset_position").name("Reset Texture Position")
     lambert_texture.add(TextureParams, "remove").name("Remove Texture")
     lambert_texture.open()
     Material_Type_Folder.MeshLambertMaterial.open()
@@ -2442,6 +2492,7 @@ function GUI_init() {
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    phong_texture.add(TextureParams, "reset_position").name("Reset Texture Position")
     phong_texture.add(TextureParams, "remove").name("Remove Texture")
     phong_texture.open()
     Material_Type_Folder.MeshPhongMaterial.open()
@@ -2460,6 +2511,7 @@ function GUI_init() {
     toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
     toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    toon_texture.add(TextureParams, "reset_position").name("Reset Texture Position")
     toon_texture.add(TextureParams, "remove").name("Remove Texture")
     toon_texture.open()
     Material_Type_Folder.MeshToonMaterial.open()
@@ -2481,6 +2533,7 @@ function GUI_init() {
     standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
     standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    standard_texture.add(TextureParams, "reset_position").name("Reset Texture Position")
     standard_texture.add(TextureParams, "remove").name("Remove Texture")
     standard_texture.open()
     Material_Type_Folder.MeshStandardMaterial.open()
@@ -2508,6 +2561,7 @@ function GUI_init() {
     physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
     physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
     physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    physical_texture.add(TextureParams, "reset_position").name("Reset Position")
     physical_texture.add(TextureParams, "remove").name("Remove Texture")
     physical_texture.open()
     Material_Type_Folder.MeshPhysicalMaterial.open()
