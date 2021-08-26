@@ -865,10 +865,12 @@ function onmouseDown(event) {
     if (ctrl) {
         return;
     }
+    if (event.button == 0) {
+        controls.stop = true;
+        controls_patch.stop = true;
+    }
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
-            controls.stop = true;
-            controls_patch.stop = true;
             mouseMove(event)
             drawing = true;
         } else {
@@ -982,9 +984,11 @@ function onmouseDown_patch(event) {
 function onmouseUp(event) {
 
     mouse_down = false;
-    if (event.button == 0 && gui_options.cut) {
+    if (event.button == 0) {
         controls.stop = false;
         controls_patch.stop = false;
+    }
+    if (event.button == 0 && gui_options.cut) {
         drawing = false;
     }
     else if (shift) {
@@ -1234,19 +1238,22 @@ function draw(pointer, camera, cut_obj) {
         if (draw_line.length <= 1) {
             let instance = line_instance.clone();
             instance.position.copy(intersects[0].point)
+            instance.scale.setLength(Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
             line.add(instance);
             last_instance_position = instance.position.clone()
         }
-        if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001) {
-            let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001)
+        if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * Math.max(0.1, camera.position.distanceTo(intersects[0].point))) {
+            let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
             for (let i = 0; i < a; i++) {
                 let instance = line_instance.clone();
-                instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001)))
+                instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001 * Math.max(0.1, camera.position.distanceTo(intersects[0].point)))))
+                instance.scale.setLength(Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
                 line.add(instance);
                 last_instance_position = instance.position.clone()
             }
             let instance = line_instance.clone();
             instance.position.copy(intersects[0].point)
+            instance.scale.setLength(Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
             line.add(instance);
             last_instance_position = instance.position.clone()
         }
