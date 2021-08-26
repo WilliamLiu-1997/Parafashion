@@ -80,6 +80,8 @@ var garments_mtl = "./obj/tower/tower3.mtl"
 var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
+// var garments_mtl = "./obj/house/house.mtl"
+// var garments_obj = "./obj/house/house.obj"
 // garments_mtl = false
 
 
@@ -563,7 +565,7 @@ function init_patch() {
     camera_patch = new THREE.PerspectiveCamera(
         45,
         $("#container_patch").width() / window.innerHeight / 0.78,
-        0.1,
+        0.01,
         1000
     );
     camera_patch.position.set(0, 0, 2);
@@ -682,14 +684,15 @@ function animate() {
             patch = patch_loader(garment, 1, num);
             patch.name = "patch";
             scene_patch.add(patch);
-            camera_patch.position.set(0, 0, 2 * Math.max(1, max_radius));
+            camera_patch.position.set(0, 0, 2 * max_radius);
             controls_patch.saveState();
             camera_patch.far = max_radius * 50;
+            camera_patch.near = max_radius * 0.01;
             controls_patch.maxZ = max_radius * 20;
-            controls_patch.minZ = 0.1;
+            controls_patch.minZ = max_radius * 0.015;
             controls.maxDistance = 5;
-                directional_light.shadow.mapSize.width = 4096;
-                directional_light.shadow.mapSize.height = 4096;
+            directional_light.shadow.mapSize.width = 4096;
+            directional_light.shadow.mapSize.height = 4096;
 
             directional_light.shadow.camera.left = -obj_size * 1.5;
             directional_light.shadow.camera.right = obj_size * 1.5;
@@ -1228,7 +1231,7 @@ function draw(pointer, camera, cut_obj) {
     var intersects = raycaster.intersectObject(cut_obj[0], true);
     if (intersects.length > 0) {
         draw_line.push(intersects[0].point)
-        if (draw_line.length <=1) {
+        if (draw_line.length <= 1) {
             let instance = line_instance.clone();
             instance.position.copy(intersects[0].point)
             line.add(instance);
@@ -2343,13 +2346,13 @@ function patch_loader(garment, scale, num) {
             newobj.add(patch_map);
         }
     }
-    if (max_radius > 1) { max_radius /= Math.sqrt(max_radius) }
     newobj.traverse(function (child) {
         if (child.type === 'Mesh') {
             child.scale.multiplyScalar(scale / max_radius)
             child.position.multiplyScalar(scale / max_radius)
         }
     })
+    max_radius = 1;
     return newobj
 }
 
