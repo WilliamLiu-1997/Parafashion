@@ -11,7 +11,7 @@ import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.
 import { FXAAShader } from './three.js/examples/jsm/shaders/FXAAShader.js';
 import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
-let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats, point_helper_geo, point_helper;
+let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
 let cut_component;
@@ -223,6 +223,7 @@ var gui_options = {
         cover_recovery();
         line.clear();
         draw_line = [];
+        set_cursor(0)
     },
     reset: function () {
         select_recovery()
@@ -482,14 +483,6 @@ function init() {
     env_light = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(env_light);
 
-
-    point_helper_geo = new THREE.CylinderGeometry(0.0003, 0.0003, 0.006, 10);
-    point_helper_geo.translate(0, 0.003, 0);
-    point_helper_geo.rotateX(Math.PI / 2);
-    point_helper = new THREE.Mesh(point_helper_geo, new THREE.MeshNormalMaterial({ visible: false }));
-    scene.add(point_helper);
-
-
     // postprocessing
     composer = new EffectComposer(renderer);
     var renderPass = new RenderPass(scene, camera);
@@ -738,7 +731,6 @@ function animate() {
         else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
 
             gui.updateDisplay();
-            point_helper.scale.setLength(camera.position.distanceTo(point_helper.position) * 5);
             directional_light.position.copy(new THREE.Vector3(0, 3, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
             camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
@@ -853,10 +845,13 @@ function set_cursor(n) {
         document.getElementById("container").style.cursor = "grab"
     }
     else if (n === 2) {
-        document.getElementById("container").style.cursor = "crosshair"
+        document.getElementById("container").style.cursor = "pointer"
     }
     else if (n === 3) {
         document.getElementById("container").style.cursor = "grabbing"
+    }
+    else if (n === 4) {
+        document.getElementById("container").style.cursor = "crosshair"
     }
 }
 
@@ -879,7 +874,10 @@ function onmouseDown(event) {
             drawing = true;
         } else {
             select_cut(pointer, camera, event);
-            hide_others(garment, cut_obj);
+            if (cut_obj.length > 0) {
+                hide_others(garment, cut_obj);
+                set_cursor(4)
+            }
             if (controls !== undefined) {
                 if (cut_obj.length === 1) {
                     controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
@@ -1067,7 +1065,6 @@ function mouseMove(event) {
 
     if (gui_options.cut) {
         if (cut_obj.length > 0) {
-            on_cut(pointer, camera, event)
             if (drawing) {
                 let pointers = []
                 if (Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1) {
@@ -1623,37 +1620,6 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
             }
         }
     } else { select_recovery() }
-}
-
-function on_cut(cover_pointer, cover_camera, event) {
-
-    let on_patch_button = event.clientX > document.getElementById("panel_box").offsetLeft && event.clientX < document.getElementById("panel_box").offsetLeft + document.getElementById("patch_btn").clientWidth && event.clientY > document.getElementById("panel_box").offsetTop && event.clientY < document.getElementById("panel_box").offsetTop + document.getElementById("patch_btn").clientHeight
-    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
-    let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
-    if (on_patch_button || on_gui || on_transform) {
-        point_helper.material.visible = false;
-        return;
-    }
-    if (progress_obj + progress_mtl != -2) {
-        point_helper.material.visible = false;
-        select_recovery();
-        return;
-    }
-    let obj = document.getElementById("panel_box");
-    if (event.clientX < obj.offsetLeft
-        || event.clientX > (obj.offsetLeft + obj.clientWidth)
-        || event.clientY < obj.offsetTop
-        || event.clientY > (obj.offsetTop + obj.clientHeight))
-        raycaster.setFromCamera(cover_pointer, cover_camera);
-    var intersects = raycaster.intersectObject(cut_obj[0], true);
-    if (intersects.length > 0) {
-        point_helper.material.visible = true;
-        point_helper.position.set(0, 0, 0);
-        point_helper.lookAt(intersects[0].face.normal);
-        point_helper.position.copy(intersects[0].point);
-    } else {
-        point_helper.material.visible = false;
-    }
 }
 
 
