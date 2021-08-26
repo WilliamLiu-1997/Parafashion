@@ -221,8 +221,6 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        line.clear();
-        draw_line = [];
         set_cursor(0)
     },
     reset: function () {
@@ -1229,6 +1227,8 @@ function select_recovery() {
     selected = []
     selected_patch = []
     cut_obj = []
+    line.clear();
+    draw_line = [];
     if (controls !== undefined) {
         controls.target = false;
         controls.rotateSpeed = 1.3;
