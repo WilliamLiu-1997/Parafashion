@@ -875,6 +875,7 @@ function onmouseDown(event) {
             drawing = true;
         } else {
             select_cut(pointer, camera, event);
+            hide_others(garment, cut_obj);
             if (controls !== undefined) {
                 if (cut_obj.length === 1) {
                     controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
@@ -1693,7 +1694,7 @@ function select_cut(cover_pointer, cover_camera, event) {
 }
 
 function hide_others(garment, cut_obj) {
-
+    gui_options.focus = true;
     if (Array.isArray(cut_obj[0].material)) {
         for (let i in cut_obj[0].material) {
             cut_obj[0].material[i] = cut_obj[0].material[i].clone()
