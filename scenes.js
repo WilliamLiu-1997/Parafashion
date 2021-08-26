@@ -47,7 +47,7 @@ var timeStamp = 0;
 var uv_offset = false;
 var intersects_scale = false;
 var line = new THREE.Object3D();
-var line_geo = new THREE.IcosahedronGeometry(0.001, 0);
+var line_geo = new THREE.IcosahedronGeometry(0.002, 0);
 var line_material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 var line_instance = new THREE.Mesh(line_geo, line_material);
 let last_instance_position;
@@ -1069,7 +1069,14 @@ function mouseMove(event) {
         if (cut_obj.length > 0) {
             on_cut(pointer, camera, event)
             if (drawing) {
-                draw(pointer, camera, cut_obj)
+                let pointers = []
+                if (Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1) {
+                    let max_l = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+                    for (let i = 1; i <= max_l; i++) {
+                        pointers.push(new THREE.Vector2(((last_position.x + (deltaX) / max_l * i) / renderer.domElement.clientWidth) * 2 - 1, -((last_position.y + (-deltaY) / max_l * i) / renderer.domElement.clientHeight) * 2 + 1))
+                    }
+                }
+                draw(pointers, camera, cut_obj)
             }
         }
         else {
@@ -1235,32 +1242,42 @@ function select_recovery() {
     $(".tip").show();
 }
 
-function draw(pointer, camera, cut_obj) {
-    raycaster.setFromCamera(pointer, camera);
-    var intersects = raycaster.intersectObject(cut_obj[0], true);
-    if (intersects.length > 0) {
-        draw_line.push(intersects[0].point)
-        if (draw_line.length <= 1) {
-            let instance = line_instance.clone();
-            instance.position.copy(intersects[0].point)
-            instance.scale.setLength(Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
-            line.add(instance);
-            last_instance_position = instance.position.clone()
-        }
-        if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * Math.max(0.1, camera.position.distanceTo(intersects[0].point))) {
-            let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
-            for (let i = 0; i < a; i++) {
+function draw(pointers, camera, cut_obj) {
+    for (let pointer of pointers) {
+        raycaster.setFromCamera(pointer, camera);
+        var intersects = raycaster.intersectObject(cut_obj[0], true);
+        if (intersects.length > 0) {
+            let distance = camera.position.distanceTo(intersects[0].point)
+            draw_line.push(intersects[0].point)
+
+            
+            // let instance = line_instance.clone();
+            // instance.position.copy(intersects[0].point)
+            // instance.scale.setLength(Math.max(0.1, distance))
+            // line.add(instance);
+            
+            if (draw_line.length <= 1) {
                 let instance = line_instance.clone();
-                instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001 * Math.max(0.1, camera.position.distanceTo(intersects[0].point)))))
-                instance.scale.setLength(Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
+                instance.position.copy(intersects[0].point)
+                instance.scale.setLength(Math.max(0.1, distance))
                 line.add(instance);
                 last_instance_position = instance.position.clone()
             }
-            let instance = line_instance.clone();
-            instance.position.copy(intersects[0].point)
-            instance.scale.setLength(Math.max(0.1, camera.position.distanceTo(intersects[0].point)))
-            line.add(instance);
-            last_instance_position = instance.position.clone()
+            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * Math.max(0.1, distance)) {
+                let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / Math.max(0.1, distance))
+                for (let i = 0; i < a; i++) {
+                    let instance = line_instance.clone();
+                    instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001 * Math.max(0.1, distance))))
+                    instance.scale.setLength(Math.max(0.1, distance))
+                    line.add(instance);
+                    last_instance_position = instance.position.clone()
+                }
+                let instance = line_instance.clone();
+                instance.position.copy(intersects[0].point)
+                instance.scale.setLength(Math.max(0.1, distance))
+                line.add(instance);
+                last_instance_position = instance.position.clone()
+            }
         }
     }
 }
