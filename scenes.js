@@ -221,6 +221,8 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
+        line.clear();
+        draw_line = [];
     },
     reset: function () {
         select_recovery()
@@ -871,6 +873,8 @@ function onmouseDown(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
+            line.clear();
+            draw_line = [];
             mouseMove(event)
             drawing = true;
         } else {
@@ -991,8 +995,6 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
-        line.clear();
-        draw_line = [];
     }
     else if (shift) {
         texture_state = 0;
@@ -2397,9 +2399,9 @@ function GUI_init() {
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(gui_options.light));
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
-    cut_component = folder_basic.addFolder("Control");
+    cut_component = folder_basic.addFolder("Cutting Control");
     cut_component.add(gui_options, 'Unselect');
-    cut_component.add(gui_options, 'focus').onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
+    cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
     cut_component.open();
     cut_component.hide();
     folder_basic.open()
