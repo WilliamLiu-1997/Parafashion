@@ -676,6 +676,7 @@ function animate() {
             onWindowResize()
         }
         if (progress_obj + progress_mtl == 200 && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
+            old_garment = garment.clone()
             camera.position.set(0, obj_size / 2, obj_size * 2);
             controls.saveState();
             var lack = false;
@@ -762,6 +763,7 @@ function animate() {
 }
 
 function render() {
+    console.log(old_garment)
     renderer_transform.render(scene_transform, camera_transform);
     controls.update();
     composer.render();
