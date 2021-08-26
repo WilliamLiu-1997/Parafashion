@@ -76,8 +76,8 @@ var garments_mtl = "./obj/village1/village_final.mtl"
 var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-var garments_mtl = "./obj/tower/tower3.mtl"
-var garments_obj = "./obj/tower/tower3.obj"
+// var garments_mtl = "./obj/tower/tower3.mtl"
+// var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // garments_mtl = false
@@ -509,9 +509,6 @@ function init() {
     outlinePass_select.visibleEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
     outlinePass_select.hiddenEdgeColor.set(outlinePass_params_select.hiddenEdgeColor);
 
-    effectFXAA = new ShaderPass(FXAAShader);
-    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / pixelRatio, 1 / window.innerHeight / pixelRatio);
-    composer.addPass(effectFXAA);
     composer.setPixelRatio(pixelRatio);
     composer.setSize(window.innerWidth, window.innerHeight);
     // controls
@@ -529,7 +526,7 @@ function init() {
     scene.add(line);
 
 
-    var helper = new THREE.GridHelper(50, 50, 0x999999, 0x666666);
+    var helper = new THREE.GridHelper(10, 50, 0x999999, 0x666666);
     helper.position.y = 0;
     helper.material.opacity = 0.25;
     helper.material.transparent = true;
@@ -538,9 +535,9 @@ function init() {
     directional_light = new THREE.DirectionalLight(0xffffff, 0.8);
     directional_light.castShadow = true;
     directional_light.shadow.camera.near = 0.1;
-    directional_light.shadow.camera.far = 60;
-    directional_light.shadow.bias = -0.0001;
-    directional_light.position.set(0, 30, 0);
+    directional_light.shadow.camera.far = 9;
+    directional_light.shadow.bias = -0.001;
+    directional_light.position.set(0, 3, 0);
 
 
     window.addEventListener("resize", onWindowResize);
@@ -600,9 +597,6 @@ function init_patch() {
     outlinePass_patch_select.visibleEdgeColor.set(outlinePass_params_select.visibleEdgeColor);
     outlinePass_patch_select.hiddenEdgeColor.set(outlinePass_params_select.hiddenEdgeColor);
 
-    effectFXAA_patch = new ShaderPass(FXAAShader);
-    effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / pixelRatio, 1 / window.innerHeight / 0.78 / pixelRatio);
-    composer_patch.addPass(effectFXAA_patch);
     composer_patch.setPixelRatio(pixelRatio);
     composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
 
@@ -614,10 +608,6 @@ function init_patch() {
     controls_patch.enableKeys = false;
 
     controls_patch.enableRotate = false;
-    // controls_patch.maxPolarAngle = Math.PI * 0.9;
-    // controls_patch.minPolarAngle = Math.PI * 0.1;
-    // controls_patch.maxAzimuthAngle = Math.PI * 0.4;
-    // controls_patch.minAzimuthAngle = -Math.PI * 0.4;
 
 
 }
@@ -639,7 +629,6 @@ function init_transform() {
 
     const dir = new THREE.Vector3(0, -1, 0);
 
-    //normalize the direction vector (convert to vector of length 1)
     dir.normalize();
 
     const length = 10;
@@ -698,15 +687,9 @@ function animate() {
             camera_patch.far = max_radius * 50;
             controls_patch.maxZ = max_radius * 20;
             controls_patch.minZ = 0.1;
-            controls.maxDistance = 25;
-            if (obj_size < 5) {
+            controls.maxDistance = 5;
                 directional_light.shadow.mapSize.width = 4096;
                 directional_light.shadow.mapSize.height = 4096;
-            }
-            else {
-                directional_light.shadow.mapSize.width = 8192;
-                directional_light.shadow.mapSize.height = 8192;
-            }
 
             directional_light.shadow.camera.left = -obj_size * 1.5;
             directional_light.shadow.camera.right = obj_size * 1.5;
@@ -751,7 +734,7 @@ function animate() {
 
             gui.updateDisplay();
             point_helper.scale.setLength(camera.position.distanceTo(point_helper.position) * 5);
-            directional_light.position.copy(new THREE.Vector3(0, 30, 0).applyEuler(arrow.rotation));
+            directional_light.position.copy(new THREE.Vector3(0, 3, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
             camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
 
@@ -795,7 +778,6 @@ function onWindowResize() {
     composer.setPixelRatio(pixelRatio);
     renderer_transform.setSize(window.innerHeight / 7, window.innerHeight / 7);
     renderer_transform.setPixelRatio(pixelRatio);
-    effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth / pixelRatio, 1 / window.innerHeight / pixelRatio);
 
     if (render_patch_flag) {
         camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.78;
@@ -804,7 +786,6 @@ function onWindowResize() {
         renderer_patch.setPixelRatio(pixelRatio);
         composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
         composer_patch.setPixelRatio(pixelRatio);
-        effectFXAA_patch.uniforms['resolution'].value.set(1 / $("#container_patch").width() / pixelRatio, 1 / window.innerHeight / 0.78 / pixelRatio);
     }
 }
 
@@ -1290,8 +1271,6 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
         raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
         var intersects = raycaster.intersectObject(patch, true);
         if (intersects.length > 0) {
-            // console.log(intersects[ 0 ].face)
-            // console.log(intersects[ 0 ].point)
             if (intersects[0].object.parent instanceof THREE.Group) {
                 var i = 0;
                 for (i = 0; i < intersects[0].object.parent.children.length; i++) {
@@ -1344,8 +1323,6 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
         raycaster.setFromCamera(cover_pointer, cover_camera);
         var intersects = raycaster.intersectObject(garment, true);
         if (intersects.length > 0) {
-            // console.log(intersects[ 0 ].face)
-            // console.log(intersects[ 0 ].point)
             var group_num = intersects[0].object.geometry.groups.length;
             var vertice_index = intersects[0].face.a;
             var i = 0;
@@ -1423,8 +1400,6 @@ function cover_cut(cover_pointer, cover_camera, event) {
         raycaster.setFromCamera(cover_pointer, cover_camera);
         var intersects = raycaster.intersectObject(garment, true);
         if (intersects.length > 0) {
-            // console.log(intersects[ 0 ].face)
-            // console.log(intersects[ 0 ].point)
             var num = patch ? patch.children.length : 0;
 
             if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
@@ -1454,9 +1429,6 @@ function select_material(cover_pointer, cover_camera) {
     raycaster.setFromCamera(cover_pointer, cover_camera);
     var intersects = raycaster.intersectObject(garment, true);
     if (intersects.length > 0) {
-        // console.log(intersects[ 0 ].face)
-        // console.log(intersects[ 0 ].point)
-        //console.log(intersects[0].object)
         var group_num = intersects[0].object.geometry.groups.length;
         var vertice_index = intersects[0].face.a;
         var i = 0;
@@ -1545,8 +1517,6 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
     raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
     var intersects = raycaster.intersectObject(patch, true);
     if (intersects.length > 0) {
-        // console.log(intersects[ 0 ].face)
-        // console.log(intersects[ 0 ].point)
         if (intersects[0].object.parent instanceof THREE.Group) {
             var i = 0;
             for (i = 0; i < intersects[0].object.parent.children.length; i++) {
@@ -1668,9 +1638,6 @@ function select_cut(cover_pointer, cover_camera, event) {
         raycaster.setFromCamera(cover_pointer, cover_camera);
     var intersects = raycaster.intersectObject(garment, true);
     if (intersects.length > 0) {
-        // console.log(intersects[ 0 ].face)
-        // console.log(intersects[ 0 ].point)
-        //console.log(intersects[0].object)
         var num = patch ? patch.children.length : 0;
 
         if (last_select.length != 1 || last_select[0] != intersects[0].object) {
@@ -2191,17 +2158,7 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                     }
                 })
                 let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-                if (scale_value <= 1) {
-                    obj_size = 1
-                }
-                else if (scale_value > 1 && scale_value < 100) {
-                    scale_value /= Math.sqrt(scale_value)
-                    obj_size = scale_value
-                }
-                else {
-                    scale_value /= 10
-                    obj_size = 10
-                }
+                obj_size = 1
                 root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
                 root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                 newobj.add(root);
@@ -2240,17 +2197,7 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                             }
                         })
                         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-                        if (scale_value <= 1) {
-                            obj_size = 1
-                        }
-                        else if (scale_value > 1 && scale_value < 100) {
-                            scale_value /= Math.sqrt(scale_value)
-                            obj_size = scale_value
-                        }
-                        else {
-                            scale_value /= 10
-                            obj_size = 10
-                        }
+                        obj_size = 1
                         root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
                         root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
                         newobj.add(root);
@@ -2436,15 +2383,12 @@ function GUI_init() {
     folder_basic = gui.addFolder("Basic")
     folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(gui_options.light));
-    //folder_basic.add(directional_light, 'castShadow').name("Enable Shadow")
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     cut_component = folder_basic.addFolder("Control");
     cut_component.add(gui_options, 'Unselect');
     cut_component.add(gui_options, 'focus').onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
     cut_component.open();
     cut_component.hide();
-    // folder_basic.add(controls, 'sensitivity', 0.1, 35, 0.1).name("Camera Sensitivity");
-    // folder_basic.add(controls, 'dynamicSensitivity').name("Dynamic Sensitivity");
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
@@ -2681,10 +2625,6 @@ function Texture_to_GUI() {
     $('.list-drag').html(liStr);
     $(".tip").hide();
     GUI_to_Texture()
-    // if (url) {
-    //     obj_material[current] = textureloader.load(url)
-    //     selected_patch[0].material[current] = textureloader.load(url)
-    // }
 
 }
 
