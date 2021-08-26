@@ -991,6 +991,8 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
+        line.clear();
+        draw_line = [];
     }
     else if (shift) {
         texture_state = 0;
