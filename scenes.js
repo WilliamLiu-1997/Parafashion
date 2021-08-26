@@ -18,7 +18,7 @@ let cut_component;
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
 let draw_line = [];
-let old_garment = [];
+let old_garment;
 let obj3D = new THREE.Object3D();
 let progress_obj = 0, progress_mtl = 0;
 let patch_panel_width = $("#container_patch").css("width");
@@ -46,6 +46,11 @@ var singleFrameTime = 1 / FPS;
 var timeStamp = 0;
 var uv_offset = false;
 var intersects_scale = false;
+var line = new THREE.Object3D();
+var line_geo = new THREE.IcosahedronGeometry(0.001, 0);
+var line_material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+var line_instance = new THREE.Mesh(line_geo, line_material);
+let last_instance_position;
 const clock = new THREE.Clock();
 
 
@@ -521,6 +526,7 @@ function init() {
     scene.add(garment);
 
     scene.add(covered_obj);
+    scene.add(line);
 
 
     var helper = new THREE.GridHelper(50, 50, 0x999999, 0x666666);
@@ -763,7 +769,6 @@ function animate() {
 }
 
 function render() {
-    console.log(old_garment)
     renderer_transform.render(scene_transform, camera_transform);
     controls.update();
     composer.render();
@@ -1049,7 +1054,7 @@ function reset_texture_position(intersects) {
         selected_obj.geometry.attributes.uv.needsUpdate = true;
         selected_patch[0].geometry.attributes.uv.needsUpdate = true;
     }
-    
+
 }
 
 function mouseMove(event) {
@@ -1112,7 +1117,7 @@ function mouseMove(event) {
                 selected_obj.geometry.attributes.uv.needsUpdate = true;
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
             }
-            
+
         }
         if (texture_state === 2) {
             if (intersects_scale && intersects_scale.length > 0) {
@@ -1143,7 +1148,7 @@ function mouseMove(event) {
                 selected_obj.geometry.attributes.uv.needsUpdate = true;
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
             }
-            
+
         }
     }
     else if (cover) {
@@ -1191,7 +1196,7 @@ function onMouseWheel(e) {
             selected_patch[0].geometry.attributes.uv.needsUpdate = true;
             uv_offset = false;
         }
-        
+
     }
 }
 
@@ -1242,6 +1247,25 @@ function draw(pointer, camera, cut_obj) {
     var intersects = raycaster.intersectObject(cut_obj[0], true);
     if (intersects.length > 0) {
         draw_line.push(intersects[0].point)
+        if (draw_line.length <=1) {
+            let instance = line_instance.clone();
+            instance.position.copy(intersects[0].point)
+            line.add(instance);
+            last_instance_position = instance.position.clone()
+        }
+        if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001) {
+            let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001)
+            for (let i = 0; i < a; i++) {
+                let instance = line_instance.clone();
+                instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001)))
+                line.add(instance);
+                last_instance_position = instance.position.clone()
+            }
+            let instance = line_instance.clone();
+            instance.position.copy(intersects[0].point)
+            line.add(instance);
+            last_instance_position = instance.position.clone()
+        }
     }
 }
 
