@@ -6,9 +6,7 @@ import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
 import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
-import { ShaderPass } from './three.js/examples/jsm/postprocessing/ShaderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
-import { FXAAShader } from './three.js/examples/jsm/shaders/FXAAShader.js';
 import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats;
