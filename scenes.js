@@ -1229,6 +1229,7 @@ function select_recovery() {
     cut_obj = []
     line.clear();
     draw_line = [];
+    $("#alert_line").html("")
     if (controls !== undefined) {
         controls.target = false;
         controls.rotateSpeed = 1.3;
@@ -1242,7 +1243,6 @@ function select_recovery() {
 function draw(pointers, camera, cut_obj) {
     if (line.children.length > 3000) {
         $("#alert_line").html('<div id="line_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Drawed line is too long, recomend to split into short lines to improve performance!&nbsp;&nbsp;</div>');
-        setTimeout(function () { $("#alert_line").html("") },3000)
     } else {
         $("#alert_line").html("")
     }
