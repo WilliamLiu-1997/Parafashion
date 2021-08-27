@@ -1242,6 +1242,7 @@ function select_recovery() {
 function draw(pointers, camera, cut_obj) {
     if (line.children.length > 3000) {
         $("#alert_line").html('<div id="line_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Drawed line is too long, recomend to split into short lines to improve performance!&nbsp;&nbsp;</div>');
+        setTimeout(function () { $("#alert_line").html("") },3000)
     } else {
         $("#alert_line").html("")
     }
@@ -1255,28 +1256,28 @@ function draw(pointers, camera, cut_obj) {
             
             // let instance = line_instance.clone();
             // instance.position.copy(intersects[0].point)
-            // instance.scale.setLength(Math.max(0.1, distance))
+            // instance.scale.setLength(Math.max(0.5, distance))
             // line.add(instance);
             
             if (draw_line.length <= 1) {
                 let instance = line_instance.clone();
                 instance.position.copy(intersects[0].point)
-                instance.scale.setLength(Math.max(0.1, distance))
+                instance.scale.setLength(Math.max(0.5, distance))
                 line.add(instance);
                 last_instance_position = instance.position.clone()
             }
-            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * Math.max(0.1, distance)) {
-                let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / Math.max(0.1, distance))
+            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * Math.max(0.5, distance)) {
+                let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / Math.max(0.5, distance))
                 for (let i = 0; i < a; i++) {
                     let instance = line_instance.clone();
-                    instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001 * Math.max(0.1, distance))))
-                    instance.scale.setLength(Math.max(0.1, distance))
+                    instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001 * Math.max(0.5, distance))))
+                    instance.scale.setLength(Math.max(0.5, distance))
                     line.add(instance);
                     last_instance_position = instance.position.clone()
                 }
                 let instance = line_instance.clone();
                 instance.position.copy(intersects[0].point)
-                instance.scale.setLength(Math.max(0.1, distance))
+                instance.scale.setLength(Math.max(0.5, distance))
                 line.add(instance);
                 last_instance_position = instance.position.clone()
             }
