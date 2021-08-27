@@ -44,12 +44,13 @@ var singleFrameTime = 1 / FPS;
 var timeStamp = 0;
 var uv_offset = false;
 var intersects_scale = false;
-var line = new THREE.Object3D();
-var line_geo = new THREE.BoxGeometry(0.002, 0.002, 0.002);
-var line_material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-var line_instance = new THREE.Mesh(line_geo, line_material);
+var line_geo = new THREE.BufferGeometry();
+var line_material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+var line = new THREE.Line(line_geo, line_material);
+var line1 = new THREE.Line(line_geo.clone(), line_material);
 let last_instance_position;
-var instance;
+var draw_line_show = [];
+var draw_line_show_back = [];
 const clock = new THREE.Clock();
 
 
@@ -518,6 +519,7 @@ function init() {
 
     scene.add(covered_obj);
     scene.add(line);
+    scene.add(line1);
 
 
     var helper = new THREE.GridHelper(10, 50, 0x999999, 0x666666);
@@ -865,9 +867,11 @@ function onmouseDown(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
-            line.clear();
+            line.geometry.setFromPoints([]);
+            line1.geometry.setFromPoints([]);
             draw_line = [];
-            $("#alert_line").html("")
+            draw_line_show = [];
+            draw_line_show_back = [];
             mouseMove(event)
             drawing = true;
         } else {
@@ -1066,7 +1070,7 @@ function mouseMove(event) {
             if (drawing) {
                 let pointers = []
                 if (Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1) {
-                    let max_l = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+                    let max_l = Math.max(Math.abs(deltaX), Math.abs(deltaY))*2;
                     for (let i = 1; i <= max_l; i++) {
                         pointers.push(new THREE.Vector2(((last_position.x + (deltaX) / max_l * i) / renderer.domElement.clientWidth) * 2 - 1, -((last_position.y + (-deltaY) / max_l * i) / renderer.domElement.clientHeight) * 2 + 1))
                     }
@@ -1227,9 +1231,11 @@ function select_recovery() {
     selected = []
     selected_patch = []
     cut_obj = []
-    line.clear();
+    line.geometry.setFromPoints([]);
+    line1.geometry.setFromPoints([]);
     draw_line = [];
-    $("#alert_line").html("")
+    draw_line_show = [];
+    draw_line_show_back = [];
     if (controls !== undefined) {
         controls.target = false;
         controls.rotateSpeed = 1.3;
@@ -1241,42 +1247,40 @@ function select_recovery() {
 }
 
 function draw(pointers, camera, cut_obj) {
-    if (line.children.length > 2000) {
-        $("#alert_line").html('<div id="line_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Drawed line is too long, recomend to split into short lines to improve performance!&nbsp;&nbsp;</div>');
-    } else {
-        $("#alert_line").html("")
-    }
     for (let pointer of pointers) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             let distance = Math.min(2.5,camera.position.distanceTo(intersects[0].point))
             draw_line.push(intersects[0].point)
+            draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
+            draw_line_show_back.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
             if (draw_line.length == 1) {
-                instance = line_instance.clone();
-                instance.position.copy(intersects[0].point)
-                instance.scale.setLength(Math.max(0.5, distance))
-                line.add(instance);
-                last_instance_position = instance.position.clone()
+                let position=intersects[0].point.clone();
+                last_instance_position = position.clone()
             }
             if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * Math.max(0.5, distance)) {
                 let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / Math.max(0.5, distance))
                 if (a < 5) {
-                    for (let i = 0; i < a; i++) {
-                        instance = line_instance.clone();
-                        instance.position.copy(last_instance_position.clone().add(intersects[0].point.clone().sub(last_instance_position).setLength(0.001 * Math.max(0.5, distance))))
-                        instance.scale.setLength(Math.max(0.5, distance))
-                        line.add(instance);
-                        last_instance_position = instance.position.clone()
-                    }
+                    let position = intersects[0].point.clone();
+                    last_instance_position = position.clone()
                 } else if (draw_line.length == 2) {
                     draw_line.pop()
                     draw_line.pop()
-                    line.remove(instance);
+                    draw_line_show.pop()
+                    draw_line_show.pop()
+                    draw_line_show_back.pop()
+                    draw_line_show_back.pop()
                 } else {
                     draw_line.pop()
+                    draw_line_show.pop()
+                    draw_line_show_back.pop()
                 }
             }
+            line.geometry.setFromPoints(draw_line_show)
+            line.frustumCulled = false;
+            line1.geometry.setFromPoints(draw_line_show_back)
+            line1.frustumCulled = false;
         }
     }
 }
