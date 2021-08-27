@@ -879,6 +879,7 @@ function onmouseDown(event) {
             if (cut_obj.length > 0) {
                 hide_others(garment, cut_obj);
                 set_cursor(4)
+                controls.maxDistance = 2;
             }
             if (controls !== undefined) {
                 if (cut_obj.length === 1) {
@@ -1236,6 +1237,7 @@ function select_recovery() {
     draw_line = [];
     draw_line_show = [];
     draw_line_show_back = [];
+    controls.maxDistance = 5;
     if (controls !== undefined) {
         controls.target = false;
         controls.rotateSpeed = 1.3;
