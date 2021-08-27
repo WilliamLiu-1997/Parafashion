@@ -1070,7 +1070,7 @@ function mouseMove(event) {
             if (drawing) {
                 let pointers = []
                 if (Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1) {
-                    let max_l = Math.max(Math.abs(deltaX), Math.abs(deltaY))*2;
+                    let max_l = Math.max(Math.abs(deltaX), Math.abs(deltaY));
                     for (let i = 1; i <= max_l; i++) {
                         pointers.push(new THREE.Vector2(((last_position.x + (deltaX) / max_l * i) / renderer.domElement.clientWidth) * 2 - 1, -((last_position.y + (-deltaY) / max_l * i) / renderer.domElement.clientHeight) * 2 + 1))
                     }
@@ -1251,7 +1251,7 @@ function draw(pointers, camera, cut_obj) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
-            let distance = Math.min(2.5,camera.position.distanceTo(intersects[0].point))
+            let distance = camera.position.distanceTo(intersects[0].point)
             draw_line.push(intersects[0].point)
             draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
             draw_line_show_back.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
@@ -1259,8 +1259,8 @@ function draw(pointers, camera, cut_obj) {
                 let position=intersects[0].point.clone();
                 last_instance_position = position.clone()
             }
-            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * Math.max(0.5, distance)) {
-                let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / Math.max(0.5, distance))
+            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
+                let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / distance)
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
