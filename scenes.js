@@ -47,7 +47,7 @@ var timeStamp = 0;
 var uv_offset = false;
 var intersects_scale = false;
 var line = new THREE.Object3D();
-var line_geo = new THREE.IcosahedronGeometry(0.002, 0);
+var line_geo = new THREE.BoxGeometry(0.002, 0.002, 0.002);
 var line_material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 var line_instance = new THREE.Mesh(line_geo, line_material);
 let last_instance_position;
@@ -1242,7 +1242,7 @@ function select_recovery() {
 }
 
 function draw(pointers, camera, cut_obj) {
-    if (line.children.length > 3000) {
+    if (line.children.length > 2000) {
         $("#alert_line").html('<div id="line_alert" class="alert alert-warning fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>Drawed line is too long, recomend to split into short lines to improve performance!&nbsp;&nbsp;</div>');
     } else {
         $("#alert_line").html("")
@@ -1270,11 +1270,6 @@ function draw(pointers, camera, cut_obj) {
                         line.add(instance);
                         last_instance_position = instance.position.clone()
                     }
-                    instance = line_instance.clone();
-                    instance.position.copy(intersects[0].point)
-                    instance.scale.setLength(Math.max(0.5, distance))
-                    line.add(instance);
-                    last_instance_position = instance.position.clone()
                 } else if (draw_line.length == 2) {
                     draw_line.pop()
                     draw_line.pop()
