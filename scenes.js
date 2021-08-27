@@ -869,6 +869,7 @@ function onmouseDown(event) {
         if (cut_obj.length > 0) {
             line.clear();
             draw_line = [];
+            $("#alert_line").html("")
             mouseMove(event)
             drawing = true;
         } else {
