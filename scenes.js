@@ -51,6 +51,7 @@ var line1 = new THREE.Line(line_geo.clone(), line_material);
 let last_instance_position;
 var draw_line_show = [];
 var draw_line_show_back = [];
+var mouse_down_position;
 const clock = new THREE.Clock();
 
 
@@ -273,6 +274,7 @@ var gui_options = {
     cut: false,
     Mode: "Customizing Material",
     focus: false,
+    Straight: false,
     light: "Camera Light",
 }
 
@@ -857,6 +859,7 @@ function set_cursor(n) {
 
 function onmouseDown(event) {
     mouse_down = true;
+    mouse_down_position = new THREE.Vector2(event.clientX, event.clientY);
 
     if (ctrl) {
         return;
@@ -872,8 +875,8 @@ function onmouseDown(event) {
             draw_line = [];
             draw_line_show = [];
             draw_line_show_back = [];
-            mouseMove(event)
             drawing = true;
+            mouseMove(event)
         } else {
             select_cut(pointer, camera, event);
             if (cut_obj.length > 0) {
@@ -1068,7 +1071,7 @@ function mouseMove(event) {
 
     if (gui_options.cut) {
         if (cut_obj.length > 0) {
-            if (drawing) {
+            if (drawing && !gui_options.Straight) {
                 let pointers = []
                 if (Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1) {
                     let max_l = Math.max(Math.abs(deltaX), Math.abs(deltaY));
@@ -1077,6 +1080,17 @@ function mouseMove(event) {
                     }
                 }
                 draw(pointers, camera, cut_obj)
+            } else if (drawing && gui_options.Straight) {
+                let pointers = []
+                let deltaX0 = mouse_position.x - mouse_down_position.x
+                let deltaY0 = mouse_down_position.y - mouse_position.y
+                if (Math.abs(deltaX0) >= 1 || Math.abs(deltaY0) >= 1) {
+                    let max_l = Math.max(Math.abs(deltaX0), Math.abs(deltaY0));
+                    for (let i = 1; i <= max_l; i++) {
+                        pointers.push(new THREE.Vector2(((mouse_down_position.x + (deltaX0) / max_l * i) / renderer.domElement.clientWidth) * 2 - 1, -((mouse_down_position.y + (-deltaY0) / max_l * i) / renderer.domElement.clientHeight) * 2 + 1))
+                    }
+                }
+                draw_straight(pointers, camera, cut_obj)
             }
         }
         else {
@@ -1258,7 +1272,49 @@ function draw(pointers, camera, cut_obj) {
             draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
             draw_line_show_back.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
             if (draw_line.length == 1) {
-                let position=intersects[0].point.clone();
+                let position = intersects[0].point.clone();
+                last_instance_position = position.clone()
+            }
+            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
+                let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / distance)
+                if (a < 5) {
+                    let position = intersects[0].point.clone();
+                    last_instance_position = position.clone()
+                } else if (draw_line.length == 2) {
+                    draw_line.pop()
+                    draw_line.pop()
+                    draw_line_show.pop()
+                    draw_line_show.pop()
+                    draw_line_show_back.pop()
+                    draw_line_show_back.pop()
+                } else {
+                    draw_line.pop()
+                    draw_line_show.pop()
+                    draw_line_show_back.pop()
+                }
+            }
+            line.geometry.setFromPoints(draw_line_show)
+            line.frustumCulled = false;
+            line1.geometry.setFromPoints(draw_line_show_back)
+            line1.frustumCulled = false;
+        }
+    }
+}
+
+function draw_straight(pointers, camera, cut_obj) {
+    draw_line = []
+    draw_line_show = []
+    draw_line_show_back = []
+    for (let pointer of pointers) {
+        raycaster.setFromCamera(pointer, camera);
+        var intersects = raycaster.intersectObject(cut_obj[0], true);
+        if (intersects.length > 0) {
+            let distance = camera.position.distanceTo(intersects[0].point)
+            draw_line.push(intersects[0].point)
+            draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
+            draw_line_show_back.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
+            if (draw_line.length == 1) {
+                let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
             }
             if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
@@ -2393,6 +2449,7 @@ function GUI_init() {
     cut_component = folder_basic.addFolder("Cutting Control");
     cut_component.add(gui_options, 'Unselect');
     cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
+    cut_component.add(gui_options, 'Straight').name("Straight Line");
     cut_component.open();
     cut_component.hide();
     folder_basic.open()
