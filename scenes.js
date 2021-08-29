@@ -1252,6 +1252,7 @@ function select_recovery() {
     draw_line_show = [];
     draw_line_show_back = [];
     controls.maxDistance = 5;
+    set_cursor(0)
     if (controls !== undefined) {
         controls.target = false;
         controls.rotateSpeed = 1.3;
