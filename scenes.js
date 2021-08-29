@@ -222,7 +222,6 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        set_cursor(0)
     },
     reset: function () {
         select_recovery()
