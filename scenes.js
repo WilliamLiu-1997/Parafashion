@@ -73,12 +73,12 @@ var garments_mtl = "./leggins/patch.mtl"
 var garments_obj = "./leggins/patch.obj"
 // var garments_mtl = "./leggins/patch_smooth.mtl"
 // var garments_obj = "./leggins/patch_smooth.obj"
-var garments_mtl = "./obj/village1/village_final.mtl"
-var garments_obj = "./obj/village1/village_final.obj"
+// var garments_mtl = "./obj/village1/village_final.mtl"
+// var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-var garments_mtl = "./obj/tower/tower3.mtl"
-var garments_obj = "./obj/tower/tower3.obj"
+// var garments_mtl = "./obj/tower/tower3.mtl"
+// var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // var garments_mtl = "./obj/house/house.mtl"
@@ -1271,6 +1271,7 @@ function draw(pointers, camera, cut_obj) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
+            if (intersects[0].point.x < 0) { continue;}
             let distance = camera.position.distanceTo(intersects[0].point)
             draw_line.push(intersects[0].point)
             let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
@@ -1314,6 +1315,7 @@ function draw_straight(pointers, camera, cut_obj) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
+            if (intersects[0].point.x < 0) { continue; }
             let distance = camera.position.distanceTo(intersects[0].point)
             draw_line.push(intersects[0].point)
             draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
