@@ -519,6 +519,10 @@ function init() {
     scene.add(garment);
 
     scene.add(covered_obj);
+
+
+    line.frustumCulled = false;
+    line1.frustumCulled = false;
     scene.add(line);
     scene.add(line1);
 
@@ -1269,8 +1273,10 @@ function draw(pointers, camera, cut_obj) {
         if (intersects.length > 0) {
             let distance = camera.position.distanceTo(intersects[0].point)
             draw_line.push(intersects[0].point)
-            draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
-            draw_line_show_back.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
+            let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
+            let back=intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate())
+            draw_line_show.push(front.x, front.y, front.z)
+            draw_line_show_back.push(back.x, back.y, back.z)
             if (draw_line.length == 1) {
                 let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
@@ -1281,22 +1287,21 @@ function draw(pointers, camera, cut_obj) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
                 } else if (draw_line.length == 2) {
-                    draw_line.pop()
-                    draw_line.pop()
-                    draw_line_show.pop()
-                    draw_line_show.pop()
-                    draw_line_show_back.pop()
-                    draw_line_show_back.pop()
+                    draw_line=[]
+                    draw_line_show=[]
+                    draw_line_show_back=[]
                 } else {
                     draw_line.pop()
                     draw_line_show.pop()
                     draw_line_show_back.pop()
+                    draw_line_show.pop()
+                    draw_line_show_back.pop()
+                    draw_line_show.pop()
+                    draw_line_show_back.pop()
                 }
             }
-            line.geometry.setFromPoints(draw_line_show)
-            line.frustumCulled = false;
-            line1.geometry.setFromPoints(draw_line_show_back)
-            line1.frustumCulled = false;
+            line.geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show, 3));
+            line1.geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back, 3));
         }
     }
 }
