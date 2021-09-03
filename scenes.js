@@ -72,14 +72,15 @@ var garments_obj = "./leggins/leggins_patch.obj";
 var garments_mtl = "./leggins/leggins_patch.obj.mtl";
 var garments_mtl = "./leggins/patch.mtl"
 var garments_obj = "./leggins/patch.obj"
+var garments_obj1 = "./leggins/test_out.ply"
 // var garments_mtl = "./leggins/patch_smooth.mtl"
 // var garments_obj = "./leggins/patch_smooth.obj"
 // var garments_mtl = "./obj/village1/village_final.mtl"
 // var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-// var garments_mtl = "./obj/tower/tower3.mtl"
-// var garments_obj = "./obj/tower/tower3.obj"
+var garments_mtl = "./obj/tower/tower3.mtl"
+var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // var garments_mtl = "./obj/house/house.mtl"
@@ -516,6 +517,7 @@ function init() {
     controls.dampingFactor = 0.15;
     controls.rotateSpeed = 1.3;
 
+    //garment = ply_loader(garments_obj1, 1, true);
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
     scene.add(garment);
 
@@ -1877,7 +1879,6 @@ function individual(bufGeom, ig) {
 function individual_garmentToPatch(bufGeom, ig) {
     try {
         var groups = bufGeom.groups;
-        var origNormals = bufGeom.getAttribute('normal').array;
         var origUVs = bufGeom.getAttribute('uv').array;
 
         if (groups.length > 0) { var group = groups[ig]; }
@@ -1887,7 +1888,6 @@ function individual_garmentToPatch(bufGeom, ig) {
 
         var newBufGeom = new THREE.BufferGeometry();
         var newPositions = new Float32Array(destNumVerts * 3);
-        var newNormals = new Float32Array(destNumVerts * 3);
         var newUVs = new Float32Array(destNumVerts * 2);
 
         for (var iv = 0; iv < destNumVerts; iv++) {
@@ -1901,24 +1901,18 @@ function individual_garmentToPatch(bufGeom, ig) {
             newPositions[indexDest + 1] = origUVs[indexOrigUV + 1];
             newPositions[indexDest + 2] = 0;
 
-            newNormals[indexDest] = origNormals[indexOrig];
-            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
-            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
-
             newUVs[indexDestUV] = origUVs[indexOrigUV];
             newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
 
         }
 
         newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
         newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
-
+        newBufGeom.computeVertexNormals();
         return newBufGeom;
     }
     catch (e) {
         var groups = bufGeom.groups;
-        var origNormals = bufGeom.getAttribute('normal').array;
 
         if (groups.length > 0) { var group = groups[ig]; }
         else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
@@ -1927,7 +1921,6 @@ function individual_garmentToPatch(bufGeom, ig) {
 
         var newBufGeom = new THREE.BufferGeometry();
         var newPositions = new Float32Array(destNumVerts * 3);
-        var newNormals = new Float32Array(destNumVerts * 3);
         var newUVs = new Float32Array(destNumVerts * 2);
 
         for (var iv = 0; iv < destNumVerts; iv++) {
@@ -1941,19 +1934,14 @@ function individual_garmentToPatch(bufGeom, ig) {
             newPositions[indexDest + 1] = 0;
             newPositions[indexDest + 2] = 0;
 
-            newNormals[indexDest] = 0;
-            newNormals[indexDest + 1] = 0;
-            newNormals[indexDest + 2] = 0;
-
             newUVs[indexDestUV] = 0;
             newUVs[indexDestUV + 1] = 0;
 
         }
 
         newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
         newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
-
+        newBufGeom.computeVertexNormals();
         return newBufGeom;
     }
 
@@ -2163,10 +2151,19 @@ function Display(show_env, patch_env, light) {
 }
 
 
-function obj_loader1(url_obj, scale, double = true) {
+function ply_loader(url_obj, scale, double = true) {
+    original = []
+    let onProgress_obj = function (xhr) {
+        if (xhr.lengthComputable) {
+            let percentComplete = (xhr.loaded / xhr.total) * 100;
+            console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
+            progress_obj = Math.round(percentComplete, 2);
+        }
+    };
+    let newobj = obj3D.clone();
     const loader = new PLYLoader();
     progress_mtl = 100
-    loader.load('url_obj', function (geometry) {
+    loader.load(url_obj, function (geometry) {
         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
 
         let root = new THREE.Mesh();
@@ -2177,8 +2174,8 @@ function obj_loader1(url_obj, scale, double = true) {
         default_m.color.set(randomColor())
         root.castShadow = true;
         root.receiveShadow = true;
-        geometry.computeFaceNormals();
 
+        geometry.computeVertexNormals();
         geometry.computeBoundingBox();
         x_max = x_max < geometry.boundingBox.max.x ? geometry.boundingBox.max.x : x_max;
         y_max = y_max < geometry.boundingBox.max.y ? geometry.boundingBox.max.y : y_max;
@@ -2194,7 +2191,9 @@ function obj_loader1(url_obj, scale, double = true) {
         obj_size = 1
         root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
         root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
-        newobj.add(root);
+        let group = new THREE.Group()
+        group.add(root)
+        newobj.add(group);
     },
         onProgress_obj
     );
@@ -2348,28 +2347,6 @@ function patch_loader(garment, scale, num) {
                     max_height = 0
                 }
                 let individual_patch = individual_garmentToPatch(patch_geo, individual_i)
-                let normals = [];
-                let individual_uv = individual_patch.attributes.uv.array;
-                for (let i = 0; i < individual_uv.length; i++) {
-                    if ((i + 1) % 6 == 0) {
-                        let x1 = individual_uv[i - 5]
-                        let y1 = individual_uv[i - 4]
-                        let x2 = individual_uv[i - 3]
-                        let y2 = individual_uv[i - 2]
-                        let x3 = individual_uv[i - 1]
-                        let y3 = individual_uv[i]
-                        let a = y3 - y1
-                        let b = x1 - x3
-                        let c = x3 * y1 - x1 * y3
-                        if (a * x2 + b * y2 + c >= 0) {
-                            normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
-                        } else {
-                            normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
-                        }
-                    }
-                }
-                individual_patch.deleteAttribute("normal");
-                individual_patch.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
                 let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
                 individual_patch.computeBoundingBox();
                 let x_max = individual_patch.boundingBox.max.x;
@@ -2403,28 +2380,6 @@ function patch_loader(garment, scale, num) {
                 max_height = 0
             }
             patch_geo = individual_garmentToPatch(patch_geo, 0);
-            let normals = [];
-            let patch_geo_uv = patch_geo.attributes.uv.array;
-            for (let i = 0; i < patch_geo_uv.length; i++) {
-                if ((i + 1) % 6 == 0) {
-                    let x1 = patch_geo_uv[i - 5]
-                    let y1 = patch_geo_uv[i - 4]
-                    let x2 = patch_geo_uv[i - 3]
-                    let y2 = patch_geo_uv[i - 2]
-                    let x3 = patch_geo_uv[i - 1]
-                    let y3 = patch_geo_uv[i]
-                    let a = y3 - y1
-                    let b = x1 - x3
-                    let c = x3 * y1 - x1 * y3
-                    if (a * x2 + b * y2 + c >= 0) {
-                        normals.push(0, 0, 1, 0, 0, 1, 0, 0, 1);
-                    } else {
-                        normals.push(0, 0, -1, 0, 0, -1, 0, 0, -1);
-                    }
-                }
-            }
-            patch_geo.deleteAttribute("normal");
-            patch_geo.setAttribute("normal", new THREE.BufferAttribute(new Float32Array(normals), 3));
             let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
             patch_map.name = garment.children[0].children[x].name;
             patch_geo.computeBoundingBox();
