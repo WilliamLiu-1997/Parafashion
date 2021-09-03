@@ -3,6 +3,7 @@ import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
 import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
+import { PLYLoader } from './three.js/examples/jsm/loaders/PLYLoader.js';
 import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
@@ -1274,7 +1275,7 @@ function draw(pointers, camera, cut_obj) {
             let distance = camera.position.distanceTo(intersects[0].point)
             draw_line.push(intersects[0].point)
             let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
-            let back=intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate())
+            let back = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate())
             draw_line_show.push(front.x, front.y, front.z)
             draw_line_show_back.push(back.x, back.y, back.z)
             if (draw_line.length == 1) {
@@ -1287,9 +1288,9 @@ function draw(pointers, camera, cut_obj) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
                 } else if (draw_line.length == 2) {
-                    draw_line=[]
-                    draw_line_show=[]
-                    draw_line_show_back=[]
+                    draw_line = []
+                    draw_line_show = []
+                    draw_line_show_back = []
                 } else {
                     draw_line.pop()
                     draw_line_show.pop()
@@ -1828,7 +1829,6 @@ function individual(bufGeom, ig) {
         newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
         newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
         newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
-
         return newBufGeom;
     }
     catch (e) {
@@ -2160,6 +2160,45 @@ function Display(show_env, patch_env, light) {
             })
         }
     }
+}
+
+
+function obj_loader1(url_obj, scale, double = true) {
+    const loader = new PLYLoader();
+    progress_mtl = 100
+    loader.load('url_obj', function (geometry) {
+        let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
+
+        let root = new THREE.Mesh();
+        root.name = randomString();
+        obj_vertices_count += geometry.attributes.position.count;
+        let default_m = default_material.clone()
+        if (!double) { default_m.side = THREE.FrontSide }
+        default_m.color.set(randomColor())
+        root.castShadow = true;
+        root.receiveShadow = true;
+        geometry.computeFaceNormals();
+
+        geometry.computeBoundingBox();
+        x_max = x_max < geometry.boundingBox.max.x ? geometry.boundingBox.max.x : x_max;
+        y_max = y_max < geometry.boundingBox.max.y ? geometry.boundingBox.max.y : y_max;
+        z_max = z_max < geometry.boundingBox.max.z ? geometry.boundingBox.max.z : z_max;
+        x_min = x_min > geometry.boundingBox.min.x ? geometry.boundingBox.min.x : x_min;
+        y_min = y_min > geometry.boundingBox.min.y ? geometry.boundingBox.min.y : y_min;
+        z_min = z_min > geometry.boundingBox.min.z ? geometry.boundingBox.min.z : z_min;
+        root.geometry = geometry
+        root.material = default_m
+        original.push(root.clone())
+
+        let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
+        obj_size = 1
+        root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
+        root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
+        newobj.add(root);
+    },
+        onProgress_obj
+    );
+    return newobj;
 }
 
 
