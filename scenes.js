@@ -1271,7 +1271,6 @@ function draw(pointers, camera, cut_obj) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
-            if (intersects[0].point.x < 0) { continue;}
             let distance = camera.position.distanceTo(intersects[0].point)
             draw_line.push(intersects[0].point)
             let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
@@ -1315,7 +1314,6 @@ function draw_straight(pointers, camera, cut_obj) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
-            if (intersects[0].point.x < 0) { continue; }
             let distance = camera.position.distanceTo(intersects[0].point)
             draw_line.push(intersects[0].point)
             draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
