@@ -79,8 +79,8 @@ var garments_obj1 = "./leggins/test_out.ply"
 // var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-var garments_mtl = "./obj/tower/tower3.mtl"
-var garments_obj = "./obj/tower/tower3.obj"
+// var garments_mtl = "./obj/tower/tower3.mtl"
+// var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // var garments_mtl = "./obj/house/house.mtl"
@@ -519,6 +519,7 @@ function init() {
 
     //garment = ply_loader(garments_obj1, 1, true);
     garment = obj_loader(garments_obj, garments_mtl, 1, true);
+    
     scene.add(garment);
 
     scene.add(covered_obj);
@@ -2166,6 +2167,7 @@ function ply_loader(url_obj, scale, double = true) {
     loader.load(url_obj, function (geometry) {
         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
 
+        let group = new THREE.Group()
         let root = new THREE.Mesh();
         root.name = randomString();
         obj_vertices_count += geometry.attributes.position.count;
@@ -2189,9 +2191,8 @@ function ply_loader(url_obj, scale, double = true) {
 
         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
         obj_size = 1
-        root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
-        root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
-        let group = new THREE.Group()
+        group.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
+        group.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
         group.add(root)
         newobj.add(group);
     },
