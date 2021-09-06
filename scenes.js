@@ -79,8 +79,8 @@ var garments_obj1 = "./leggins/test_out.ply"
 // var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
 // var garments_obj = "./obj/city2/city2.obj"
-// var garments_mtl = "./obj/tower/tower3.mtl"
-// var garments_obj = "./obj/tower/tower3.obj"
+var garments_mtl = "./obj/tower/tower3.mtl"
+var garments_obj = "./obj/tower/tower3.obj"
 // var garments_mtl = "./obj/S/S.mtl"
 // var garments_obj = "./obj/S/S.obj"
 // var garments_mtl = "./obj/house/house.mtl"
@@ -553,6 +553,7 @@ function init() {
     window.addEventListener("keydown", onKeyDown, false);
     window.addEventListener("keyup", onKeyUp, false);
     document.getElementById("container").addEventListener("wheel", onMouseWheel, false);
+    document.getElementById("container_patch").addEventListener("wheel", onMouseWheel_patch, false);
 
 
 }
@@ -797,14 +798,9 @@ function onWindowResize() {
 function onKeyDown(e) {
     switch (e.keyCode) {
         case 16:
-            let obj = document.getElementById("panel_box");
             let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
             let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
-            let on_patch = mouse_position.x > obj.offsetLeft
-                && mouse_position.x < (obj.offsetLeft + obj.clientWidth)
-                && mouse_position.y > obj.offsetTop
-                && mouse_position.y < (obj.offsetTop + obj.clientHeight)
-            if (!on_patch && !on_gui && !on_transform
+            if (!on_gui && !on_transform
                 && !gui_options.cut
                 && selected.length > 0
                 && !mouse_down
@@ -848,18 +844,23 @@ function set_cursor(n) {
 
     if (n === 0) {
         document.getElementById("container").style.cursor = "auto"
+        document.getElementById("panel_box").style.cursor = "auto"
     }
     else if (n === 1) {
         document.getElementById("container").style.cursor = "grab"
+        document.getElementById("panel_box").style.cursor = "grab"
     }
     else if (n === 2) {
         document.getElementById("container").style.cursor = "pointer"
+        document.getElementById("panel_box").style.cursor = "pointer"
     }
     else if (n === 3) {
         document.getElementById("container").style.cursor = "grabbing"
+        document.getElementById("panel_box").style.cursor = "grabbing"
     }
     else if (n === 4) {
         document.getElementById("container").style.cursor = "crosshair"
+        document.getElementById("panel_box").style.cursor = "crosshair"
     }
 }
 
@@ -968,33 +969,66 @@ function onmouseDown_patch(event) {
         return;
     }
 
-
     if (event.button == 0) {
-        pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
-        pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
-        if (!mouse_down && cover) { cover_recovery(); }
-        if (cover) {
-            select_material_patch(pointer_patch, camera_patch);
-            if (controls !== undefined) {
-                if (selected.length === 1) {
-                    controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
-                    controls.rotateSpeed = 2.5;
-                } else if (selected.length === 2) {
-                    selected_obj.geometry.computeBoundingSphere();
-                    controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
-                    controls.rotateSpeed = 2.5;
-                }
+        controls.stop = true;
+        controls_patch.stop = true;
+    }
 
-            } if (find_new) {
-                load_material()
-                find_new = false;
+    if (reset_position && event.button == 0 && !gui_options.cut) {
+        reset_position = false;
+        if (shift) { set_cursor(1) } else { set_cursor(0) }
+        raycaster.setFromCamera(pointer_patch, camera_patch);
+        if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
+        if (intersects.length > 0) {
+            reset_texture_position(intersects)
+        }
+    }
+    else if (shift && !gui_options.cut) {
+        event.preventDefault()
+        if (event.button == 0) {
+            raycaster.setFromCamera(pointer_patch, camera_patch);
+            if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
+            if (intersects.length > 0) {
+                texture_state = 1.5;
+                set_cursor(3)
             }
         }
-        cover = false;
+        else if (event.button == 2) {
+            raycaster.setFromCamera(pointer_patch, camera_patch);
+            if (selected_patch.length === 1) intersects_scale = raycaster.intersectObject(selected_patch[0], true);
+            if (intersects_scale.length > 0) {
+                texture_state = 2;
+                set_cursor(3)
+            }
+        }
     }
-    else if (event.button == 1) { cover = false; }
-    else if (event.button == 2) { cover = false; }
+    else {
+        if (event.button == 0) {
+            pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
+            pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
+            if (!mouse_down && cover) { cover_recovery(); }
+            if (cover) {
+                select_material_patch(pointer_patch, camera_patch);
+                if (controls !== undefined) {
+                    if (selected.length === 1) {
+                        controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                        controls.rotateSpeed = 2.5;
+                    } else if (selected.length === 2) {
+                        selected_obj.geometry.computeBoundingSphere();
+                        controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
+                        controls.rotateSpeed = 2.5;
+                    }
 
+                } if (find_new) {
+                    load_material()
+                    find_new = false;
+                }
+            }
+            cover = false;
+        }
+        else if (event.button == 1) { cover = false; }
+        else if (event.button == 2) { cover = false; }
+    }
 }
 
 function onmouseUp(event) {
@@ -1140,6 +1174,41 @@ function mouseMove(event) {
             }
 
         }
+        if (texture_state === 1.5) {
+            raycaster.setFromCamera(pointer_patch, camera_patch);
+            if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
+            if (intersects.length > 0) {
+                if (!uv_offset) uv_offset = intersects[0].uv.clone();
+                var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
+                var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
+                uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
+                if (selected.length === 1) {
+                    for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
+                        selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
+                        selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
+                        selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
+                        selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
+                    }
+                }
+                else if (selected.length === 2) {
+                    let start = selected[0].geometry.groups[selected[1]].start
+                    for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                        selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
+                        selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
+                        selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
+                    }
+                }
+                selected[0].geometry.attributes.uv.needsUpdate = true;
+                selected_obj.geometry.attributes.uv.needsUpdate = true;
+                selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+            }
+
+        }
         if (texture_state === 2) {
             if (intersects_scale && intersects_scale.length > 0) {
                 if (!uv_offset) uv_offset = intersects_scale[0].uv.clone();
@@ -1184,6 +1253,51 @@ function onMouseWheel(e) {
         let rotation = e.deltaY > 0 ? 0.015 : -0.015
         raycaster.setFromCamera(pointer, camera);
         if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+        if (intersects.length > 0) {
+            set_cursor(3)
+            uv_offset = intersects[0].uv.clone();
+            if (selected.length === 1) {
+                for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
+                    let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i), selected_obj.geometry.attributes.uv.getY(i))
+                    vec2.rotateAround(uv_offset, rotation)
+                    selected_obj.geometry.attributes.uv.setX(i, vec2.x)
+                    selected_obj.geometry.attributes.uv.setY(i, vec2.y)
+                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
+                    selected_patch[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected_patch[0].geometry.attributes.uv.setY(i, vec2.y)
+                }
+            }
+            else if (selected.length === 2) {
+                let start = selected[0].geometry.groups[selected[1]].start
+                for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
+                    let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i - start), selected_obj.geometry.attributes.uv.getY(i - start))
+                    vec2.rotateAround(uv_offset, rotation)
+                    selected_obj.geometry.attributes.uv.setX(i - start, vec2.x)
+                    selected_obj.geometry.attributes.uv.setY(i - start, vec2.y)
+                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
+                    selected_patch[0].geometry.attributes.uv.setX(i - start, vec2.x)
+                    selected_patch[0].geometry.attributes.uv.setY(i - start, vec2.y)
+                }
+            }
+            selected[0].geometry.attributes.uv.needsUpdate = true;
+            selected_obj.geometry.attributes.uv.needsUpdate = true;
+            selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+            uv_offset = false;
+        }
+
+    }
+}
+
+function onMouseWheel_patch(e) {
+    if (shift && !mouse_down) {
+        let obj = document.getElementById("panel_box");
+        pointer_patch.x = (e.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
+        pointer_patch.y = - ((e.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
+        let rotation = e.deltaY > 0 ? 0.015 : -0.015
+        raycaster.setFromCamera(pointer_patch, camera_patch);
+        if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
         if (intersects.length > 0) {
             set_cursor(3)
             uv_offset = intersects[0].uv.clone();
