@@ -1002,7 +1002,7 @@ function onmouseDown_patch(event) {
             }
         }
     }
-    else {
+    else if (!gui_options.cut){
         if (event.button == 0) {
             pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
             pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
