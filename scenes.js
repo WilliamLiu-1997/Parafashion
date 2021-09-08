@@ -277,11 +277,13 @@ var gui_options = {
         draw_line_show_back = [];
     },
     process_geo: function () {
-        if (draw_line.length > 0 && cut_obj.length>0) {
+        if (draw_line.length > 0 && cut_obj.length > 0) {
             show_processing()
-            cut_obj[0].geometry = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
-            cut_obj[0].material = default_material;
-            hide_loading()
+            setTimeout(() => {
+                cut_obj[0].geometry = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
+                cut_obj[0].material = default_material;
+                hide_loading()
+            }, 500);
         }
         console.log(garment)
     },
@@ -1054,9 +1056,9 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
-        if (draw_line.length > 0&&draw_line[draw_line.length-1].length==0){
-            line.remove(line.children[line.children.length-1]);
-            line1.remove(line1.children[line1.children.length-1]);
+        if (draw_line.length > 0 && draw_line[draw_line.length - 1].length == 0) {
+            line.remove(line.children[line.children.length - 1]);
+            line1.remove(line1.children[line1.children.length - 1]);
         }
     }
     else if (shift) {
@@ -1408,80 +1410,80 @@ function draw(pointers, camera, cut_obj) {
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             let distance = camera.position.distanceTo(intersects[0].point)
-            draw_line[draw_line.length-1].push(intersects[0].point)
+            draw_line[draw_line.length - 1].push(intersects[0].point)
             let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
             let back = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate())
-            draw_line_show[draw_line_show.length-1].push(front.x, front.y, front.z)
-            draw_line_show_back[draw_line_show_back.length-1].push(back.x, back.y, back.z)
-            if (draw_line[draw_line.length-1].length == 1) {
+            draw_line_show[draw_line_show.length - 1].push(front.x, front.y, front.z)
+            draw_line_show_back[draw_line_show_back.length - 1].push(back.x, back.y, back.z)
+            if (draw_line[draw_line.length - 1].length == 1) {
                 let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
             }
-            if (draw_line[draw_line.length-1].length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
+            if (draw_line[draw_line.length - 1].length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
                 let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / distance)
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line[draw_line.length-1].length == 2) {
-                    draw_line[draw_line.length-1] = []
-                    draw_line_show[draw_line_show.length-1] = []
-                    draw_line_show_back[draw_line_show_back.length-1] = []
+                } else if (draw_line[draw_line.length - 1].length == 2) {
+                    draw_line[draw_line.length - 1] = []
+                    draw_line_show[draw_line_show.length - 1] = []
+                    draw_line_show_back[draw_line_show_back.length - 1] = []
                 } else {
-                    draw_line[draw_line.length-1].pop()
-                    draw_line_show[draw_line_show.length-1].pop()
-                    draw_line_show_back[draw_line_show_back.length-1].pop()
-                    draw_line_show[draw_line_show.length-1].pop()
-                    draw_line_show_back[draw_line_show_back.length-1].pop()
-                    draw_line_show[draw_line_show.length-1].pop()
-                    draw_line_show_back[draw_line_show_back.length-1].pop()
+                    draw_line[draw_line.length - 1].pop()
+                    draw_line_show[draw_line_show.length - 1].pop()
+                    draw_line_show_back[draw_line_show_back.length - 1].pop()
+                    draw_line_show[draw_line_show.length - 1].pop()
+                    draw_line_show_back[draw_line_show_back.length - 1].pop()
+                    draw_line_show[draw_line_show.length - 1].pop()
+                    draw_line_show_back[draw_line_show_back.length - 1].pop()
                 }
             }
-            line.children[line.children.length-1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show[draw_line_show.length-1], 3));
-            line1.children[line1.children.length-1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back[draw_line_show_back.length-1], 3));
-            line.children[line.children.length-1].frustumCulled = false;
-            line1.children[line1.children.length-1].frustumCulled = false;
+            line.children[line.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show[draw_line_show.length - 1], 3));
+            line1.children[line1.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back[draw_line_show_back.length - 1], 3));
+            line.children[line.children.length - 1].frustumCulled = false;
+            line1.children[line1.children.length - 1].frustumCulled = false;
         }
     }
 }
 
 function draw_straight(pointers, camera, cut_obj) {
-    draw_line[draw_line.length-1] = []
-    draw_line_show[draw_line_show.length-1] = []
-    draw_line_show_back[draw_line_show_back.length-1] = []
+    draw_line[draw_line.length - 1] = []
+    draw_line_show[draw_line_show.length - 1] = []
+    draw_line_show_back[draw_line_show_back.length - 1] = []
     for (let pointer of pointers) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             let distance = camera.position.distanceTo(intersects[0].point)
-            draw_line[draw_line.length-1].push(intersects[0].point)
-            draw_line_show[draw_line_show.length-1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
-            draw_line_show_back[draw_line_show_back.length-1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
-            if (draw_line[draw_line.length-1].length == 1) {
+            draw_line[draw_line.length - 1].push(intersects[0].point)
+            draw_line_show[draw_line_show.length - 1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
+            draw_line_show_back[draw_line_show_back.length - 1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
+            if (draw_line[draw_line.length - 1].length == 1) {
                 let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
             }
-            if (draw_line[draw_line.length-1].length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
+            if (draw_line[draw_line.length - 1].length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
                 let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / distance)
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line[draw_line.length-1].length == 2) {
-                    draw_line[draw_line.length-1].pop()
-                    draw_line[draw_line.length-1].pop()
-                    draw_line_show[draw_line_show.length-1].pop()
-                    draw_line_show[draw_line_show.length-1].pop()
-                    draw_line_show_back[draw_line_show_back.length-1].pop()
-                    draw_line_show_back[draw_line_show_back.length-1].pop()
+                } else if (draw_line[draw_line.length - 1].length == 2) {
+                    draw_line[draw_line.length - 1].pop()
+                    draw_line[draw_line.length - 1].pop()
+                    draw_line_show[draw_line_show.length - 1].pop()
+                    draw_line_show[draw_line_show.length - 1].pop()
+                    draw_line_show_back[draw_line_show_back.length - 1].pop()
+                    draw_line_show_back[draw_line_show_back.length - 1].pop()
                 } else {
-                    draw_line[draw_line.length-1].pop()
-                    draw_line_show[draw_line_show.length-1].pop()
-                    draw_line_show_back[draw_line_show_back.length-1].pop()
+                    draw_line[draw_line.length - 1].pop()
+                    draw_line_show[draw_line_show.length - 1].pop()
+                    draw_line_show_back[draw_line_show_back.length - 1].pop()
                 }
             }
-            line.children[line.children.length-1].geometry.setFromPoints(draw_line_show[draw_line_show.length-1])
-            line1.children[line1.children.length-1].geometry.setFromPoints(draw_line_show_back[draw_line_show_back.length-1])
-            line.children[line.children.length-1].frustumCulled = false;
-            line1.children[line1.children.length-1].frustumCulled = false;
+            line.children[line.children.length - 1].geometry.setFromPoints(draw_line_show[draw_line_show.length - 1])
+            line1.children[line1.children.length - 1].geometry.setFromPoints(draw_line_show_back[draw_line_show_back.length - 1])
+            line.children[line.children.length - 1].frustumCulled = false;
+            line1.children[line1.children.length - 1].frustumCulled = false;
         }
     }
 }
