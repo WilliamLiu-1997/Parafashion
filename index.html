@@ -347,12 +347,14 @@
         $("#processing").hide();
         $("#loading").css({ display: "flex", opacity: 0 });
         $("#loading").animate({ opacity: 1 }, 500);
+        $("#loading_background").show();
       }
       function show_processing() {
         $("#loading").hide();
         $("#processing").show();
         $("#processing").css({ display: "flex", opacity: 0 });
         $("#processing").animate({ opacity: 1 }, 500);
+        $("#loading_background").show();
       }
       function hide_loading() {
         $("#loading").fadeOut(800);
