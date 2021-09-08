@@ -1040,6 +1040,66 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
+
+
+
+
+
+        //************************************************************************************************************** 
+        if (draw_line.length < 2) return
+        
+        let positions = cut_obj[0].geometry.attributes.position.array
+        let Faces = new Module.vector$vector$size_t$$()
+        let Coords = new Module.vector$vector$double$$()
+        for (let i = 0; i < positions.length; i += 3) {
+            let Coords_Vector = new Module.vector$double$()
+            Coords_Vector.push_back(positions[i])
+            Coords_Vector.push_back(positions[i + 1])
+            Coords_Vector.push_back(positions[i + 2])
+            Coords.push_back(Coords_Vector)
+        }
+        for (let i = 0; i < positions.length / 3; i += 3) {
+            let Faces_Vector = new Module.vector$size_t$()
+            Faces_Vector.push_back(i)
+            Faces_Vector.push_back(i + 1)
+            Faces_Vector.push_back(i + 2)
+            Faces.push_back(Faces_Vector)
+        }
+        let Points = new Module.vector$vector$vector$double$$$()
+        let FacesOut = new Module.vector$vector$size_t$$()
+        let CoordsOut = new Module.vector$vector$double$$()
+        let Partition = new Module.vector$int$()
+        let FaceVertUV = new Module.vector$vector$vector$double$$$()
+
+        // let FaceVertUV_c = new Module.vector$vector$double$$()
+        // FacesOut.push_back(new Module.vector$size_t$())
+        // CoordsOut.push_back(new Module.vector$double$())
+        // FaceVertUV_c.push_back(new Module.vector$double$())
+        // FaceVertUV.push_back(FaceVertUV_c)
+
+        let Points_c = new Module.vector$vector$double$$()
+        for (let i = 0; i < draw_line.length;i++){
+            let Points_p = new Module.vector$double$()
+            Points_p.push_back(draw_line[i].x)
+            Points_p.push_back(draw_line[i].y)
+            Points_p.push_back(draw_line[i].z)
+            Points_c.push_back(Points_p)
+        }
+        Points.push_back(Points_c)
+
+        console.log(Coords)
+        Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV)
+        console.log(Partition.size())
+        console.log(FacesOut.size())
+
+
+
+
+
+
+        //************************************************************************************************************** 
+
+
     }
     else if (shift) {
         texture_state = 0;

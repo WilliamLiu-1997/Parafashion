@@ -214,6 +214,21 @@
       ><span style="animation-delay: 0.8s">·</span
       ><span style="animation-delay: 0.9s">·</span>
     </div>
+    <div id="processing" class="loading">
+      <span style="animation-delay: 0s">P</span
+      ><span style="animation-delay: 0.1s">R</span
+      ><span style="animation-delay: 0.2s">O</span
+      ><span style="animation-delay: 0.3s">C</span
+      ><span style="animation-delay: 0.4s">E</span
+      ><span style="animation-delay: 0.5s">S</span
+      ><span style="animation-delay: 0.6s">S</span
+      ><span style="animation-delay: 0.7s">I</span
+      ><span style="animation-delay: 0.8s">N</span
+      ><span style="animation-delay: 0.9s">G</span
+      ><span style="animation-delay: 1.0s">·</span
+      ><span style="animation-delay: 1.1s">·</span
+      ><span style="animation-delay: 1.2s">·</span>
+    </div>
     <div id="container"></div>
     <div id="gui_container">
       <button
@@ -329,11 +344,19 @@
 
       function show_loading() {
         $("#loading").show();
+        $("#processing").hide();
+        $("#loading").css({ display: "flex", opacity: 0 });
+        $("#loading").animate({ opacity: 1 }, 500);
+      }
+      function show_processing() {
+        $("#loading").show();
+        $("#processing").hide();
         $("#loading").css({ display: "flex", opacity: 0 });
         $("#loading").animate({ opacity: 1 }, 500);
       }
       function hide_loading() {
         $("#loading").fadeOut(800);
+        $("#processing").fadeOut(800);
         $("#loading_background").fadeOut(800);
       }
 
