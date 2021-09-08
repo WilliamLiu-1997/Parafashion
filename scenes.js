@@ -47,8 +47,8 @@ var uv_offset = false;
 var intersects_scale = false;
 var line_geo = new THREE.BufferGeometry();
 var line_material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-var line = new THREE.Line(line_geo, line_material);
-var line1 = new THREE.Line(line_geo.clone(), line_material);
+var line = new THREE.Group();
+var line1 = new THREE.Group();
 let last_instance_position;
 var draw_line_show = [];
 var draw_line_show_back = [];
@@ -268,6 +268,22 @@ var gui_options = {
         reload_patch(garment, 1, num);
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         gui_options.Overall_Reflectivity = NaN
+    },
+    clear: function () {
+        line.clear();
+        line1.clear();
+        draw_line = [];
+        draw_line_show = [];
+        draw_line_show_back = [];
+    },
+    process_geo: function () {
+        if (draw_line.length > 0 && cut_obj.length>0) {
+            show_processing()
+            cut_obj[0].geometry = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
+            cut_obj[0].material = default_material;
+            hide_loading()
+        }
+        console.log(garment)
     },
     Overall_Reflectivity: 1,
     env: "None",
@@ -525,8 +541,6 @@ function init() {
     scene.add(covered_obj);
 
 
-    line.frustumCulled = false;
-    line1.frustumCulled = false;
     scene.add(line);
     scene.add(line1);
 
@@ -878,11 +892,11 @@ function onmouseDown(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
-            line.geometry.setFromPoints([]);
-            line1.geometry.setFromPoints([]);
-            draw_line = [];
-            draw_line_show = [];
-            draw_line_show_back = [];
+            line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            line1.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            draw_line.push([]);
+            draw_line_show.push([]);
+            draw_line_show_back.push([]);
             drawing = true;
             mouseMove(event)
         } else {
@@ -1040,22 +1054,10 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
-
-
-
-
-
-        //************************************************************************************************************** 
-        if (draw_line.length < 2) return
-
-        cut_obj[0].geometry = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
-        cut_obj[0].material = default_material;
-
-
-
-        //************************************************************************************************************** 
-
-
+        if (draw_line.length > 0&&draw_line[draw_line.length-1].length==0){
+            line.remove(line.children[line.children.length-1]);
+            line1.remove(line1.children[line1.children.length-1]);
+        }
     }
     else if (shift) {
         texture_state = 0;
@@ -1383,8 +1385,8 @@ function select_recovery() {
     selected = []
     selected_patch = []
     cut_obj = []
-    line.geometry.setFromPoints([]);
-    line1.geometry.setFromPoints([]);
+    line.clear();
+    line1.clear();
     draw_line = [];
     draw_line_show = [];
     draw_line_show_back = [];
@@ -1406,78 +1408,80 @@ function draw(pointers, camera, cut_obj) {
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             let distance = camera.position.distanceTo(intersects[0].point)
-            draw_line.push(intersects[0].point)
+            draw_line[draw_line.length-1].push(intersects[0].point)
             let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
             let back = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate())
-            draw_line_show.push(front.x, front.y, front.z)
-            draw_line_show_back.push(back.x, back.y, back.z)
-            if (draw_line.length == 1) {
+            draw_line_show[draw_line_show.length-1].push(front.x, front.y, front.z)
+            draw_line_show_back[draw_line_show_back.length-1].push(back.x, back.y, back.z)
+            if (draw_line[draw_line.length-1].length == 1) {
                 let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
             }
-            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
+            if (draw_line[draw_line.length-1].length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
                 let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / distance)
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line.length == 2) {
-                    draw_line = []
-                    draw_line_show = []
-                    draw_line_show_back = []
+                } else if (draw_line[draw_line.length-1].length == 2) {
+                    draw_line[draw_line.length-1] = []
+                    draw_line_show[draw_line_show.length-1] = []
+                    draw_line_show_back[draw_line_show_back.length-1] = []
                 } else {
-                    draw_line.pop()
-                    draw_line_show.pop()
-                    draw_line_show_back.pop()
-                    draw_line_show.pop()
-                    draw_line_show_back.pop()
-                    draw_line_show.pop()
-                    draw_line_show_back.pop()
+                    draw_line[draw_line.length-1].pop()
+                    draw_line_show[draw_line_show.length-1].pop()
+                    draw_line_show_back[draw_line_show_back.length-1].pop()
+                    draw_line_show[draw_line_show.length-1].pop()
+                    draw_line_show_back[draw_line_show_back.length-1].pop()
+                    draw_line_show[draw_line_show.length-1].pop()
+                    draw_line_show_back[draw_line_show_back.length-1].pop()
                 }
             }
-            line.geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show, 3));
-            line1.geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back, 3));
+            line.children[line.children.length-1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show[draw_line_show.length-1], 3));
+            line1.children[line1.children.length-1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back[draw_line_show_back.length-1], 3));
+            line.children[line.children.length-1].frustumCulled = false;
+            line1.children[line1.children.length-1].frustumCulled = false;
         }
     }
 }
 
 function draw_straight(pointers, camera, cut_obj) {
-    draw_line = []
-    draw_line_show = []
-    draw_line_show_back = []
+    draw_line[draw_line.length-1] = []
+    draw_line_show[draw_line_show.length-1] = []
+    draw_line_show_back[draw_line_show_back.length-1] = []
     for (let pointer of pointers) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             let distance = camera.position.distanceTo(intersects[0].point)
-            draw_line.push(intersects[0].point)
-            draw_line_show.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
-            draw_line_show_back.push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
-            if (draw_line.length == 1) {
+            draw_line[draw_line.length-1].push(intersects[0].point)
+            draw_line_show[draw_line_show.length-1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
+            draw_line_show_back[draw_line_show_back.length-1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
+            if (draw_line[draw_line.length-1].length == 1) {
                 let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
             }
-            if (draw_line.length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
+            if (draw_line[draw_line.length-1].length > 1 && intersects[0].point.distanceTo(last_instance_position) >= 0.001 * distance) {
                 let a = Math.floor(intersects[0].point.distanceTo(last_instance_position) / 0.001 / distance)
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line.length == 2) {
-                    draw_line.pop()
-                    draw_line.pop()
-                    draw_line_show.pop()
-                    draw_line_show.pop()
-                    draw_line_show_back.pop()
-                    draw_line_show_back.pop()
+                } else if (draw_line[draw_line.length-1].length == 2) {
+                    draw_line[draw_line.length-1].pop()
+                    draw_line[draw_line.length-1].pop()
+                    draw_line_show[draw_line_show.length-1].pop()
+                    draw_line_show[draw_line_show.length-1].pop()
+                    draw_line_show_back[draw_line_show_back.length-1].pop()
+                    draw_line_show_back[draw_line_show_back.length-1].pop()
                 } else {
-                    draw_line.pop()
-                    draw_line_show.pop()
-                    draw_line_show_back.pop()
+                    draw_line[draw_line.length-1].pop()
+                    draw_line_show[draw_line_show.length-1].pop()
+                    draw_line_show_back[draw_line_show_back.length-1].pop()
                 }
             }
-            line.geometry.setFromPoints(draw_line_show)
-            line.frustumCulled = false;
-            line1.geometry.setFromPoints(draw_line_show_back)
-            line1.frustumCulled = false;
+            line.children[line.children.length-1].geometry.setFromPoints(draw_line_show[draw_line_show.length-1])
+            line1.children[line1.children.length-1].geometry.setFromPoints(draw_line_show_back[draw_line_show_back.length-1])
+            line.children[line.children.length-1].frustumCulled = false;
+            line1.children[line1.children.length-1].frustumCulled = false;
         }
     }
 }
@@ -2200,20 +2204,22 @@ function produce_geo(positions, line = false) {
     let FaceVertUV = new Module.vector$vector$vector$double$$$()
 
     if (line) {
-        let Points_c = new Module.vector$vector$double$$()
         for (let i = 0; i < line.length; i++) {
-            let Points_p = new Module.vector$double$()
-            Points_p.push_back(line[i].x)
-            Points_p.push_back(line[i].y)
-            Points_p.push_back(line[i].z)
-            Points_c.push_back(Points_p)
+            let Points_c = new Module.vector$vector$double$$()
+            for (let j = 0; j < line[i].length; j++) {
+                let Points_p = new Module.vector$double$()
+                Points_p.push_back(line[i][j].x)
+                Points_p.push_back(line[i][j].y)
+                Points_p.push_back(line[i][j].z)
+                Points_c.push_back(Points_p)
+            }
+            Points.push_back(Points_c)
         }
-        Points.push_back(Points_c)
     }
 
     Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV)
 
-    console.log(FacesOut.size(), CoordsOut.size(), Partition.size(), FaceVertUV.get(0).size())
+    console.log(FacesOut.size(), CoordsOut.size(), Partition.size(), FaceVertUV.size())
 
     let pos = new Float32Array(FacesOut.size() * 9);
     let uv = new Float32Array(FaceVertUV.size() * 6);
@@ -2242,7 +2248,6 @@ function produce_geo(positions, line = false) {
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
     geo.computeVertexNormals();
-    console.log(geo)
     return geo;
 }
 
@@ -2656,6 +2661,8 @@ function GUI_init() {
     cut_component.add(gui_options, 'Unselect');
     cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
     cut_component.add(gui_options, 'Straight').name("Straight Line");
+    cut_component.add(gui_options, 'clear').name("Clear Lines");
+    cut_component.add(gui_options, 'process_geo').name("CUT");
     cut_component.open();
     cut_component.hide();
     folder_basic.open()
