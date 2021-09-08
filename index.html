@@ -326,11 +326,12 @@
     <div id="vertice_num"></div>
     <script>
       show_loading();
-
+      
       function show_loading() {
         $("#loading").show();
         $("#loading").css({ display: "flex", opacity: 0 });
         $("#loading").animate({ opacity: 1 }, 500);
+        $("#loading_background").show();
       }
       function hide_loading() {
         $("#loading").fadeOut(800);
