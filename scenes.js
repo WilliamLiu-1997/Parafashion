@@ -36,7 +36,7 @@ let last_select = [];
 let last_select_patch = [];
 var max_radius = 0;
 var textureloader = new THREE.TextureLoader();
-let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.1, side: THREE.DoubleSide })
+let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.3, side: THREE.DoubleSide })
 let obj_size = 1;
 let find_new = false;
 let pixelRatio = window.devicePixelRatio;
@@ -1040,22 +1040,6 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
-
-
-
-
-
-        //************************************************************************************************************** 
-        if (draw_line.length < 2) return
-
-        cut_obj[0].geometry = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
-        cut_obj[0].material = default_material;
-
-
-
-        //************************************************************************************************************** 
-
-
     }
     else if (shift) {
         texture_state = 0;
@@ -2007,10 +1991,10 @@ function individual(bufGeom, ig) {
     }
 }
 
-function individual_garmentToPatch(bufGeom, ig, uv) {
+function individual_garmentToPatch(bufGeom, ig) {
     try {
         var groups = bufGeom.groups;
-        var origUVs = uv;
+        var origUVs = bufGeom.getAttribute('uv').array;
 
         if (groups.length > 0) { var group = groups[ig]; }
         else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
@@ -2023,6 +2007,7 @@ function individual_garmentToPatch(bufGeom, ig, uv) {
 
         for (var iv = 0; iv < destNumVerts; iv++) {
 
+            var indexOrig = 3 * (group.start + iv);
             var indexDest = 3 * iv;
 
             var indexOrigUV = 2 * (group.start + iv);
@@ -2055,6 +2040,7 @@ function individual_garmentToPatch(bufGeom, ig, uv) {
 
         for (var iv = 0; iv < destNumVerts; iv++) {
 
+            var indexOrig = 3 * (group.start + iv);
             var indexDest = 3 * iv;
 
             var indexOrigUV = 2 * (group.start + iv);
@@ -2173,77 +2159,6 @@ function seperateGroups_garmentToPatch(bufGeom) {
     }
     return outGeometries;
 
-}
-
-
-function produce_geo(positions, line = false) {
-    let Faces = new Module.vector$vector$size_t$$()
-    let Coords = new Module.vector$vector$double$$()
-    for (let i = 0; i < positions.length; i += 3) {
-        let Coords_Vector = new Module.vector$double$()
-        Coords_Vector.push_back(positions[i])
-        Coords_Vector.push_back(positions[i + 1])
-        Coords_Vector.push_back(positions[i + 2])
-        Coords.push_back(Coords_Vector)
-    }
-    for (let i = 0; i < positions.length / 3; i += 3) {
-        let Faces_Vector = new Module.vector$size_t$()
-        Faces_Vector.push_back(i)
-        Faces_Vector.push_back(i + 1)
-        Faces_Vector.push_back(i + 2)
-        Faces.push_back(Faces_Vector)
-    }
-    let Points = new Module.vector$vector$vector$double$$$()
-    let FacesOut = new Module.vector$vector$size_t$$()
-    let CoordsOut = new Module.vector$vector$double$$()
-    let Partition = new Module.vector$int$()
-    let FaceVertUV = new Module.vector$vector$vector$double$$$()
-
-    if (line) {
-        let Points_c = new Module.vector$vector$double$$()
-        for (let i = 0; i < line.length; i++) {
-            let Points_p = new Module.vector$double$()
-            Points_p.push_back(line[i].x)
-            Points_p.push_back(line[i].y)
-            Points_p.push_back(line[i].z)
-            Points_c.push_back(Points_p)
-        }
-        Points.push_back(Points_c)
-    }
-
-    Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV)
-
-    console.log(FacesOut.size(), CoordsOut.size(), Partition.size(), FaceVertUV.get(0).size())
-
-    let pos = new Float32Array(FacesOut.size() * 9);
-    let uv = new Float32Array(FaceVertUV.size() * 6);
-    for (let i = 0; i < FacesOut.size() * 9; i += 9) {
-        pos[i] = CoordsOut.get(FacesOut.get(i / 9).get(0)).get(0)
-        pos[i + 1] = CoordsOut.get(FacesOut.get(i / 9).get(0)).get(1)
-        pos[i + 2] = CoordsOut.get(FacesOut.get(i / 9).get(0)).get(2)
-
-        pos[i + 3] = CoordsOut.get(FacesOut.get(i / 9).get(1)).get(0)
-        pos[i + 4] = CoordsOut.get(FacesOut.get(i / 9).get(1)).get(1)
-        pos[i + 5] = CoordsOut.get(FacesOut.get(i / 9).get(1)).get(2)
-
-        pos[i + 6] = CoordsOut.get(FacesOut.get(i / 9).get(2)).get(0)
-        pos[i + 7] = CoordsOut.get(FacesOut.get(i / 9).get(2)).get(1)
-        pos[i + 8] = CoordsOut.get(FacesOut.get(i / 9).get(2)).get(2)
-    }
-    for (let i = 0; i < FacesOut.size() * 6; i += 6) {
-        uv[i] = FaceVertUV.get(i / 6).get(0).get(0)
-        uv[i + 1] = FaceVertUV.get(i / 6).get(0).get(1)
-        uv[i + 2] = FaceVertUV.get(i / 6).get(1).get(0)
-        uv[i + 3] = FaceVertUV.get(i / 6).get(1).get(1)
-        uv[i + 4] = FaceVertUV.get(i / 6).get(2).get(0)
-        uv[i + 5] = FaceVertUV.get(i / 6).get(2).get(1)
-    }
-    let geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-    geo.computeVertexNormals();
-    console.log(geo)
-    return geo;
 }
 
 
@@ -2431,12 +2346,10 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                 let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                 root.traverse(function (child) {
                     if (child.type === 'Mesh') {
-                        child.geometry = produce_geo(child.geometry.attributes.position.array)
                         child.name = randomString();
                         original.push(child.clone())
                         obj_vertices_count += child.geometry.attributes.position.count;
                         child.material = []
-
                         if (child.geometry.groups.length > 0) {
                             for (let group_i = 0; group_i < child.geometry.groups.length; group_i++) {
                                 let default_m = default_material.clone()
@@ -2453,7 +2366,7 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                         }
                         child.castShadow = true;
                         child.receiveShadow = true;
-                        child.geometry.computeVertexNormals();
+                        child.geometry.computeFaceNormals();
 
                         child.geometry.computeBoundingBox();
                         x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
@@ -2487,15 +2400,12 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                         root.traverse(function (child) {
                             if (child.type === 'Mesh') {
-                                child.geometry = produce_geo(child.geometry.attributes.position.array)
-                                child.material = default_material.clone()
                                 child.name = randomString();
                                 original.push(child.clone())
                                 obj_vertices_count += child.geometry.attributes.position.count;
                                 if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
                                 child.castShadow = true;
                                 child.receiveShadow = true;
-                                child.geometry.computeVertexNormals();
 
                                 child.geometry.computeBoundingBox();
                                 x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
@@ -2543,8 +2453,6 @@ function patch_loader(garment, scale, num) {
         let patch_geo = garment.children[0].children[x].geometry.clone();
         let patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_default_material_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
 
-        let geo_uv = patch_geo.getAttribute('uv').array
-
         if (patch_geo.groups && patch_geo.groups.length > 0) {
             let group_3d = new THREE.Group();
             for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
@@ -2553,7 +2461,7 @@ function patch_loader(garment, scale, num) {
                     last_y -= max_height * 1.5;
                     max_height = 0
                 }
-                let individual_patch = individual_garmentToPatch(patch_geo, individual_i, geo_uv)
+                let individual_patch = individual_garmentToPatch(patch_geo, individual_i)
                 let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
                 individual_patch.computeBoundingBox();
                 let x_max = individual_patch.boundingBox.max.x;
@@ -2586,7 +2494,7 @@ function patch_loader(garment, scale, num) {
                 last_y -= max_height * 1.5;
                 max_height = 0
             }
-            patch_geo = individual_garmentToPatch(patch_geo, 0, geo_uv);
+            patch_geo = individual_garmentToPatch(patch_geo, 0);
             let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
             patch_map.name = garment.children[0].children[x].name;
             patch_geo.computeBoundingBox();
