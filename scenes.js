@@ -461,7 +461,7 @@ var TextureParams = {
     wrap: "mirror",
     reset_position: function () {
         reset_position = true;
-        set_cursor(2);
+        set_cursor(4);
     },
     remove: function () {
 
@@ -939,7 +939,7 @@ function onmouseDown(event) {
         reset_position = false;
         if (shift) { set_cursor(1) } else { set_cursor(0) }
         raycaster.setFromCamera(pointer, camera);
-        if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+        if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
         if (intersects.length > 0) {
             reset_texture_position(intersects)
         }
@@ -948,7 +948,7 @@ function onmouseDown(event) {
         event.preventDefault()
         if (event.button == 0) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+            if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
             if (intersects.length > 0) {
                 texture_state = 1;
                 set_cursor(3)
@@ -956,7 +956,7 @@ function onmouseDown(event) {
         }
         else if (event.button == 2) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 1 || selected.length === 2) intersects_scale = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+            if (selected.length === 2) intersects_scale = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
             if (intersects_scale.length > 0) {
                 texture_state = 2;
                 set_cursor(3)
@@ -1013,7 +1013,7 @@ function onmouseDown_patch(event) {
         reset_position = false;
         if (shift) { set_cursor(1) } else { set_cursor(0) }
         raycaster.setFromCamera(pointer_patch, camera_patch);
-        if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
+        if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
         if (intersects.length > 0) {
             reset_texture_position(intersects)
         }
@@ -1104,32 +1104,40 @@ function onmouseUp(event) {
 
 function reset_texture_position(intersects) {
     if (intersects.length > 0) {
-        var uv_deltaX = -(intersects[0].uv.x - 0.5)
-        var uv_deltaY = -(intersects[0].uv.y - 0.5)
-        if (selected.length === 1) {
-            for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
-                selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
-                selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-                selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-            }
+        if (intersects[0].object == selected_obj_sym || intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
+            var sym = 1
+        } else {
+            var sym = -1
         }
-        else if (selected.length === 2) {
+        if (selected.length === 2) {
             let start = selected[0].geometry.groups[selected[1]].start
+            let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
             for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                var uv_deltaX = -(intersects[0].uv.x + sym * 0.5)
+                var uv_deltaY = -(intersects[0].uv.y - 0.5)
+                selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) - sym * uv_deltaX)
                 selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
                 selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
                 selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
                 selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
                 selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
             }
+            for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1]].count; i++) {
+                var uv_deltaX = -(intersects[0].uv.x - sym * 0.5)
+                var uv_deltaY = -(intersects[0].uv.y - 0.5)
+                selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym) + sym * uv_deltaX)
+                selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym) + uv_deltaY)
+                selected[0].geometry.attributes.uv.setX(i, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                selected[0].geometry.attributes.uv.setY(i, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+            }
         }
         selected[0].geometry.attributes.uv.needsUpdate = true;
         selected_obj.geometry.attributes.uv.needsUpdate = true;
+        selected_obj_sym.geometry.attributes.uv.needsUpdate = true;
         selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+        selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.needsUpdate = true;
     }
 
 }
