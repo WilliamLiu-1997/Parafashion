@@ -930,6 +930,7 @@ function onmouseDown(event) {
             if (controls !== undefined) {
                 if (cut_obj.length === 1) {
                     controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
+                    controls.target.x = 0;
                     controls.rotateSpeed = 2.5;
                 }
             }
@@ -974,10 +975,12 @@ function onmouseDown(event) {
                 if (controls !== undefined) {
                     if (selected.length === 1) {
                         controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                        controls.target.x = 0;
                         controls.rotateSpeed = 2.5;
                     } else if (selected.length === 2) {
                         selected_obj.geometry.computeBoundingSphere();
                         controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
+                        controls.target.x = 0;
                         controls.rotateSpeed = 2.5;
                     }
 
@@ -1047,10 +1050,12 @@ function onmouseDown_patch(event) {
                 if (controls !== undefined) {
                     if (selected.length === 1) {
                         controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
+                        controls.target.x = 0;
                         controls.rotateSpeed = 2.5;
                     } else if (selected.length === 2) {
                         selected_obj.geometry.computeBoundingSphere();
                         controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
+                        controls.target.x = 0;
                         controls.rotateSpeed = 2.5;
                     }
 
