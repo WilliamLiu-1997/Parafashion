@@ -25,15 +25,19 @@ let raycaster = new THREE.Raycaster();
 let pointer = new THREE.Vector2();
 let pointer_patch = new THREE.Vector2();
 let original = [];
-let selected = [], selected_patch = [];
 let cut_obj = [];
 let mouse_down = false;
+
+let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
 let selected_obj = new THREE.Mesh();
+let covered_obj_sym = new THREE.Mesh();
+let selected_obj_sym = new THREE.Mesh();
 let last_cover = [];
 let last_cover_patch = [];
 let last_select = [];
 let last_select_patch = [];
+
 var max_radius = 0;
 var textureloader = new THREE.TextureLoader();
 let default_material = new THREE.MeshPhongMaterial({ color: randomColor(), reflectivity: 0.1, side: THREE.DoubleSide })
@@ -48,7 +52,7 @@ var intersects_scale = false;
 var line_geo = new THREE.BufferGeometry();
 var line_material = new THREE.LineBasicMaterial({ color: 0xff0000 });
 var line = new THREE.Group();
-var line1 = new THREE.Group();
+var line_back = new THREE.Group();
 let last_instance_position;
 var draw_line_show = [];
 var draw_line_show_back = [];
@@ -271,7 +275,7 @@ var gui_options = {
     },
     clear: function () {
         line.clear();
-        line1.clear();
+        line_back.clear();
         draw_line = [];
         draw_line_show = [];
         draw_line_show_back = [];
@@ -281,7 +285,21 @@ var gui_options = {
             show_processing()
             setTimeout(() => {
                 cut_obj[0].geometry = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
-                cut_obj[0].material = default_material;
+                if (cut_obj[0].geometry.groups.length > 0) {
+                    for (let group_i = 0; group_i < cut_obj[0].geometry.groups.length; group_i += 2) {
+                        let default_m = default_material.clone()
+                        if (!double) { default_m.side = THREE.FrontSide }
+                        default_m.color.set(randomColor())
+                        cut_obj[0].material.push(default_m);
+                        cut_obj[0].material.push(default_m);
+                    }
+                }
+                else {
+                    let default_m = default_material.clone()
+                    if (!double) { default_m.side = THREE.FrontSide }
+                    default_m.color.set(randomColor())
+                    cut_obj[0].material = default_m;
+                }
                 hide_loading()
             }, 500);
         }
@@ -440,7 +458,7 @@ var Material = {
 
 var TextureParams = {
     current: "map",
-    wrap: "clamp",
+    wrap: "mirror",
     reset_position: function () {
         reset_position = true;
         set_cursor(2);
@@ -536,15 +554,16 @@ function init() {
     controls.rotateSpeed = 1.3;
 
     //garment = ply_loader(garments_obj1, 1, true);
-    garment = obj_loader(garments_obj, garments_mtl, 1, true);
+    garment = obj_loader(garments_obj, 1, true);
 
     scene.add(garment);
 
     scene.add(covered_obj);
+    scene.add(covered_obj_sym);
 
 
     scene.add(line);
-    scene.add(line1);
+    scene.add(line_back);
 
 
     var helper = new THREE.GridHelper(10, 50, 0x999999, 0x666666);
@@ -895,7 +914,7 @@ function onmouseDown(event) {
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
             line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-            line1.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
             draw_line.push([]);
             draw_line_show.push([]);
             draw_line_show_back.push([]);
@@ -929,7 +948,7 @@ function onmouseDown(event) {
         event.preventDefault()
         if (event.button == 0) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+            if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
             if (intersects.length > 0) {
                 texture_state = 1;
                 set_cursor(3)
@@ -937,7 +956,7 @@ function onmouseDown(event) {
         }
         else if (event.button == 2) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 1 || selected.length === 2) intersects_scale = raycaster.intersectObject(selected_obj, true);
+            if (selected.length === 1 || selected.length === 2) intersects_scale = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
             if (intersects_scale.length > 0) {
                 texture_state = 2;
                 set_cursor(3)
@@ -1003,7 +1022,7 @@ function onmouseDown_patch(event) {
         event.preventDefault()
         if (event.button == 0) {
             raycaster.setFromCamera(pointer_patch, camera_patch);
-            if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
+            if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
             if (intersects.length > 0) {
                 texture_state = 1.5;
                 set_cursor(3)
@@ -1011,7 +1030,7 @@ function onmouseDown_patch(event) {
         }
         else if (event.button == 2) {
             raycaster.setFromCamera(pointer_patch, camera_patch);
-            if (selected_patch.length === 1) intersects_scale = raycaster.intersectObject(selected_patch[0], true);
+            if (selected_patch.length === 1) intersects_scale = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
             if (intersects_scale.length > 0) {
                 texture_state = 2;
                 set_cursor(3)
@@ -1050,6 +1069,7 @@ function onmouseDown_patch(event) {
 function onmouseUp(event) {
 
     mouse_down = false;
+    uv_offset = false;
     if (event.button == 0) {
         controls.stop = false;
         controls_patch.stop = false;
@@ -1058,13 +1078,12 @@ function onmouseUp(event) {
         drawing = false;
         if (draw_line.length > 0 && draw_line[draw_line.length - 1].length == 0) {
             line.remove(line.children[line.children.length - 1]);
-            line1.remove(line1.children[line1.children.length - 1]);
+            line_back.remove(line_back.children[line_back.children.length - 1]);
         }
     }
     else if (shift) {
         texture_state = 0;
         set_cursor(1)
-        uv_offset = false;
         intersects_scale = false;
     }
     else {
@@ -1161,71 +1180,83 @@ function mouseMove(event) {
     else if (shift) {
         if (texture_state === 1) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+            if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
             if (intersects.length > 0) {
+                if (intersects[0].object == selected_obj_sym) {
+                    var sym = 1
+                } else {
+                    var sym = -1
+                }
                 if (!uv_offset) uv_offset = intersects[0].uv.clone();
                 var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
                 var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
                 uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
-                if (selected.length === 1) {
-                    for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                        selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
-                        selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
-                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-                        selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                        selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-                    }
-                }
-                else if (selected.length === 2) {
+                if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
+                    let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) - sym * uv_deltaX)
                         selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
                         selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
                         selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
                         selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
                         selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
                     }
+                    for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].count; i++) {
+                        selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym) + sym * uv_deltaX)
+                        selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym) + uv_deltaY)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                        selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                        selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                    }
                 }
                 selected[0].geometry.attributes.uv.needsUpdate = true;
                 selected_obj.geometry.attributes.uv.needsUpdate = true;
+                selected_obj_sym.geometry.attributes.uv.needsUpdate = true;
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+                selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.needsUpdate = true;
             }
 
         }
         if (texture_state === 1.5) {
             raycaster.setFromCamera(pointer_patch, camera_patch);
-            if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
+            if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
             if (intersects.length > 0) {
+                if (intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
+                    var sym = 1
+                } else {
+                    var sym = -1
+                }
                 if (!uv_offset) uv_offset = intersects[0].uv.clone();
                 var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
                 var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
                 uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
-                if (selected.length === 1) {
-                    for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                        selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + uv_deltaX)
-                        selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + uv_deltaY)
-                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-                        selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                        selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-                    }
-                }
-                else if (selected.length === 2) {
+                if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
+                    let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + uv_deltaX)
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) - sym * uv_deltaX)
                         selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
                         selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
                         selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
                         selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
                         selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
                     }
+                    for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].count; i++) {
+                        selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym) + sym * uv_deltaX)
+                        selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym) + uv_deltaY)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                        selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                        selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                    }
                 }
                 selected[0].geometry.attributes.uv.needsUpdate = true;
                 selected_obj.geometry.attributes.uv.needsUpdate = true;
+                selected_obj_sym.geometry.attributes.uv.needsUpdate = true;
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+                selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.needsUpdate = true;
             }
 
         }
@@ -1233,30 +1264,36 @@ function mouseMove(event) {
             if (intersects_scale && intersects_scale.length > 0) {
                 if (!uv_offset) uv_offset = intersects_scale[0].uv.clone();
                 let scale = -(deltaY + deltaX) / 500;
-                if (selected.length === 1) {
-                    for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                        selected_obj.geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i) + (selected_obj.geometry.attributes.uv.getX(i) - uv_offset.x) * scale)
-                        selected_obj.geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i) + (selected_obj.geometry.attributes.uv.getY(i) - uv_offset.y) * scale)
-                        selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                        selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-                        selected_patch[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i))
-                        selected_patch[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i))
-                    }
+                if (intersects_scale[0].object == selected_obj_sym || intersects_scale[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
+                    var sym = 1
+                } else {
+                    var sym = -1
                 }
-                else if (selected.length === 2) {
+                if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
+                    let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
                     for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + (selected_obj.geometry.attributes.uv.getX(i - start) - uv_offset.x) * scale)
+                        selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) + (selected_obj.geometry.attributes.uv.getX(i - start) + sym * uv_offset.x) * scale)
                         selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + (selected_obj.geometry.attributes.uv.getY(i - start) - uv_offset.y) * scale)
                         selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
                         selected[0].geometry.attributes.uv.setY(i, selected_obj.geometry.attributes.uv.getY(i - start))
                         selected_patch[0].geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start))
                         selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
                     }
+                    for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].count; i++) {
+                        selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym) + (selected_obj_sym.geometry.attributes.uv.getX(i - start_sym) - sym * uv_offset.x) * scale)
+                        selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym) + (selected_obj_sym.geometry.attributes.uv.getY(i - start_sym) - uv_offset.y) * scale)
+                        selected[0].geometry.attributes.uv.setX(i, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                        selected[0].geometry.attributes.uv.setY(i, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                        selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
+                        selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                    }
                 }
                 selected[0].geometry.attributes.uv.needsUpdate = true;
                 selected_obj.geometry.attributes.uv.needsUpdate = true;
+                selected_obj_sym.geometry.attributes.uv.needsUpdate = true;
                 selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+                selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.needsUpdate = true;
             }
 
         }
@@ -1272,27 +1309,23 @@ function onMouseWheel(e) {
         pointer.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
         let rotation = e.deltaY > 0 ? 0.015 : -0.015
         raycaster.setFromCamera(pointer, camera);
-        if (selected.length === 1 || selected.length === 2) var intersects = raycaster.intersectObject(selected_obj, true);
+        if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
         if (intersects.length > 0) {
+            if (intersects[0].object == selected_obj_sym) {
+                var sym = 1
+            } else {
+                var sym = -1
+            }
             set_cursor(3)
             uv_offset = intersects[0].uv.clone();
-            if (selected.length === 1) {
-                for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                    let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i), selected_obj.geometry.attributes.uv.getY(i))
-                    vec2.rotateAround(uv_offset, rotation)
-                    selected_obj.geometry.attributes.uv.setX(i, vec2.x)
-                    selected_obj.geometry.attributes.uv.setY(i, vec2.y)
-                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
-                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
-                    selected_patch[0].geometry.attributes.uv.setX(i, vec2.x)
-                    selected_patch[0].geometry.attributes.uv.setY(i, vec2.y)
-                }
-            }
-            else if (selected.length === 2) {
+            if (selected.length === 2) {
                 let start = selected[0].geometry.groups[selected[1]].start
+                let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
                 for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
                     let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i - start), selected_obj.geometry.attributes.uv.getY(i - start))
-                    vec2.rotateAround(uv_offset, rotation)
+                    let uv_offset_sym = uv_offset.clone()
+                    uv_offset_sym.x = -uv_offset_sym.x * sym
+                    vec2.rotateAround(uv_offset_sym, -rotation * sym)
                     selected_obj.geometry.attributes.uv.setX(i - start, vec2.x)
                     selected_obj.geometry.attributes.uv.setY(i - start, vec2.y)
                     selected[0].geometry.attributes.uv.setX(i, vec2.x)
@@ -1300,10 +1333,24 @@ function onMouseWheel(e) {
                     selected_patch[0].geometry.attributes.uv.setX(i - start, vec2.x)
                     selected_patch[0].geometry.attributes.uv.setY(i - start, vec2.y)
                 }
+                for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1]].count; i++) {
+                    let vec2 = new THREE.Vector2(selected_obj_sym.geometry.attributes.uv.getX(i - start_sym), selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                    let uv_offset_sym = uv_offset.clone()
+                    uv_offset_sym.x = uv_offset_sym.x * sym
+                    vec2.rotateAround(uv_offset_sym, rotation * sym)
+                    selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, vec2.x)
+                    selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, vec2.y)
+                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
+                    selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setX(i - start_sym, vec2.x)
+                    selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setY(i - start_sym, vec2.y)
+                }
             }
             selected[0].geometry.attributes.uv.needsUpdate = true;
             selected_obj.geometry.attributes.uv.needsUpdate = true;
+            selected_obj_sym.geometry.attributes.uv.needsUpdate = true;
             selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+            selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.needsUpdate = true;
             uv_offset = false;
         }
 
@@ -1317,27 +1364,23 @@ function onMouseWheel_patch(e) {
         pointer_patch.y = - ((e.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
         let rotation = e.deltaY > 0 ? 0.015 : -0.015
         raycaster.setFromCamera(pointer_patch, camera_patch);
-        if (selected_patch.length === 1) var intersects = raycaster.intersectObject(selected_patch[0], true);
+        if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
         if (intersects.length > 0) {
+            if (intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
+                var sym = 1
+            } else {
+                var sym = -1
+            }
             set_cursor(3)
             uv_offset = intersects[0].uv.clone();
-            if (selected.length === 1) {
-                for (let i = 0; i < selected[0].geometry.attributes.uv.count; i++) {
-                    let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i), selected_obj.geometry.attributes.uv.getY(i))
-                    vec2.rotateAround(uv_offset, rotation)
-                    selected_obj.geometry.attributes.uv.setX(i, vec2.x)
-                    selected_obj.geometry.attributes.uv.setY(i, vec2.y)
-                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
-                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
-                    selected_patch[0].geometry.attributes.uv.setX(i, vec2.x)
-                    selected_patch[0].geometry.attributes.uv.setY(i, vec2.y)
-                }
-            }
-            else if (selected.length === 2) {
+            if (selected.length === 2) {
                 let start = selected[0].geometry.groups[selected[1]].start
+                let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
                 for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
                     let vec2 = new THREE.Vector2(selected_obj.geometry.attributes.uv.getX(i - start), selected_obj.geometry.attributes.uv.getY(i - start))
-                    vec2.rotateAround(uv_offset, rotation)
+                    let uv_offset_sym = uv_offset.clone()
+                    uv_offset_sym.x = -uv_offset_sym.x * sym
+                    vec2.rotateAround(uv_offset_sym, -rotation * sym)
                     selected_obj.geometry.attributes.uv.setX(i - start, vec2.x)
                     selected_obj.geometry.attributes.uv.setY(i - start, vec2.y)
                     selected[0].geometry.attributes.uv.setX(i, vec2.x)
@@ -1345,10 +1388,24 @@ function onMouseWheel_patch(e) {
                     selected_patch[0].geometry.attributes.uv.setX(i - start, vec2.x)
                     selected_patch[0].geometry.attributes.uv.setY(i - start, vec2.y)
                 }
+                for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1]].count; i++) {
+                    let vec2 = new THREE.Vector2(selected_obj_sym.geometry.attributes.uv.getX(i - start_sym), selected_obj_sym.geometry.attributes.uv.getY(i - start_sym))
+                    let uv_offset_sym = uv_offset.clone()
+                    uv_offset_sym.x = uv_offset_sym.x * sym
+                    vec2.rotateAround(uv_offset_sym, rotation * sym)
+                    selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, vec2.x)
+                    selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, vec2.y)
+                    selected[0].geometry.attributes.uv.setX(i, vec2.x)
+                    selected[0].geometry.attributes.uv.setY(i, vec2.y)
+                    selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setX(i - start_sym, vec2.x)
+                    selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.setY(i - start_sym, vec2.y)
+                }
             }
             selected[0].geometry.attributes.uv.needsUpdate = true;
             selected_obj.geometry.attributes.uv.needsUpdate = true;
+            selected_obj_sym.geometry.attributes.uv.needsUpdate = true;
             selected_patch[0].geometry.attributes.uv.needsUpdate = true;
+            selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].geometry.attributes.uv.needsUpdate = true;
             uv_offset = false;
         }
 
@@ -1364,6 +1421,13 @@ function cover_recovery() {
         }
     })
     scene.remove(covered_obj);
+    covered_obj_sym.traverse(function (obj) {
+        if (obj.type === 'Mesh') {
+            obj.geometry.dispose();
+            obj.material.dispose();
+        }
+    })
+    scene.remove(covered_obj_sym);
     outlinePass.selectedObjects = []
     outlinePass_patch.selectedObjects = []
     last_cover = []
@@ -1378,6 +1442,13 @@ function select_recovery() {
         }
     })
     scene.remove(selected_obj);
+    selected_obj_sym.traverse(function (obj) {
+        if (obj.type === 'Mesh') {
+            obj.geometry.dispose();
+            obj.material.dispose();
+        }
+    })
+    scene.remove(selected_obj_sym);
     show_all(garment);
     material_folder.hide()
     outlinePass_select.selectedObjects = []
@@ -1388,7 +1459,7 @@ function select_recovery() {
     selected_patch = []
     cut_obj = []
     line.clear();
-    line1.clear();
+    line_back.clear();
     draw_line = [];
     draw_line_show = [];
     draw_line_show_back = [];
@@ -1439,9 +1510,9 @@ function draw(pointers, camera, cut_obj) {
                 }
             }
             line.children[line.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show[draw_line_show.length - 1], 3));
-            line1.children[line1.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back[draw_line_show_back.length - 1], 3));
+            line_back.children[line_back.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back[draw_line_show_back.length - 1], 3));
             line.children[line.children.length - 1].frustumCulled = false;
-            line1.children[line1.children.length - 1].frustumCulled = false;
+            line_back.children[line_back.children.length - 1].frustumCulled = false;
         }
     }
 }
@@ -1481,9 +1552,9 @@ function draw_straight(pointers, camera, cut_obj) {
                 }
             }
             line.children[line.children.length - 1].geometry.setFromPoints(draw_line_show[draw_line_show.length - 1])
-            line1.children[line1.children.length - 1].geometry.setFromPoints(draw_line_show_back[draw_line_show_back.length - 1])
+            line_back.children[line_back.children.length - 1].geometry.setFromPoints(draw_line_show_back[draw_line_show_back.length - 1])
             line.children[line.children.length - 1].frustumCulled = false;
-            line1.children[line1.children.length - 1].frustumCulled = false;
+            line_back.children[line_back.children.length - 1].frustumCulled = false;
         }
     }
 }
@@ -1514,6 +1585,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                 for (i = 0; i < intersects[0].object.parent.children.length; i++) {
                     if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
                 }
+                var j = i % 2 == 0 ? i + 1 : i - 1
                 if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
                     covered_obj.traverse(function (obj) {
                         if (obj.type === 'Mesh') {
@@ -1522,7 +1594,14 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                         }
                     })
                     scene.remove(covered_obj);
-                    outlinePass_patch.selectedObjects = [intersects[0].object];
+                    covered_obj_sym.traverse(function (obj) {
+                        if (obj.type === 'Mesh') {
+                            obj.geometry.dispose();
+                            obj.material.dispose();
+                        }
+                    })
+                    scene.remove(covered_obj_sym);
+                    outlinePass_patch.selectedObjects = [intersects[0].object, intersects[0].object.parent.children[j]];
                     last_cover_patch = []
                     last_cover_patch.push(intersects[0].object)
 
@@ -1538,7 +1617,14 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                                 covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                                 covered_obj.position.set(this_position.x, this_position.y, this_position.z);
                                 scene.add(covered_obj)
-                                outlinePass.selectedObjects = [covered_obj];
+                                var g_sym = individual(obj.geometry, j)
+                                covered_obj_sym = new THREE.Mesh(g_sym);
+                                covered_obj_sym.material.transparent = true;
+                                covered_obj_sym.material.opacity = 0;
+                                covered_obj_sym.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                                covered_obj_sym.position.set(this_position.x, this_position.y, this_position.z);
+                                scene.add(covered_obj_sym)
+                                outlinePass.selectedObjects = [covered_obj, covered_obj_sym];
                             }
                         }
                     })
@@ -1569,6 +1655,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                 for (i = 0; i < group_num; i++) {
                     if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
                 }
+                var j = i % 2 == 0 ? i + 1 : i - 1
                 if (last_cover.length != 2 || last_cover[1] != i || (last_cover[0] != intersects[0].object)) {
                     covered_obj.traverse(function (obj) {
                         if (obj.type === 'Mesh') {
@@ -1577,6 +1664,13 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                         }
                     })
                     scene.remove(covered_obj);
+                    covered_obj_sym.traverse(function (obj) {
+                        if (obj.type === 'Mesh') {
+                            obj.geometry.dispose();
+                            obj.material.dispose();
+                        }
+                    })
+                    scene.remove(covered_obj_sym);
                     var this_scale = intersects[0].object.parent.scale;
                     var this_position = intersects[0].object.parent.position;
                     var g = individual(intersects[0].object.geometry, i)
@@ -1586,13 +1680,20 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                     covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                     covered_obj.position.set(this_position.x, this_position.y, this_position.z);
                     scene.add(covered_obj)
-                    outlinePass.selectedObjects = [covered_obj];
+                    var g_sym = individual(intersects[0].object.geometry, j)
+                    covered_obj_sym = new THREE.Mesh(g_sym);
+                    covered_obj_sym.material.transparent = true;
+                    covered_obj_sym.material.opacity = 0;
+                    covered_obj_sym.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                    covered_obj_sym.position.set(this_position.x, this_position.y, this_position.z);
+                    scene.add(covered_obj_sym)
+                    outlinePass.selectedObjects = [covered_obj, covered_obj_sym];
                     last_cover = []
                     last_cover.push(intersects[0].object, i)
 
                     for (var x = 0; x < num; x++) {
                         if (patch && intersects[0].object.name == patch.children[x].name) {
-                            outlinePass_patch.selectedObjects = [patch.children[x].children[i]];
+                            outlinePass_patch.selectedObjects = [patch.children[x].children[i], patch.children[x].children[j]];
                             break;
                         }
                     }
@@ -1675,6 +1776,7 @@ function select_material(cover_pointer, cover_camera) {
             for (i = 0; i < group_num; i++) {
                 if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
             }
+            var j = i % 2 == 0 ? i + 1 : i - 1
             if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
                 select_recovery()
                 find_new = true;
@@ -1686,6 +1788,13 @@ function select_material(cover_pointer, cover_camera) {
                     }
                 })
                 scene.remove(selected_obj);
+                selected_obj_sym.traverse(function (obj) {
+                    if (obj.type === 'Mesh') {
+                        obj.geometry.dispose();
+                        obj.material.dispose();
+                    }
+                })
+                scene.remove(selected_obj_sym);
                 var this_scale = intersects[0].object.parent.scale;
                 var this_position = intersects[0].object.parent.position;
                 var g = individual(intersects[0].object.geometry, i)
@@ -1695,7 +1804,14 @@ function select_material(cover_pointer, cover_camera) {
                 selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                 selected_obj.position.set(this_position.x, this_position.y, this_position.z);
                 scene.add(selected_obj)
-                outlinePass_select.selectedObjects = [selected_obj];
+                var g_sym = individual(intersects[0].object.geometry, j)
+                selected_obj_sym = new THREE.Mesh(g_sym);
+                selected_obj_sym.material.transparent = true;
+                selected_obj_sym.material.opacity = 0;
+                selected_obj_sym.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                selected_obj_sym.position.set(this_position.x, this_position.y, this_position.z);
+                scene.add(selected_obj_sym)
+                outlinePass_select.selectedObjects = [selected_obj, selected_obj_sym];
                 last_select = []
                 last_select_patch = []
                 last_select.push(intersects[0].object, i)
@@ -1703,7 +1819,7 @@ function select_material(cover_pointer, cover_camera) {
                 for (var x = 0; x < num; x++) {
                     if (patch && intersects[0].object.name == patch.children[x].name) {
                         selected_patch = [patch.children[x].children[i]];
-                        outlinePass_patch_select.selectedObjects = [patch.children[x].children[i]];
+                        outlinePass_patch_select.selectedObjects = [patch.children[x].children[i], patch.children[x].children[j]];
                         break;
                     }
                 }
@@ -1760,6 +1876,7 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
             for (i = 0; i < intersects[0].object.parent.children.length; i++) {
                 if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
             }
+            var j = i % 2 == 0 ? i + 1 : i - 1
             if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
                 select_recovery()
                 find_new = true;
@@ -1771,7 +1888,14 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                     }
                 })
                 scene.remove(selected_obj);
-                outlinePass_patch_select.selectedObjects = [intersects[0].object];
+                selected_obj_sym.traverse(function (obj) {
+                    if (obj.type === 'Mesh') {
+                        obj.geometry.dispose();
+                        obj.material.dispose();
+                    }
+                })
+                scene.remove(selected_obj_sym);
+                outlinePass_patch_select.selectedObjects = [intersects[0].object, intersects[0].object.parent.children[j]];
                 last_select_patch = []
                 last_select = []
                 last_select_patch.push(intersects[0].object)
@@ -1789,7 +1913,14 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                             selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                             selected_obj.position.set(this_position.x, this_position.y, this_position.z);
                             scene.add(selected_obj)
-                            outlinePass_select.selectedObjects = [selected_obj];
+                            var g_sym = individual(obj.geometry, j)
+                            selected_obj_sym = new THREE.Mesh(g_sym);
+                            selected_obj_sym.material.transparent = true;
+                            selected_obj_sym.material.opacity = 0;
+                            selected_obj_sym.scale.set(this_scale.x, this_scale.y, this_scale.z);
+                            selected_obj_sym.position.set(this_position.x, this_position.y, this_position.z);
+                            scene.add(selected_obj_sym)
+                            outlinePass_select.selectedObjects = [selected_obj, selected_obj_sym];
                         }
                     }
                 })
@@ -2223,32 +2354,58 @@ function produce_geo(positions, line = false) {
 
     console.log(FacesOut.size(), CoordsOut.size(), Partition.size(), FaceVertUV.size())
 
-    let pos = new Float32Array(FacesOut.size() * 9);
-    let uv = new Float32Array(FaceVertUV.size() * 6);
-    for (let i = 0; i < FacesOut.size() * 9; i += 9) {
-        pos[i] = CoordsOut.get(FacesOut.get(i / 9).get(0)).get(0)
-        pos[i + 1] = CoordsOut.get(FacesOut.get(i / 9).get(0)).get(1)
-        pos[i + 2] = CoordsOut.get(FacesOut.get(i / 9).get(0)).get(2)
-
-        pos[i + 3] = CoordsOut.get(FacesOut.get(i / 9).get(1)).get(0)
-        pos[i + 4] = CoordsOut.get(FacesOut.get(i / 9).get(1)).get(1)
-        pos[i + 5] = CoordsOut.get(FacesOut.get(i / 9).get(1)).get(2)
-
-        pos[i + 6] = CoordsOut.get(FacesOut.get(i / 9).get(2)).get(0)
-        pos[i + 7] = CoordsOut.get(FacesOut.get(i / 9).get(2)).get(1)
-        pos[i + 8] = CoordsOut.get(FacesOut.get(i / 9).get(2)).get(2)
+    let partitions = []
+    for (let i = 0; i < Partition.size(); i++) {
+        partitions.push(Partition.get(i))
     }
-    for (let i = 0; i < FacesOut.size() * 6; i += 6) {
-        uv[i] = FaceVertUV.get(i / 6).get(0).get(0)
-        uv[i + 1] = FaceVertUV.get(i / 6).get(0).get(1)
-        uv[i + 2] = FaceVertUV.get(i / 6).get(1).get(0)
-        uv[i + 3] = FaceVertUV.get(i / 6).get(1).get(1)
-        uv[i + 4] = FaceVertUV.get(i / 6).get(2).get(0)
-        uv[i + 5] = FaceVertUV.get(i / 6).get(2).get(1)
+    let groups_o = []
+    for (let i = 0; i < partitions.length; i++) {
+        if (groups_o[partitions[i]] == undefined) {
+            groups_o[partitions[i]] = [i]
+        } else {
+            groups_o[partitions[i]].push(i)
+        }
     }
+    let groups = []
+    for (let i = 0; i < groups_o.length / 2; i++) {
+        groups.push(groups_o[i])
+        groups.push(groups_o[i + groups_o.length / 2])
+    }
+
+    let faces = []
+    let uvs = []
+    for (let i = 0; i < groups.length; i++) {
+        for (let j = 0; j < groups[i].length; j++) {
+            faces.push([FacesOut.get(groups[i][j]).get(0), FacesOut.get(groups[i][j]).get(1), FacesOut.get(groups[i][j]).get(2)])
+            let x = i % 2 == 0 ? i : i - 1
+            if (i % 2 == 0) { uvs.push(FaceVertUV.get(groups[x][j]).get(0).get(0), FaceVertUV.get(groups[x][j]).get(0).get(1), FaceVertUV.get(groups[x][j]).get(1).get(0), FaceVertUV.get(groups[x][j]).get(1).get(1), FaceVertUV.get(groups[x][j]).get(2).get(0), FaceVertUV.get(groups[x][j]).get(2).get(1)) }
+            else { uvs.push(-FaceVertUV.get(groups[x][j]).get(1).get(0), FaceVertUV.get(groups[x][j]).get(1).get(1), -FaceVertUV.get(groups[x][j]).get(0).get(0), FaceVertUV.get(groups[x][j]).get(0).get(1), -FaceVertUV.get(groups[x][j]).get(2).get(0), FaceVertUV.get(groups[x][j]).get(2).get(1)) }
+        }
+    }
+
+    let pos = new Float32Array(faces.length * 9);
+    for (let i = 0; i < faces.length * 9; i += 9) {
+        pos[i] = CoordsOut.get(faces[i / 9][0]).get(0)
+        pos[i + 1] = CoordsOut.get(faces[i / 9][0]).get(1)
+        pos[i + 2] = CoordsOut.get(faces[i / 9][0]).get(2)
+
+        pos[i + 3] = CoordsOut.get(faces[i / 9][1]).get(0)
+        pos[i + 4] = CoordsOut.get(faces[i / 9][1]).get(1)
+        pos[i + 5] = CoordsOut.get(faces[i / 9][1]).get(2)
+
+        pos[i + 6] = CoordsOut.get(faces[i / 9][2]).get(0)
+        pos[i + 7] = CoordsOut.get(faces[i / 9][2]).get(1)
+        pos[i + 8] = CoordsOut.get(faces[i / 9][2]).get(2)
+    }
+    let uv = new Float32Array(uvs);
     let geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    let index = 0;
+    for (let i = 0; i < groups.length; i++) {
+        geo.addGroup(index, groups[i].length * 3, i);
+        index += groups[i].length * 3
+    }
     geo.computeVertexNormals();
     return geo;
 }
@@ -2408,7 +2565,71 @@ function ply_loader(url_obj, scale, double = true) {
 }
 
 
-function obj_loader(url_obj, url_mtl, scale, double = true) {
+function obj_loader(url_obj, scale, double = true) {
+    original = []
+    let onProgress_obj = function (xhr) {
+        if (xhr.lengthComputable) {
+            let percentComplete = (xhr.loaded / xhr.total) * 100;
+            console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
+            progress_obj = Math.round(percentComplete, 2);
+        }
+    };
+    let newobj = obj3D.clone();
+    progress_mtl = 100
+    let objLoader = new OBJLoader();
+    objLoader.load(
+        url_obj,
+        function (root) {
+            let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
+            root.traverse(function (child) {
+                if (child.type === 'Mesh') {
+                    child.geometry = produce_geo(child.geometry.attributes.position.array)
+                    child.name = randomString();
+                    original.push(child.clone())
+                    obj_vertices_count += child.geometry.attributes.position.count;
+                    child.material = []
+
+                    if (child.geometry.groups.length > 0) {
+                        for (let group_i = 0; group_i < child.geometry.groups.length; group_i += 2) {
+                            let default_m = default_material.clone()
+                            if (!double) { default_m.side = THREE.FrontSide }
+                            default_m.color.set(randomColor())
+                            child.material.push(default_m);
+                            child.material.push(default_m);
+                        }
+                    }
+                    else {
+                        let default_m = default_material.clone()
+                        if (!double) { default_m.side = THREE.FrontSide }
+                        default_m.color.set(randomColor())
+                        child.material = default_m;
+                    }
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    child.geometry.computeVertexNormals();
+
+                    child.geometry.computeBoundingBox();
+                    x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
+                    y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
+                    z_max = z_max < child.geometry.boundingBox.max.z ? child.geometry.boundingBox.max.z : z_max;
+                    x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
+                    y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
+                    z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
+                }
+            })
+            let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
+            obj_size = 1
+            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
+            root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
+            newobj.add(root);
+        },
+        onProgress_obj
+    );
+    return newobj;
+}
+
+
+function loader(url_obj, url_mtl, scale, double = true) {
     original = []
     let onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
@@ -2438,7 +2659,6 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                 let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                 root.traverse(function (child) {
                     if (child.type === 'Mesh') {
-                        child.geometry = produce_geo(child.geometry.attributes.position.array)
                         child.name = randomString();
                         original.push(child.clone())
                         obj_vertices_count += child.geometry.attributes.position.count;
@@ -2494,8 +2714,6 @@ function obj_loader(url_obj, url_mtl, scale, double = true) {
                         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
                         root.traverse(function (child) {
                             if (child.type === 'Mesh') {
-                                child.geometry = produce_geo(child.geometry.attributes.position.array)
-                                child.material = default_material.clone()
                                 child.name = randomString();
                                 original.push(child.clone())
                                 obj_vertices_count += child.geometry.attributes.position.count;
@@ -2716,7 +2934,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    //lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     lambert_texture.add(TextureParams, "reset_position").name("Reset Position")
     lambert_texture.add(TextureParams, "remove").name("Remove Texture")
     lambert_texture.open()
@@ -2739,7 +2957,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    //phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     phong_texture.add(TextureParams, "reset_position").name("Reset Position")
     phong_texture.add(TextureParams, "remove").name("Remove Texture")
     phong_texture.open()
@@ -2758,7 +2976,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
     toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    //toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     toon_texture.add(TextureParams, "reset_position").name("Reset Position")
     toon_texture.add(TextureParams, "remove").name("Remove Texture")
     toon_texture.open()
@@ -2780,7 +2998,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
     standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    //standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     standard_texture.add(TextureParams, "reset_position").name("Reset Position")
     standard_texture.add(TextureParams, "remove").name("Remove Texture")
     standard_texture.open()
@@ -2808,7 +3026,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
     physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
     physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    //physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     physical_texture.add(TextureParams, "reset_position").name("Reset Position")
     physical_texture.add(TextureParams, "remove").name("Remove Texture")
     physical_texture.open()
@@ -2920,11 +3138,14 @@ function GUI_to_Texture() {
     }
     if (selected.length == 2) {
         selected[0].material[selected[1]] = obj_material
-        selected_patch[0].material = obj_material.clone()
+        selected_patch[0].material = obj_material
+        let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
+        selected[0].material[sym] = obj_material
+        selected_patch[0].parent.children[sym].material = obj_material
     }
     else if (selected.length == 1) {
         selected[0].material = obj_material
-        selected_patch[0].material = obj_material.clone()
+        selected_patch[0].material = obj_material
     }
     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
 }
@@ -3031,17 +3252,23 @@ function Material_Update_Param(reflectivity_change = false) {
     }
     if (selected.length == 2) {
         material_folder.show()
-        GUI_to_Obj_Param(selected[0].material[selected[1]], selected_patch[0].material)
-
+        let material = GUI_to_Obj_Param(selected[0].material[selected[1]])
+        selected[0].material[selected[1]] = material
+        selected_patch[0].material = material
+        let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
+        selected[0].material[sym] = material
+        selected_patch[0].parent.children[sym].material = material
     }
     else if (selected.length == 1) {
         material_folder.show()
-        GUI_to_Obj_Param(selected[0].material, selected_patch[0].material)
-
+        let material = GUI_to_Obj_Param(selected[0].material)
+        selected[0].material = material
+        selected_patch[0].material = material
     }
 }
 
-function GUI_to_Obj_Param(obj_material, obj_material1) {
+function GUI_to_Obj_Param(obj_material) {
+    obj_material = obj_material.clone()
     if (Material.material === "MeshPhysicalMaterial" && Materials.MeshPhysicalMaterial.transmission > 0 && Material.opacity < 1) {
         Material.opacity = 1;
         $("#alert_transmission").html('<div id="transmission_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Enable transmission will disable opacity! To adjustment opacity, please set transmission to 0!&nbsp;&nbsp;</div>');
@@ -3054,20 +3281,12 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
     obj_material.alphaTest = Material.alphaTest
     obj_material.side = Material.side === "FrontSide" ? THREE.FrontSide : Material.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
     obj_material.visible = Material.visible
-    obj_material1.opacity = Material.opacity
-    obj_material1.transparent = Material.transparent
-    obj_material1.alphaTest = Material.alphaTest
-    obj_material1.side = Material.side === "FrontSide" ? THREE.FrontSide : Material.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
-    obj_material1.visible = Material.visible
 
     switch (Material.material) {
         case "MeshBasicMaterial":
             obj_material.color.setHex(Materials.MeshBasicMaterial.color)
             obj_material.reflectivity = Materials.MeshBasicMaterial.reflectivity
             obj_material.wireframe = Materials.MeshBasicMaterial.wireframe
-            obj_material1.color.setHex(Materials.MeshBasicMaterial.color)
-            obj_material1.reflectivity = Materials.MeshBasicMaterial.reflectivity
-            obj_material1.wireframe = Materials.MeshBasicMaterial.wireframe
             break;
 
         case "MeshLambertMaterial":
@@ -3076,11 +3295,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.emissiveIntensity = Materials.MeshLambertMaterial.emissiveIntensity
             obj_material.reflectivity = Materials.MeshLambertMaterial.reflectivity
             obj_material.wireframe = Materials.MeshLambertMaterial.wireframe
-            obj_material1.color.setHex(Materials.MeshLambertMaterial.color)
-            obj_material1.emissive.setHex(Materials.MeshLambertMaterial.emissive)
-            obj_material1.emissiveIntensity = Materials.MeshLambertMaterial.emissiveIntensity
-            obj_material1.reflectivity = Materials.MeshLambertMaterial.reflectivity
-            obj_material1.wireframe = Materials.MeshLambertMaterial.wireframe
             break;
 
         case "MeshPhongMaterial":
@@ -3094,16 +3308,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.reflectivity = Materials.MeshPhongMaterial.reflectivity
             obj_material.shininess = Materials.MeshPhongMaterial.shininess
             obj_material.wireframe = Materials.MeshPhongMaterial.wireframe
-            obj_material1.color.setHex(Materials.MeshPhongMaterial.color)
-            obj_material1.emissive.setHex(Materials.MeshPhongMaterial.emissive)
-            obj_material1.specular.setHex(Materials.MeshPhongMaterial.specular)
-            obj_material1.emissiveIntensity = Materials.MeshPhongMaterial.emissiveIntensity
-            obj_material1.bumpScale = Materials.MeshPhongMaterial.bumpScale
-            obj_material1.flatShading = Materials.MeshPhongMaterial.flatShading
-            obj_material1.normalScale.set(Materials.MeshPhongMaterial.normalScale.x, Materials.MeshPhongMaterial.normalScale.y)
-            obj_material1.reflectivity = Materials.MeshPhongMaterial.reflectivity
-            obj_material1.shininess = Materials.MeshPhongMaterial.shininess
-            obj_material1.wireframe = Materials.MeshPhongMaterial.wireframe
             break;
 
         case "MeshToonMaterial":
@@ -3113,12 +3317,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.bumpScale = Materials.MeshToonMaterial.bumpScale
             obj_material.normalScale.set(Materials.MeshToonMaterial.normalScale.x, Materials.MeshToonMaterial.normalScale.y)
             obj_material.wireframe = Materials.MeshToonMaterial.wireframe
-            obj_material1.color.setHex(Materials.MeshToonMaterial.color)
-            obj_material1.emissive.setHex(Materials.MeshToonMaterial.emissive)
-            obj_material1.emissiveIntensity = Materials.MeshToonMaterial.emissiveIntensity
-            obj_material1.bumpScale = Materials.MeshToonMaterial.bumpScale
-            obj_material1.normalScale.set(Materials.MeshToonMaterial.normalScale.x, Materials.MeshToonMaterial.normalScale.y)
-            obj_material1.wireframe = Materials.MeshToonMaterial.wireframe
             break;
 
         case "MeshStandardMaterial":
@@ -3131,15 +3329,6 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.metalness = Materials.MeshStandardMaterial.metalness
             obj_material.roughness = Materials.MeshStandardMaterial.roughness
             obj_material.wireframe = Materials.MeshStandardMaterial.wireframe
-            obj_material1.color.setHex(Materials.MeshStandardMaterial.color)
-            obj_material1.emissive.setHex(Materials.MeshStandardMaterial.emissive)
-            obj_material1.emissiveIntensity = Materials.MeshStandardMaterial.emissiveIntensity
-            obj_material1.bumpScale = Materials.MeshStandardMaterial.bumpScale
-            obj_material1.flatShading = Materials.MeshStandardMaterial.flatShading
-            obj_material1.normalScale.set(Materials.MeshStandardMaterial.normalScale.x, Materials.MeshStandardMaterial.normalScale.y)
-            obj_material1.metalness = Materials.MeshStandardMaterial.metalness
-            obj_material1.roughness = Materials.MeshStandardMaterial.roughness
-            obj_material1.wireframe = Materials.MeshStandardMaterial.wireframe
             break;
 
         case "MeshPhysicalMaterial":
@@ -3159,24 +3348,9 @@ function GUI_to_Obj_Param(obj_material, obj_material1) {
             obj_material.metalness = Materials.MeshPhysicalMaterial.metalness
             obj_material.roughness = Materials.MeshPhysicalMaterial.roughness
             obj_material.wireframe = Materials.MeshPhysicalMaterial.wireframe
-            obj_material1.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material1.sheenTint) obj_material1.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
-            else obj_material1.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
-            obj_material1.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
-            obj_material1.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
-            obj_material1.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
-            obj_material1.flatShading = Materials.MeshPhysicalMaterial.flatShading
-            obj_material1.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
-            obj_material1.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
-            obj_material1.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
-            obj_material1.transmission = Materials.MeshPhysicalMaterial.transmission
-            obj_material1.thickness = Materials.MeshPhysicalMaterial.thickness
-            obj_material1.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
-            obj_material1.metalness = Materials.MeshPhysicalMaterial.metalness
-            obj_material1.roughness = Materials.MeshPhysicalMaterial.roughness
-            obj_material1.wireframe = Materials.MeshPhysicalMaterial.wireframe
             break;
     }
+    return obj_material;
 }
 
 
@@ -3267,6 +3441,9 @@ function GUI_to_Obj(obj_material_original) {
     if (selected.length == 2) {
         selected[0].material[selected[1]] = obj_material
         selected_patch[0].material = obj_material
+        let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
+        selected[0].material[sym] = obj_material
+        selected_patch[0].parent.children[sym].material = obj_material
     }
     else if (selected.length == 1) {
         selected[0].material = obj_material
