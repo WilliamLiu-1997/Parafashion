@@ -309,6 +309,7 @@ var gui_options = {
     focus: false,
     Straight: false,
     light: "Camera Light",
+    Wireframe: false,
 }
 
 
@@ -2913,6 +2914,7 @@ function GUI_init() {
     folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
+    folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe());
     // other options: "BathRoom", 'Church', "Gallery", "Square"
 
     // folder_material_global = gui.addFolder("Material Global Settings")
@@ -2936,7 +2938,7 @@ function GUI_init() {
     Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
     Material_Type_Folder.MeshBasicMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshBasicMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update_Param())
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
     basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
@@ -2952,7 +2954,7 @@ function GUI_init() {
     Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
     Material_Type_Folder.MeshLambertMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshLambertMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
@@ -2972,7 +2974,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "flatShading").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhongMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhongMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
@@ -2991,7 +2993,7 @@ function GUI_init() {
     Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "emissive").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshToonMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshToonMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
@@ -3013,7 +3015,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "flatShading").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshStandardMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshStandardMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
@@ -3041,7 +3043,7 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
@@ -3265,6 +3267,33 @@ function Material_Update(reflectivity_change = false) {
         GUI_to_Obj(selected[0].material)
 
     }
+}
+
+function Wireframe() {
+    garment.traverse(function (child) {
+        if (child.type === "Mesh" && child.material) {
+            if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) {
+                    m.wireframe = gui_options.Wireframe
+                })
+            }
+            else {
+                child.material.wireframe = gui_options.Wireframe
+            }
+        }
+    })
+    patch.traverse(function (child) {
+        if (child.type === "Mesh" && child.material) {
+            if (Array.isArray(child.material)) {
+                child.material.forEach(function (m) {
+                    m.wireframe = gui_options.Wireframe
+                })
+            }
+            else {
+                child.material.wireframe = gui_options.Wireframe
+            }
+        }
+    })
 }
 
 
