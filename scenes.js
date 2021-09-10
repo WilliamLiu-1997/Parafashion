@@ -77,8 +77,6 @@ var garments_mtl = "./leggins/leggins_patch.obj.mtl";
 var garments_mtl = "./leggins/patch.mtl"
 var garments_obj = "./leggins/patch.obj"
 var garments_obj1 = "./leggins/test_out.ply"
-// var garments_mtl = "./leggins/patch_smooth.mtl"
-// var garments_obj = "./leggins/patch_smooth.obj"
 // var garments_mtl = "./obj/village1/village_final.mtl"
 // var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
@@ -288,7 +286,6 @@ var gui_options = {
                 if (cut_obj[0].geometry.groups.length > 0) {
                     for (let group_i = 0; group_i < cut_obj[0].geometry.groups.length; group_i += 2) {
                         let default_m = default_material.clone()
-                        if (!double) { default_m.side = THREE.FrontSide }
                         default_m.color.set(randomColor())
                         cut_obj[0].material.push(default_m);
                         cut_obj[0].material.push(default_m);
@@ -296,7 +293,6 @@ var gui_options = {
                 }
                 else {
                     let default_m = default_material.clone()
-                    if (!double) { default_m.side = THREE.FrontSide }
                     default_m.color.set(randomColor())
                     cut_obj[0].material = default_m;
                 }
@@ -1128,7 +1124,7 @@ function reset_texture_position(intersects) {
                 selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
             }
             for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1]].count; i++) {
-                var uv_deltaX = -(intersects[0].uv.x - sym * 0.5)
+                var uv_deltaX = -(intersects[0].uv.x + sym * 0.5)
                 var uv_deltaY = -(intersects[0].uv.y - 0.5)
                 selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym) + sym * uv_deltaX)
                 selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym) + uv_deltaY)
@@ -2542,14 +2538,27 @@ function ply_loader(url_obj, scale, double = true) {
     progress_mtl = 100
     loader.load(url_obj, function (geometry) {
         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-
+        geometry = produce_geo(geometry.attributes.position.array)
         let group = new THREE.Group()
         let root = new THREE.Mesh();
         root.name = randomString();
         obj_vertices_count += geometry.attributes.position.count;
-        let default_m = default_material.clone()
-        if (!double) { default_m.side = THREE.FrontSide }
-        default_m.color.set(randomColor())
+        let material = []
+        if (geometry.groups.length > 0) {
+            for (let group_i = 0; group_i < geometry.groups.length; group_i += 2) {
+                let default_m = default_material.clone()
+                if (!double) { default_m.side = THREE.FrontSide }
+                default_m.color.set(randomColor())
+                material.push(default_m);
+                material.push(default_m);
+            }
+        }
+        else {
+            let default_m = default_material.clone()
+            if (!double) { default_m.side = THREE.FrontSide }
+            default_m.color.set(randomColor())
+            material = default_m;
+        }
         root.castShadow = true;
         root.receiveShadow = true;
 
@@ -2562,7 +2571,7 @@ function ply_loader(url_obj, scale, double = true) {
         y_min = y_min > geometry.boundingBox.min.y ? geometry.boundingBox.min.y : y_min;
         z_min = z_min > geometry.boundingBox.min.z ? geometry.boundingBox.min.z : z_min;
         root.geometry = geometry
-        root.material = default_m
+        root.material = material
         original.push(root.clone())
 
         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
