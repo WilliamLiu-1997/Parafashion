@@ -98,7 +98,7 @@ let outlinePass_params_cover = {
     rotate: false,
     usePatternTexture: false,
     visibleEdgeColor: "#cc6666",
-    hiddenEdgeColor: "#331818"
+    hiddenEdgeColor: "#cc6666"
 };
 
 let outlinePass_params_select = {
@@ -109,7 +109,7 @@ let outlinePass_params_select = {
     rotate: false,
     usePatternTexture: false,
     visibleEdgeColor: "#ffffff",
-    hiddenEdgeColor: "#444444"
+    hiddenEdgeColor: "#ffffff"
 };
 
 
