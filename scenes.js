@@ -53,9 +53,14 @@ var line_geo = new THREE.BufferGeometry();
 var line_material = new THREE.LineBasicMaterial({ color: 0xff0000 });
 var line = new THREE.Group();
 var line_back = new THREE.Group();
+var line_left = new THREE.Group();
+var line_back_left = new THREE.Group();
 let last_instance_position;
 var draw_line_show = [];
 var draw_line_show_back = [];
+var draw_line_show_left = [];
+var draw_line_show_back_left = [];
+var segment = 0;
 var mouse_down_position;
 const clock = new THREE.Clock();
 
@@ -272,28 +277,33 @@ var gui_options = {
     clear: function () {
         line.clear();
         line_back.clear();
+        line_left.clear();
+        line_back_left.clear();
         draw_line = [];
         draw_line_show = [];
         draw_line_show_back = [];
+        draw_line_show_left = [];
+        draw_line_show_back_left = [];
     },
     process_geo: function () {
         if (draw_line.length > 0 && cut_obj.length > 0) {
             show_processing()
             setTimeout(() => {
-                cut_obj[0].geometry = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
-                if (cut_obj[0].geometry.groups.length > 0) {
-                    for (let group_i = 0; group_i < cut_obj[0].geometry.groups.length; group_i += 2) {
-                        let default_m = default_material.clone()
-                        default_m.color.set(randomColor())
-                        cut_obj[0].material.push(default_m);
-                        cut_obj[0].material.push(default_m);
-                    }
-                }
-                else {
-                    let default_m = default_material.clone()
-                    default_m.color.set(randomColor())
-                    cut_obj[0].material = default_m;
-                }
+                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
+                cut_obj[0].geometry = geo_mat[0]
+                cut_obj[0].material = geo_mat[1]
+
+                reload_patch(garment, 1);
+                hide_loading()
+            }, 500);
+        }
+        else if (cut_obj.length > 0) {
+            show_processing()
+            setTimeout(() => {
+                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array)
+                cut_obj[0].geometry = geo_mat[0]
+                cut_obj[0].material = geo_mat[1]
+
                 reload_patch(garment, 1);
                 hide_loading()
             }, 500);
@@ -548,8 +558,8 @@ function init() {
     controls.dampingFactor = 0.15;
     controls.rotateSpeed = 1.3;
 
-    //garment = ply_loader(garments_obj1, 1, true);
-    garment = obj_loader(garments_obj, 1, true);
+    //garment = ply_loader(garments_obj1, 1);
+    garment = obj_loader(garments_obj, 1);
 
     scene.add(garment);
 
@@ -559,6 +569,8 @@ function init() {
 
     scene.add(line);
     scene.add(line_back);
+    scene.add(line_left);
+    scene.add(line_back_left);
 
 
     var helper = new THREE.GridHelper(10, 50, 0x999999, 0x666666);
@@ -913,6 +925,10 @@ function onmouseDown(event) {
             draw_line.push([]);
             draw_line_show.push([]);
             draw_line_show_back.push([]);
+            line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            draw_line_show_left.push([]);
+            draw_line_show_back_left.push([]);
             drawing = true;
             mouseMove(event)
         } else {
@@ -1067,9 +1083,9 @@ function onmouseDown_patch(event) {
 }
 
 function onmouseUp(event) {
-
     mouse_down = false;
     uv_offset = false;
+    segment = 0;
     if (event.button == 0) {
         controls.stop = false;
         controls_patch.stop = false;
@@ -1079,6 +1095,8 @@ function onmouseUp(event) {
         if (draw_line.length > 0 && draw_line[draw_line.length - 1].length == 0) {
             line.remove(line.children[line.children.length - 1]);
             line_back.remove(line_back.children[line_back.children.length - 1]);
+            line_left.remove(line_left.children[line_left.children.length - 1]);
+            line_back_left.remove(line_back_left.children[line_back_left.children.length - 1]);
         }
     }
     else if (shift) {
@@ -1468,6 +1486,8 @@ function select_recovery() {
     cut_obj = []
     line.clear();
     line_back.clear();
+    line_left.clear();
+    line_back_left.clear();
     draw_line = [];
     draw_line_show = [];
     draw_line_show_back = [];
@@ -1488,14 +1508,17 @@ function draw(pointers, camera, cut_obj) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
+            intersects[0].point.x = Math.abs(intersects[0].point.x)
             let distance = camera.position.distanceTo(intersects[0].point)
             let pos = intersects[0].point.clone()
-            pos.divide(intersects[0].object.parent.scale).sub(intersects[0].object.parent.position)
+            pos.divide(cut_obj[0].parent.scale).sub(cut_obj[0].parent.position)
             draw_line[draw_line.length - 1].push(pos)
-            let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
-            let back = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate())
+            let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0005));
+            let back = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0005).negate())
             draw_line_show[draw_line_show.length - 1].push(front.x, front.y, front.z)
             draw_line_show_back[draw_line_show_back.length - 1].push(back.x, back.y, back.z)
+            draw_line_show_left[draw_line_show_left.length - 1].push(-front.x, front.y, front.z)
+            draw_line_show_back_left[draw_line_show_back_left.length - 1].push(-back.x, back.y, back.z)
             if (draw_line[draw_line.length - 1].length == 1) {
                 let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
@@ -1509,38 +1532,70 @@ function draw(pointers, camera, cut_obj) {
                     draw_line[draw_line.length - 1] = []
                     draw_line_show[draw_line_show.length - 1] = []
                     draw_line_show_back[draw_line_show_back.length - 1] = []
+                    draw_line_show_left[draw_line_show_left.length - 1] = []
+                    draw_line_show_back_left[draw_line_show_back_left.length - 1] = []
                 } else {
                     draw_line[draw_line.length - 1].pop()
                     draw_line_show[draw_line_show.length - 1].pop()
                     draw_line_show_back[draw_line_show_back.length - 1].pop()
-                    draw_line_show[draw_line_show.length - 1].pop()
-                    draw_line_show_back[draw_line_show_back.length - 1].pop()
-                    draw_line_show[draw_line_show.length - 1].pop()
-                    draw_line_show_back[draw_line_show_back.length - 1].pop()
+                    draw_line_show_left[draw_line_show_left.length - 1].pop()
+                    draw_line_show_back_left[draw_line_show_back_left.length - 1].pop()
+                    line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    draw_line.push([]);
+                    draw_line_show.push([]);
+                    draw_line_show_back.push([]);
+                    draw_line_show_left.push([]);
+                    draw_line_show_back_left.push([]);
                 }
             }
             line.children[line.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show[draw_line_show.length - 1], 3));
             line_back.children[line_back.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back[draw_line_show_back.length - 1], 3));
             line.children[line.children.length - 1].frustumCulled = false;
             line_back.children[line_back.children.length - 1].frustumCulled = false;
+            line_left.children[line_left.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_left[draw_line_show_left.length - 1], 3));
+            line_back_left.children[line_back_left.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back_left[draw_line_show_back_left.length - 1], 3));
+            line_left.children[line_left.children.length - 1].frustumCulled = false;
+            line_back_left.children[line_back_left.children.length - 1].frustumCulled = false;
         }
     }
 }
 
 function draw_straight(pointers, camera, cut_obj) {
+    for (let i = 0; i < segment; i++) {
+        draw_line.pop()
+        draw_line_show.pop()
+        draw_line_show_back.pop()
+        draw_line_show_left.pop()
+        draw_line_show_back_left.pop()
+        line.remove(line.children[line.children.length - 1])
+        line_back.remove(line_back.children[line_back.children.length - 1])
+        line_left.remove(line_left.children[line_left.children.length - 1])
+        line_back_left.remove(line_back_left.children[line_back_left.children.length - 1])
+    }
+    segment = 0;
     draw_line[draw_line.length - 1] = []
     draw_line_show[draw_line_show.length - 1] = []
     draw_line_show_back[draw_line_show_back.length - 1] = []
+    draw_line_show_left[draw_line_show_left.length - 1] = []
+    draw_line_show_back_left[draw_line_show_back_left.length - 1] = []
     for (let pointer of pointers) {
         raycaster.setFromCamera(pointer, camera);
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
+            intersects[0].point.x = Math.abs(intersects[0].point.x)
             let distance = camera.position.distanceTo(intersects[0].point)
             let pos = intersects[0].point.clone()
-            pos.divide(intersects[0].object.parent.scale).sub(intersects[0].object.parent.position)
+            pos.divide(cut_obj[0].parent.scale).sub(cut_obj[0].parent.position)
             draw_line[draw_line.length - 1].push(pos)
-            draw_line_show[draw_line_show.length - 1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
-            draw_line_show_back[draw_line_show_back.length - 1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
+            let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0005));
+            let back = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0005).negate())
+            draw_line_show[draw_line_show.length - 1].push(front.x, front.y, front.z)
+            draw_line_show_back[draw_line_show_back.length - 1].push(back.x, back.y, back.z)
+            draw_line_show_left[draw_line_show_left.length - 1].push(-front.x, front.y, front.z)
+            draw_line_show_back_left[draw_line_show_back_left.length - 1].push(-back.x, back.y, back.z)
             if (draw_line[draw_line.length - 1].length == 1) {
                 let position = intersects[0].point.clone();
                 last_instance_position = position.clone()
@@ -1551,22 +1606,37 @@ function draw_straight(pointers, camera, cut_obj) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
                 } else if (draw_line[draw_line.length - 1].length == 2) {
-                    draw_line[draw_line.length - 1].pop()
-                    draw_line[draw_line.length - 1].pop()
-                    draw_line_show[draw_line_show.length - 1].pop()
-                    draw_line_show[draw_line_show.length - 1].pop()
-                    draw_line_show_back[draw_line_show_back.length - 1].pop()
-                    draw_line_show_back[draw_line_show_back.length - 1].pop()
+                    draw_line[draw_line.length - 1] = []
+                    draw_line_show[draw_line_show.length - 1] = []
+                    draw_line_show_back[draw_line_show_back.length - 1] = []
+                    draw_line_show_left[draw_line_show_left.length - 1] = []
+                    draw_line_show_back_left[draw_line_show_back_left.length - 1] = []
                 } else {
                     draw_line[draw_line.length - 1].pop()
                     draw_line_show[draw_line_show.length - 1].pop()
                     draw_line_show_back[draw_line_show_back.length - 1].pop()
+                    draw_line_show_left[draw_line_show_left.length - 1].pop()
+                    draw_line_show_back_left[draw_line_show_back_left.length - 1].pop()
+                    line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    draw_line.push([]);
+                    draw_line_show.push([]);
+                    draw_line_show_back.push([]);
+                    draw_line_show_left.push([]);
+                    draw_line_show_back_left.push([]);
+                    segment += 1;
                 }
             }
-            line.children[line.children.length - 1].geometry.setFromPoints(draw_line_show[draw_line_show.length - 1])
-            line_back.children[line_back.children.length - 1].geometry.setFromPoints(draw_line_show_back[draw_line_show_back.length - 1])
+            line.children[line.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show[draw_line_show.length - 1], 3));
+            line_back.children[line_back.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back[draw_line_show_back.length - 1], 3));
             line.children[line.children.length - 1].frustumCulled = false;
             line_back.children[line_back.children.length - 1].frustumCulled = false;
+            line_left.children[line_left.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_left[draw_line_show_left.length - 1], 3));
+            line_back_left.children[line_back_left.children.length - 1].geometry.setAttribute('position', new THREE.Float32BufferAttribute(draw_line_show_back_left[draw_line_show_back_left.length - 1], 3));
+            line_left.children[line_left.children.length - 1].frustumCulled = false;
+            line_back_left.children[line_back_left.children.length - 1].frustumCulled = false;
         }
     }
 }
@@ -2070,6 +2140,21 @@ function show_all(garment) {
     })
 }
 
+function rearrange_geo(geo, position, scale) {
+    let old_position = geo.getAttribute('position').array;
+    let num = geo.getAttribute('position').count;
+    let new_position = new Float32Array(num * 3);
+    for (var i = 0; i < num; i++) {
+        let index = i * 3
+
+        new_position[index] = (old_position[index] + position.x) * scale.x
+        new_position[index + 1] = (old_position[index + 1] + position.y) * scale.y
+        new_position[index + 2] = (old_position[index + 2] + position.z) * scale.z
+    }
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(new_position, 3));
+    geo.computeVertexNormals();
+}
+
 
 function individual(bufGeom, ig) {
     try {
@@ -2419,7 +2504,16 @@ function produce_geo(positions, line = false) {
         index += groups[i].length * 3
     }
     geo.computeVertexNormals();
-    return geo;
+
+    let material = []
+    for (let group_i = 0; group_i < geo.groups.length; group_i += 2) {
+        let default_m = default_material.clone()
+        default_m.color.set(randomColor())
+        material.push(default_m);
+        material.push(default_m);
+    }
+
+    return [geo, material];
 }
 
 
@@ -2527,7 +2621,7 @@ function Display(show_env, patch_env, light) {
 }
 
 
-function ply_loader(url_obj, scale, double = true) {
+function ply_loader(url_obj, scale) {
     original = []
     let onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
@@ -2541,27 +2635,12 @@ function ply_loader(url_obj, scale, double = true) {
     progress_mtl = 100
     loader.load(url_obj, function (geometry) {
         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-        geometry = produce_geo(geometry.attributes.position.array)
+        let geo_mat = produce_geo(geometry.attributes.position.array)
+        geometry = geo_mat[0]
         let group = new THREE.Group()
         let root = new THREE.Mesh();
         root.name = randomString();
         obj_vertices_count += geometry.attributes.position.count;
-        let material = []
-        if (geometry.groups.length > 0) {
-            for (let group_i = 0; group_i < geometry.groups.length; group_i += 2) {
-                let default_m = default_material.clone()
-                if (!double) { default_m.side = THREE.FrontSide }
-                default_m.color.set(randomColor())
-                material.push(default_m);
-                material.push(default_m);
-            }
-        }
-        else {
-            let default_m = default_material.clone()
-            if (!double) { default_m.side = THREE.FrontSide }
-            default_m.color.set(randomColor())
-            material = default_m;
-        }
         root.castShadow = true;
         root.receiveShadow = true;
 
@@ -2574,7 +2653,7 @@ function ply_loader(url_obj, scale, double = true) {
         y_min = y_min > geometry.boundingBox.min.y ? geometry.boundingBox.min.y : y_min;
         z_min = z_min > geometry.boundingBox.min.z ? geometry.boundingBox.min.z : z_min;
         root.geometry = geometry
-        root.material = material
+        root.material = geo_mat[1]
         original.push(root.clone())
 
         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
@@ -2590,7 +2669,7 @@ function ply_loader(url_obj, scale, double = true) {
 }
 
 
-function obj_loader(url_obj, scale, double = true) {
+function obj_loader(url_obj, scale) {
     original = []
     let onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
@@ -2608,30 +2687,18 @@ function obj_loader(url_obj, scale, double = true) {
             let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
             root.traverse(function (child) {
                 if (child.type === 'Mesh') {
-                    child.geometry = produce_geo(child.geometry.attributes.position.array)
                     child.name = randomString();
+
+                    //***************************************************************
+                    let geo_mat = produce_geo(child.geometry.attributes.position.array)
+                    child.geometry = geo_mat[0]
+                    child.material = geo_mat[1]
                     original.push(child.clone())
                     obj_vertices_count += child.geometry.attributes.position.count;
-                    child.material = []
+                    //***************************************************************
 
-                    if (child.geometry.groups.length > 0) {
-                        for (let group_i = 0; group_i < child.geometry.groups.length; group_i += 2) {
-                            let default_m = default_material.clone()
-                            if (!double) { default_m.side = THREE.FrontSide }
-                            default_m.color.set(randomColor())
-                            child.material.push(default_m);
-                            child.material.push(default_m);
-                        }
-                    }
-                    else {
-                        let default_m = default_material.clone()
-                        if (!double) { default_m.side = THREE.FrontSide }
-                        default_m.color.set(randomColor())
-                        child.material = default_m;
-                    }
                     child.castShadow = true;
                     child.receiveShadow = true;
-                    child.geometry.computeVertexNormals();
 
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
@@ -2644,8 +2711,19 @@ function obj_loader(url_obj, scale, double = true) {
             })
             let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             obj_size = 1
-            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
-            root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
+            let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
+            let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
+            root.traverse(function (child) {
+                if (child.type === 'Mesh') {
+                    rearrange_geo(child.geometry, geo_position, geo_scale)
+
+                    //***************************************************************
+
+                    //***************************************************************
+
+                    child.geometry.computeBoundingBox();
+                }
+            })
             newobj.add(root);
         },
         onProgress_obj
