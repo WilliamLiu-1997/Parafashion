@@ -294,10 +294,10 @@ var gui_options = {
                     default_m.color.set(randomColor())
                     cut_obj[0].material = default_m;
                 }
+                reload_patch(garment, 1);
                 hide_loading()
             }, 500);
         }
-        reload_patch(garment, 1);
     },
     Overall_Reflectivity: 1,
     env: "None",
