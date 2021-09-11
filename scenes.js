@@ -229,7 +229,6 @@ var gui_options = {
     },
     reset: function () {
         select_recovery()
-        let num = garment.children[0].children.length;
         garment.traverse(function (child) {
             if (child.type === "Mesh") {
                 let o;
@@ -244,13 +243,12 @@ var gui_options = {
                 }
             }
         })
-        reload_patch(garment, 1, num);
+        reload_patch(garment, 1);
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
         gui_options.Overall_Reflectivity = NaN
     },
     set_default: function () {
         select_recovery()
-        let num = garment.children[0].children.length;
         garment.traverse(function (child) {
             if (child.type === "Mesh") {
                 if (Array.isArray(child.material)) {
@@ -267,7 +265,7 @@ var gui_options = {
                 }
             }
         })
-        reload_patch(garment, 1, num);
+        reload_patch(garment, 1);
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         gui_options.Overall_Reflectivity = NaN
     },
@@ -299,7 +297,7 @@ var gui_options = {
                 hide_loading()
             }, 500);
         }
-        console.log(garment)
+        reload_patch(garment, 1);
     },
     Overall_Reflectivity: 1,
     env: "None",
@@ -717,7 +715,7 @@ function animate() {
             progress_obj = progress_mtl = -1;
             var num = garment.children[0].children.length;
 
-            patch = patch_loader(garment, 1, num);
+            patch = patch_loader(garment, 1);
             patch.name = "patch";
             scene_patch.add(patch);
             camera_patch.position.set(0, 0, 2 * max_radius);
@@ -1491,7 +1489,9 @@ function draw(pointers, camera, cut_obj) {
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             let distance = camera.position.distanceTo(intersects[0].point)
-            draw_line[draw_line.length - 1].push(intersects[0].point)
+            let pos = intersects[0].point.clone()
+            pos.divide(intersects[0].object.parent.scale).sub(intersects[0].object.parent.position)
+            draw_line[draw_line.length - 1].push(pos)
             let front = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001));
             let back = intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate())
             draw_line_show[draw_line_show.length - 1].push(front.x, front.y, front.z)
@@ -1536,7 +1536,9 @@ function draw_straight(pointers, camera, cut_obj) {
         var intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             let distance = camera.position.distanceTo(intersects[0].point)
-            draw_line[draw_line.length - 1].push(intersects[0].point)
+            let pos = intersects[0].point.clone()
+            pos.divide(intersects[0].object.parent.scale).sub(intersects[0].object.parent.position)
+            draw_line[draw_line.length - 1].push(pos)
             draw_line_show[draw_line_show.length - 1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001)))
             draw_line_show_back[draw_line_show_back.length - 1].push(intersects[0].point.clone().add(intersects[0].face.normal.clone().setLength(0.0001).negate()))
             if (draw_line[draw_line.length - 1].length == 1) {
@@ -2780,7 +2782,8 @@ function array_default_material_clone(array, clone) {
 }
 
 
-function patch_loader(garment, scale, num) {
+function patch_loader(garment, scale) {
+    let num = garment.children[0].children.length;
     max_radius = 0;
     let first = false;
     let max_height = 0;
@@ -2870,7 +2873,7 @@ function patch_loader(garment, scale, num) {
 }
 
 
-function reload_patch(garment, scale, num) {
+function reload_patch(garment, scale) {
     patch.traverse(function (child) {
         if (child.type === "Mesh") {
             child.geometry.dispose()
@@ -2882,7 +2885,7 @@ function reload_patch(garment, scale, num) {
         }
     })
     scene_patch.remove(patch)
-    patch = patch_loader(garment, scale, num);
+    patch = patch_loader(garment, scale);
     patch.name = "patch";
     scene_patch.add(patch);
 }
