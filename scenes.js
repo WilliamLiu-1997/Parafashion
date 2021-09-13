@@ -78,10 +78,9 @@ var folder_basic, folder_env, folder_material_global, material_folder, basic_tex
 
 
 var garments_obj = "./leggins/leggins_patch.obj";
-var garments_mtl = "./leggins/leggins_patch.obj.mtl";
-var garments_mtl = "./leggins/patch.mtl"
-var garments_obj = "./leggins/patch.obj"
-var garments_obj1 = "./leggins/test_out.ply"
+var garments_obj = "./leggins/leggins.obj"
+//var garments_obj = "./leggins/patch.obj"
+var garments_obj1 = "./leggins/leggins.ply"
 // var garments_mtl = "./obj/village1/village_final.mtl"
 // var garments_obj = "./obj/village1/village_final.obj"
 // var garments_mtl = "./obj/city2/city2.mtl"
@@ -2666,8 +2665,16 @@ function ply_loader(url_obj, scale) {
 
         let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
         obj_size = 1
-        group.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
-        group.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
+        geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
+        geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
+
+        rearrange_geo(root.geometry, geo_position, geo_scale)
+
+        //***************************************************************
+
+        //***************************************************************
+
+        root.geometry.computeBoundingBox();
         group.add(root)
         newobj.add(group);
     },
