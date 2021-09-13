@@ -289,6 +289,7 @@ var gui_options = {
         if (draw_line.length > 0 && cut_obj.length > 0) {
             show_processing()
             setTimeout(() => {
+                console.log(draw_line)
                 let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
@@ -920,15 +921,15 @@ function onmouseDown(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
-            line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-            line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
             draw_line.push([]);
             draw_line_show.push([]);
             draw_line_show_back.push([]);
-            line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-            line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
             draw_line_show_left.push([]);
             draw_line_show_back_left.push([]);
+            line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
             drawing = true;
             mouseMove(event)
         } else {
@@ -1092,7 +1093,12 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
-        if (draw_line.length > 0 && draw_line[draw_line.length - 1].length == 0) {
+        if (draw_line.length > 0 && draw_line[draw_line.length - 1].length <= 5) {
+            draw_line.pop()
+            draw_line_show.pop()
+            draw_line_show_back.pop()
+            draw_line_show_left.pop()
+            draw_line_show_back_left.pop()
             line.remove(line.children[line.children.length - 1]);
             line_back.remove(line_back.children[line_back.children.length - 1]);
             line_left.remove(line_left.children[line_left.children.length - 1]);
@@ -1491,6 +1497,8 @@ function select_recovery() {
     draw_line = [];
     draw_line_show = [];
     draw_line_show_back = [];
+    draw_line_show_left = [];
+    draw_line_show_back_left = [];
     controls.maxDistance = 5;
     set_cursor(0)
     if (controls !== undefined) {
@@ -1528,7 +1536,7 @@ function draw(pointers, camera, cut_obj) {
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line[draw_line.length - 1].length == 2) {
+                } else if (draw_line[draw_line.length - 1].length <= 5) {
                     draw_line[draw_line.length - 1] = []
                     draw_line_show[draw_line_show.length - 1] = []
                     draw_line_show_back[draw_line_show_back.length - 1] = []
@@ -1605,7 +1613,7 @@ function draw_straight(pointers, camera, cut_obj) {
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line[draw_line.length - 1].length == 2) {
+                } else if (draw_line[draw_line.length - 1].length <= 5) {
                     draw_line[draw_line.length - 1] = []
                     draw_line_show[draw_line_show.length - 1] = []
                     draw_line_show_back[draw_line_show_back.length - 1] = []
