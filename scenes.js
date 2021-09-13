@@ -289,7 +289,7 @@ var gui_options = {
             show_processing()
             setTimeout(() => {
                 console.log(draw_line)
-                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
+                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position, draw_line)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
 
@@ -300,7 +300,7 @@ var gui_options = {
         else if (cut_obj.length > 0) {
             show_processing()
             setTimeout(() => {
-                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array)
+                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
 
@@ -2420,14 +2420,14 @@ function seperateGroups_garmentToPatch(bufGeom) {
 function produce_geo(positions, line = false) {
     let Faces = new Module.vector$vector$size_t$$()
     let Coords = new Module.vector$vector$double$$()
-    for (let i = 0; i < positions.length; i += 3) {
+    for (let i = 0; i < positions.count; i ++) {
         let Coords_Vector = new Module.vector$double$()
-        Coords_Vector.push_back(positions[i])
-        Coords_Vector.push_back(positions[i + 1])
-        Coords_Vector.push_back(positions[i + 2])
+        Coords_Vector.push_back(positions.array[i*3])
+        Coords_Vector.push_back(positions.array[i * 3 + 1])
+        Coords_Vector.push_back(positions.array[i * 3 + 2])
         Coords.push_back(Coords_Vector)
     }
-    for (let i = 0; i < positions.length / 3; i += 3) {
+    for (let i = 0; i < positions.count; i += 3) {
         let Faces_Vector = new Module.vector$size_t$()
         Faces_Vector.push_back(i)
         Faces_Vector.push_back(i + 1)
@@ -2642,7 +2642,7 @@ function ply_loader(url_obj, scale) {
     progress_mtl = 100
     loader.load(url_obj, function (geometry) {
         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-        let geo_mat = produce_geo(geometry.attributes.position.array)
+        let geo_mat = produce_geo(geometry.attributes.position)
         geometry = geo_mat[0]
         let group = new THREE.Group()
         let root = new THREE.Mesh();
@@ -2705,7 +2705,7 @@ function obj_loader(url_obj, scale) {
                     child.name = randomString();
 
                     //***************************************************************
-                    let geo_mat = produce_geo(child.geometry.attributes.position.array)
+                    let geo_mat = produce_geo(child.geometry.attributes.position)
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
                     original.push(child.clone())
