@@ -79,7 +79,7 @@ var folder_basic, folder_env, folder_material_global, material_folder, basic_tex
 
 var garments_obj = "./leggins/leggins_patch.obj";
 var garments_obj = "./leggins/leggins.obj"
-var garments_obj = "./leggins/patch.obj"
+var garments_obj = "./leggins/leggins.obj"
 var garments_obj1 = "./leggins/leggins.ply"
 // var garments_mtl = "./obj/village1/village_final.mtl"
 // var garments_obj = "./obj/village1/village_final.obj"
@@ -289,7 +289,7 @@ var gui_options = {
             show_processing()
             setTimeout(() => {
                 console.log(draw_line)
-                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
+                let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array, draw_line)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
 
@@ -300,7 +300,7 @@ var gui_options = {
         else if (cut_obj.length > 0) {
             show_processing()
             setTimeout(() => {
-                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array)
+                let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
 
@@ -2423,14 +2423,15 @@ function get_face_position(position) {
         let pos = [position[i], position[i+1], position[i+2]]
         if (!position_projection.hasOwnProperty(pos)) {
             positions.push(pos)
-            position_projection[pos] = positions.length-1
+            position_projection[pos] = positions.length - 1
         }
     }
     let faces = []
     for (let i = 0; i < position.length; i += 9) {
-        let pos = [position_projection[[position[i], position[i + 1], position[i + 2]]], position_projection[[position[i + 3], position[i + 4], position[i + 5]]], position_projection[[position[i+6], position[i + 7], position[i + 8]]]]
+        let pos = [position_projection[[position[i], position[i + 1], position[i + 2]]], position_projection[[position[i + 3], position[i + 4], position[i + 5]]], position_projection[[position[i + 6], position[i + 7], position[i + 8]]]]
         faces.push(pos)
     }
+    console.log([faces, positions])
     return [faces, positions]
 }
 
@@ -2769,7 +2770,7 @@ function ply_loader(url_obj, scale) {
     progress_mtl = 100
     loader.load(url_obj, function (geometry) {
         let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-        let geo_mat = produce_geo(geometry.attributes.position.array)
+        let geo_mat = produce_geo1(geometry.attributes.position.array)
         geometry = geo_mat[0]
         let group = new THREE.Group()
         let root = new THREE.Mesh();
@@ -2831,7 +2832,8 @@ function obj_loader(url_obj, scale) {
                 if (child.type === 'Mesh') {
                     child.name = randomString();
 
-                    //***************************************************************
+                    //***************************************************************]
+                    child.geometry=new THREE.DodecahedronGeometry(2,12)
                     let geo_mat = produce_geo1(child.geometry.attributes.position.array)
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
