@@ -2431,7 +2431,7 @@ function get_face_position(position) {
         let pos = [position_projection[[position[i], position[i + 1], position[i + 2]]], position_projection[[position[i + 3], position[i + 4], position[i + 5]]], position_projection[[position[i + 6], position[i + 7], position[i + 8]]]]
         faces.push(pos)
     }
-    console.log([faces, positions])
+    console.log(faces, positions)
     return [faces, positions]
 }
 
@@ -2833,7 +2833,7 @@ function obj_loader(url_obj, scale) {
                     child.name = randomString();
 
                     //***************************************************************]
-                    child.geometry=new THREE.DodecahedronGeometry(2,12)
+                    //child.geometry=new THREE.DodecahedronGeometry(2,12)
                     let geo_mat = produce_geo1(child.geometry.attributes.position.array)
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
