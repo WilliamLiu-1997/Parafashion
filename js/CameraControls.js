@@ -234,12 +234,13 @@ class CameraControls extends EventDispatcher {
 					angleY_gap = 0;
 				}
 
-
-				let distance = position.distanceTo(scope.o);
+				let distance
+				if (target) { distance = position.distanceTo(target); }
+				else { distance = position.distanceTo(scope.o); }
 
 				if (distance > scope.maxDistance) {
-
-					position.add(position.clone().multiplyScalar(scope.maxDistance / distance).sub(position).multiplyScalar(0.2));
+					if (target) { position.add(position.clone().sub(target).multiplyScalar(scope.maxDistance / distance).sub(position.clone().sub(target)).multiplyScalar(0.2));}
+					else { position.add(position.clone().multiplyScalar(scope.maxDistance / distance).sub(position).multiplyScalar(0.2)); }
 
 				}
 
