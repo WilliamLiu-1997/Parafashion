@@ -158,6 +158,37 @@
       }
     }
 
+    .processing {
+      display: none;
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 99;
+      color: white;
+      font-size: 40px;
+      font-weight: 100;
+      font-family: Lato, sans-serif;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      cursor: wait;
+    }
+    .processing span {
+      animation: shrink1 5s infinite;
+    }
+
+    @keyframes shrink1 {
+      3.33% {
+        transform: rotate(-25deg);
+      }
+      6.66% {
+        transform: rotate(15deg);
+      }
+      10% {
+        transform: rotate(0deg)
+      }
+    }
+
     .tip {
       font-size: 12px;
       font-weight: bold;
@@ -213,6 +244,18 @@
       ><span style="animation-delay: 0.7s">·</span
       ><span style="animation-delay: 0.8s">·</span
       ><span style="animation-delay: 0.9s">·</span>
+    </div>
+    <div id="processing" class="processing">
+      <span style="animation-delay: 0s">P</span>
+      <span style="animation-delay: 0.5s">R</span>
+      <span style="animation-delay: 1s">O</span>
+      <span style="animation-delay: 1.5s">C</span>
+      <span style="animation-delay: 2s">E</span>
+      <span style="animation-delay: 2.5s">S</span>
+      <span style="animation-delay: 3s">S</span>
+      <span style="animation-delay: 3.5s">I</span>
+      <span style="animation-delay: 4s">N</span>
+      <span style="animation-delay: 4.5s">G</span>
     </div>
     <div id="container"></div>
     <div id="gui_container">
@@ -274,6 +317,7 @@
     <div id="alert_size" class="alert_container"></div>
     <div id="alert_img" class="alert_container"></div>
     <div id="alert_cut" class="alert_container"></div>
+    <div id="alert_line" class="alert_container"></div>
     <div id="alert_transmission" class="alert_container"></div>
     <div id="panel_box" class="panel_box">
       <div id="patch_btn" class="btn-group" style="width: 100%">
@@ -328,11 +372,21 @@
 
       function show_loading() {
         $("#loading").show();
+        $("#processing").hide();
         $("#loading").css({ display: "flex", opacity: 0 });
         $("#loading").animate({ opacity: 1 }, 500);
+        $("#loading_background").show();
+      }
+      function show_processing() {
+        $("#loading").hide();
+        $("#processing").show();
+        $("#processing").css({ display: "flex", opacity: 0 });
+        $("#processing").animate({ opacity: 1 }, 500);
+        $("#loading_background").show();
       }
       function hide_loading() {
         $("#loading").fadeOut(800);
+        $("#processing").fadeOut(800);
         $("#loading_background").fadeOut(800);
       }
 
@@ -412,6 +466,7 @@
         }
       }
     </script>
+    <script type="text/javascript" src="js/DerivePatchLayout.js"></script>
     <script type="module" src="scenes.js"></script>
   </body>
 </html>
