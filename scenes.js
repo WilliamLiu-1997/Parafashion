@@ -489,12 +489,16 @@ var TextureParams = {
 };
 
 
-
-init();
-init_patch();
-init_transform();
-onWindowResize();
-animate();
+const inte = setInterval(() => {
+    if (Module.DerivePatchLayout) {
+        clearInterval(inte);
+        init();
+        init_patch();
+        init_transform();
+        onWindowResize();
+        animate();
+    }
+}, 500)
 
 function init() {
 
