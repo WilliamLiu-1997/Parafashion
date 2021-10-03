@@ -8,6 +8,7 @@ import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
+import { mergeVertices } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
 import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats;
@@ -288,7 +289,6 @@ var gui_options = {
         if (draw_line.length > 0 && cut_obj.length > 0) {
             show_processing()
             setTimeout(() => {
-                console.log(draw_line)
                 let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array, draw_line)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
@@ -2163,7 +2163,6 @@ function rearrange_geo(geo, position, scale) {
         new_position[index + 2] = (old_position[index + 2] + position.z) * scale.z
     }
     geo.setAttribute('position', new THREE.Float32BufferAttribute(new_position, 3));
-    geo.computeVertexNormals();
 }
 
 
@@ -2420,11 +2419,33 @@ function seperateGroups_garmentToPatch(bufGeom) {
 
 }
 
+
+function smoothNormals(geo) {
+    let tempGeo = mergeVertices(geo,0);
+    tempGeo.computeVertexNormals();
+    geo.computeVertexNormals();
+    for (let i = 0; i < geo.getAttribute('position').count; i++) {
+        for (let j = 0; j < tempGeo.getAttribute('position').count; j++) {
+            let position = new THREE.Vector3(geo.getAttribute('position').getX(i), geo.getAttribute('position').getY(i), geo.getAttribute('position').getZ(i))
+            let comparePosition = new THREE.Vector3(tempGeo.getAttribute('position').getX(j), tempGeo.getAttribute('position').getY(j), tempGeo.getAttribute('position').getZ(j))
+            if (position.distanceToSquared(comparePosition) == 0) {
+                let normal1 = new THREE.Vector3(geo.getAttribute('normal').getX(i), geo.getAttribute('normal').getY(i), geo.getAttribute('normal').getZ(i))
+                let normal2 = new THREE.Vector3(tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j))
+                if (normal1.angleTo(normal2)<1){
+                    geo.getAttribute('normal').setXYZ(i, tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j));
+                    break;
+                }
+            }
+        }
+    }
+    return geo;
+}
+
 function get_face_position(position) {
     let position_projection = {}
-    let positions=[]
+    let positions = []
     for (let i = 0; i < position.length; i += 3) {
-        let pos = [position[i], position[i+1], position[i+2]]
+        let pos = [position[i], position[i + 1], position[i + 2]]
         if (!position_projection.hasOwnProperty(pos)) {
             positions.push(pos)
             position_projection[pos] = positions.length - 1
@@ -2435,24 +2456,23 @@ function get_face_position(position) {
         let pos = [position_projection[[position[i], position[i + 1], position[i + 2]]], position_projection[[position[i + 3], position[i + 4], position[i + 5]]], position_projection[[position[i + 6], position[i + 7], position[i + 8]]]]
         faces.push(pos)
     }
-    console.log(faces, positions)
     return [faces, positions]
 }
 
 function produce_geo1(position, line = false) {
-    
+
     let [face_js, position_js] = get_face_position(position)
 
     let Faces = new Module.vector$vector$size_t$$()
     let Coords = new Module.vector$vector$double$$()
-    for (let i = 0; i < position_js.length; i ++) {
+    for (let i = 0; i < position_js.length; i++) {
         let Coords_Vector = new Module.vector$double$()
         Coords_Vector.push_back(position_js[i][0])
         Coords_Vector.push_back(position_js[i][1])
         Coords_Vector.push_back(position_js[i][2])
         Coords.push_back(Coords_Vector)
     }
-    for (let i = 0; i < face_js.length; i ++) {
+    for (let i = 0; i < face_js.length; i++) {
         let Faces_Vector = new Module.vector$size_t$()
         Faces_Vector.push_back(face_js[i][0])
         Faces_Vector.push_back(face_js[i][1])
@@ -2481,7 +2501,6 @@ function produce_geo1(position, line = false) {
 
     Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV)
 
-    console.log(FacesOut.size(), CoordsOut.size(), Partition.size(), FaceVertUV.size())
 
     let partitions = []
     for (let i = 0; i < Partition.size(); i++) {
@@ -2535,7 +2554,6 @@ function produce_geo1(position, line = false) {
         geo.addGroup(index, groups[i].length * 3, i);
         index += groups[i].length * 3
     }
-    geo.computeVertexNormals();
 
     let material = []
     for (let group_i = 0; group_i < geo.groups.length; group_i += 2) {
@@ -2544,6 +2562,7 @@ function produce_geo1(position, line = false) {
         material.push(default_m);
         material.push(default_m);
     }
+    geo=smoothNormals(geo)
 
     return [geo, material];
 }
@@ -2588,7 +2607,6 @@ function produce_geo(positions, line = false) {
 
     Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV)
 
-    console.log(FacesOut.size(), CoordsOut.size(), Partition.size(), FaceVertUV.size())
 
     let partitions = []
     for (let i = 0; i < Partition.size(); i++) {
@@ -2837,7 +2855,7 @@ function obj_loader(url_obj, scale) {
                     child.name = randomString();
 
                     //***************************************************************]
-                    child.geometry=new THREE.DodecahedronGeometry(2,3)
+                    child.geometry = new THREE.DodecahedronGeometry(2, 5)
                     let geo_mat = produce_geo1(child.geometry.attributes.position.array)
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
