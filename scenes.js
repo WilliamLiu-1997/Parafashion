@@ -2431,7 +2431,7 @@ function smoothNormals(geo) {
             if (position.distanceToSquared(comparePosition) == 0) {
                 let normal1 = new THREE.Vector3(geo.getAttribute('normal').getX(i), geo.getAttribute('normal').getY(i), geo.getAttribute('normal').getZ(i))
                 let normal2 = new THREE.Vector3(tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j))
-                if (normal1.angleTo(normal2)<1){
+                if (normal1.angleTo(normal2)<1.5){
                     geo.getAttribute('normal').setXYZ(i, tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j));
                     break;
                 }
