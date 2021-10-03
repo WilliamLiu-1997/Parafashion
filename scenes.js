@@ -2833,7 +2833,7 @@ function obj_loader(url_obj, scale) {
                     child.name = randomString();
 
                     //***************************************************************]
-                    //child.geometry=new THREE.DodecahedronGeometry(2,12)
+                    child.geometry=new THREE.DodecahedronGeometry(2,3)
                     let geo_mat = produce_geo1(child.geometry.attributes.position.array)
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
