@@ -2425,12 +2425,8 @@ function smoothNormals(geo) {
     tempGeo.computeVertexNormals();
     geo.computeVertexNormals();
     for (let i = 0; i < geo.getAttribute('position').count; i++) {
-        for (let j = 0; j < tempGeo.getAttribute('position').count; j++) {
-            if (geo.getAttribute('position').getX(i) == tempGeo.getAttribute('position').getX(j) && geo.getAttribute('position').getY(i) == tempGeo.getAttribute('position').getY(j) && geo.getAttribute('position').getZ(i) == tempGeo.getAttribute('position').getZ(j)) {
-                geo.getAttribute('normal').setXYZ(i, tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j));
-                break;
-            }
-        }
+        let j = tempGeo.index.array[i]
+        geo.getAttribute('normal').setXYZ(i, tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j));
     }
     return geo;
 }
@@ -2543,6 +2539,7 @@ function produce_geo1(position, line = false) {
     let geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo = smoothNormals(geo)
     let index = 0;
     for (let i = 0; i < groups.length; i++) {
         geo.addGroup(index, groups[i].length * 3, i);
@@ -2556,7 +2553,6 @@ function produce_geo1(position, line = false) {
         material.push(default_m);
         material.push(default_m);
     }
-    geo = smoothNormals(geo)
     gui_options.clear()
     return [geo, material];
 }
@@ -2855,6 +2851,7 @@ function obj_loader(url_obj, scale) {
                     child.castShadow = true;
                     child.receiveShadow = true;
 
+                    obj_vertices_count += child.geometry.attributes.position.count;
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
                     y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
@@ -2868,6 +2865,7 @@ function obj_loader(url_obj, scale) {
             obj_size = 1
             let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
             let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
+            $("#small_info").text("This may take around " + Math.floor(obj_vertices_count/10000) +" minutes to process the model")
             root.traverse(function (child) {
                 if (child.type === 'Mesh') {
                     rearrange_geo(child.geometry, geo_position, geo_scale)
@@ -2877,7 +2875,6 @@ function obj_loader(url_obj, scale) {
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
                     original.push(child.clone())
-                    obj_vertices_count += child.geometry.attributes.position.count;
                     //***************************************************************
 
                     child.geometry.computeBoundingBox();
