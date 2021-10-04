@@ -9,9 +9,8 @@ import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectCom
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
 import { mergeVertices } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
-import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
-let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats;
+let camera, cameralight, controls, scene, renderer, garment, gui, env_light;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
 let cut_component;
@@ -27,6 +26,7 @@ let pointer_patch = new THREE.Vector2();
 let original = [];
 let cut_obj = [];
 let mouse_down = false;
+let begin = true;
 
 let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
@@ -435,17 +435,20 @@ var TextureParams = {
     },
 };
 
+function start() {
+    let inte = setInterval(() => {
+        if (Module.DerivePatchLayout) {
+            clearInterval(inte);
+            init();
+            init_patch();
+            init_transform();
+            onWindowResize();
+            animate();
+        }
+    }, 500)
 
-const inte = setInterval(() => {
-    if (Module.DerivePatchLayout) {
-        clearInterval(inte);
-        init();
-        init_patch();
-        init_transform();
-        onWindowResize();
-        animate();
-    }
-}, 500)
+}
+
 
 function init() {
 
@@ -458,8 +461,6 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById("container").appendChild(renderer.domElement);
-    stats = new Stats();
-    document.getElementById("container").appendChild(stats.dom);
 
     camera = new THREE.PerspectiveCamera(
         45,
@@ -547,7 +548,6 @@ function init() {
     window.addEventListener("keyup", onKeyUp, false);
     document.getElementById("container").addEventListener("wheel", onMouseWheel, false);
     document.getElementById("container_patch").addEventListener("wheel", onMouseWheel_patch, false);
-
 
 }
 
@@ -664,13 +664,11 @@ function animate() {
     requestAnimationFrame(animate);
     timeStamp += delta;
     if (timeStamp > singleFrameTime) {
-        stats.begin();
         if (patch_panel_width != $("#container_patch").css("width")) {
             patch_panel_width = $("#container_patch").css("width")
             onWindowResize()
         }
         if (progress_obj + progress_mtl == 200 && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
-            old_garment = garment.clone()
             camera.position.set(0, obj_size / 2, obj_size * 2);
             controls.saveState();
             var lack = false;
@@ -731,7 +729,7 @@ function animate() {
 
         }
         else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
-
+            begin = false;
             gui.updateDisplay();
             directional_light.position.copy(new THREE.Vector3(0, 3, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
@@ -745,7 +743,6 @@ function animate() {
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
         render();
-        stats.end();
         timeStamp = timeStamp % singleFrameTime;
     }
 }
@@ -2439,9 +2436,15 @@ function produce_geo1(position, line = false) {
 
     try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV) }
     catch (error) {
-        $("#small_info").html("Failed processing the model, trying to recover the it...")
-        Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV)
-        $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
+        if (begin) {
+            alert("Failed processing the model, please upload a new OBJ!")
+            window.location.reload();
+            return
+        } else {
+            $("#small_info").html("Failed processing the model, trying to recover the it...")
+            Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV)
+            $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
+        }
     }
 
 
@@ -3763,9 +3766,11 @@ $('#fileDrag').change((event) => {
 
 var dragbox = document.querySelector('.dragFile');
 dragbox.addEventListener('dragover', function (e) {
+    e.stopPropagation()
     e.preventDefault();
 }, false);
 dragbox.addEventListener('drop', function (e) {
+    e.stopPropagation()
     e.preventDefault();
     var files = e.dataTransfer.files;
     appendFile(files)
@@ -3786,5 +3791,47 @@ function appendFile(files) {
         $(".tip").hide();
         GUI_to_Texture()
         document.getElementById("fileDrag").value = "";
+    }
+}
+
+document.querySelector('.startbtn').addEventListener('click', () => {
+    $(".dragObj").fadeOut();
+    $(".startbtn").fadeOut();
+    start();
+})
+
+var dragboxObj = document.querySelector('.dragObj');
+dragboxObj.addEventListener('click', () => { $('#objDrag').click(); })
+$('#objDrag').change((event) => {
+    var files = event.target.files;
+    appendObj(files);
+})
+dragboxObj.addEventListener('dragover', function (e) {
+    e.stopPropagation()
+    e.preventDefault();
+    var files = e.dataTransfer.files;
+    appendObj(files)
+}, false);
+dragboxObj.addEventListener('drop', function (e) {
+    e.stopPropagation()
+    e.preventDefault();
+    var files = e.dataTransfer.files;
+    appendObj(files)
+}, false);
+
+function appendObj(files) {
+    for (var file of files) {
+        var fileType = file.name.substr(file.name.lastIndexOf(".")).toUpperCase();
+        if (fileType != ".OBJ") {
+            $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>OBJ</b> files are acceptable!&nbsp;&nbsp;</div>');
+            setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
+            setTimeout(function () { $("#alert_img").html("") }, 3500)
+            return
+        }
+        garments_obj = window.URL.createObjectURL(file);
+        document.getElementById("objDrag").value = "";
+        $(".dragObj").fadeOut();
+        $(".startbtn").fadeOut();
+        start();
     }
 }

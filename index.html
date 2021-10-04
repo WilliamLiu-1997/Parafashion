@@ -92,6 +92,7 @@
       z-index: 10;
       text-align: center;
       cursor: auto;
+      display: none;
     }
 
     .btn:active.focus,
@@ -115,7 +116,6 @@
     }
 
     #gui_container {
-      /* background-color:rgba(228, 228, 228, 0.096); */
       position: absolute;
       max-height: 91%;
       top: 5%;
@@ -123,6 +123,7 @@
       z-index: 3;
       user-select: none;
       overflow: hidden;
+      display: none;
     }
 
     .alert_container {
@@ -136,7 +137,7 @@
     .loading {
       display: none;
       position: absolute;
-      top: 48%;
+      top: 45%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 99;
@@ -146,7 +147,7 @@
       font-family: Lato, sans-serif;
       letter-spacing: 10px;
       text-transform: uppercase;
-      cursor: wait;
+      cursor: auto;
     }
     .loading span {
       animation: shrink 2s infinite;
@@ -161,7 +162,7 @@
     .processing {
       display: none;
       position: absolute;
-      top: 48%;
+      top: 45%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 99;
@@ -185,7 +186,7 @@
         transform: rotate(15deg);
       }
       10% {
-        transform: rotate(0deg)
+        transform: rotate(0deg);
       }
     }
 
@@ -196,13 +197,13 @@
       color: rgb(228, 228, 228);
     }
 
-    #small_info{
+    #small_info {
       position: absolute;
       font-family: Lato, sans-serif;
       width: 100%;
       font-size: 1px;
       text-align: center;
-      top: calc(48% + 40px);
+      top: calc(45% + 40px);
       color: rgba(255, 255, 255, 0.5);
     }
 
@@ -237,13 +238,74 @@
       z-index: 98;
       height: 100%;
       width: 100%;
-      cursor: wait;
+      cursor: auto;
+    }
+
+    .dragObj {
+      z-index: 101;
+      height: 120px;
+      width: 400px;
+      position: absolute;
+      border-radius: 5px;
+      top: calc(45% - 60px);
+      left: calc(50% - 200px);
+      text-align: center;
+      font-family: sans-serif;
+      font-weight: bold;
+      color: #0c0c0c;
+      background-color: rgb(255, 255, 255);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.79);
+      transition: transform 0.3s, box-shadow 0.5s;
+    }
+    .dragObj:hover {
+      box-shadow: 0 0 20px rgb(255, 255, 255);
+      transform: scale(1.05, 1.05);
+    }
+    .startbtn {
+      z-index: 101;
+      height: 25px;
+      width: 340px;
+      font-size: 18px;
+      border-radius: 5px;
+      position: absolute;
+      color: #ffffffdd;
+      position: absolute;
+      user-select: none;
+      text-align: center;
+      top: calc(45% + 80px);
+      left: calc(50% - 170px);
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.79);
+      transition: font-size 0.2s, color 0.3s, transform 0.3s;
+      -webkit-transition: font-size 0.2s, color 0.3s, -webkit-transform 0.3s;
+    }
+    .startbtn:hover {
+      transform: scale(1.025, 1.025);
+      box-shadow: 0 0 6px rgb(255, 255, 255);
+      color: #aaaaaa;
     }
   </style>
 
   <body>
+    <div class="dragObj">
+      <img
+        src="./upload.png"
+        alt="/"
+        style="background-color: rgba(255, 255, 255, 0); margin: auto"
+        height="100%"
+      />
+      <input
+        type="file"
+        style="display: none"
+        id="objDrag"
+        name="objDragselect"
+      />
+    </div>
+    <div class="startbtn">OPEN WITH DEFAULT OBJECT</div>
     <div id="loading_background">
-      <div id="small_info">This may take around 2-5 minutes to process the model </div></div>
+      <div id="small_info">
+        This may take around 2-5 minutes to process the model
+      </div>
+    </div>
     <div id="loading" class="loading">
       <span style="animation-delay: 0s">L</span
       ><span style="animation-delay: 0.1s">o</span
@@ -376,31 +438,40 @@
     <div id="transform"></div>
     <div id="vertice_num"></div>
     <script>
+      var render_patch_flag = true;
+      var patch_scaled = false;
+      var resize_patch = false;
       show_loading();
-
       function show_loading() {
+        render_patch_flag = false;
         $("#loading").show();
         $("#processing").hide();
         $("#loading").css({ display: "flex", opacity: 0 });
         $("#loading").animate({ opacity: 1 }, 500);
         $("#loading_background").show();
+        $(".panel_box").fadeOut();
+        $("#gui_container").fadeOut();
       }
       function show_processing() {
+        render_patch_flag = false;
         $("#loading").hide();
         $("#processing").show();
         $("#processing").css({ display: "flex", opacity: 0 });
         $("#processing").animate({ opacity: 1 }, 500);
         $("#loading_background").show();
+        $(".panel_box").fadeOut();
+        $("#gui_container").fadeOut();
       }
       function hide_loading() {
+        if ($("#hide-patches").text() != "Show Patches") {
+          render_patch_flag = true;
+        }
         $("#loading").fadeOut(800);
         $("#processing").fadeOut(800);
         $("#loading_background").fadeOut(800);
+        $(".panel_box").fadeIn();
+        $("#gui_container").fadeIn();
       }
-
-      var render_patch_flag = true;
-      var patch_scaled = false;
-      var resize_patch = false;
       function hidePatches() {
         if (resize_patch) return;
         resize_patch = true;
@@ -439,11 +510,11 @@
         }
       }
       function scalePatches() {
-        resize_patch = true;
         if (
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() != "<"
         ) {
+          resize_patch = true;
           $(".panel_box").animate(
             {
               width: Math.max(
@@ -464,6 +535,7 @@
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() == "<"
         ) {
+          resize_patch = true;
           $(".panel_box").animate({ width: "22%" }, 350, function () {
             setTimeout(function () {
               resize_patch = false;
