@@ -196,6 +196,16 @@
       color: rgb(228, 228, 228);
     }
 
+    #small_info{
+      position: absolute;
+      font-family: Lato, sans-serif;
+      width: 100%;
+      font-size: 1px;
+      text-align: center;
+      top: calc(48% + 40px);
+      color: rgba(255, 255, 255, 0.5);
+    }
+
     .up-area {
       border: 1px dashed rgb(150, 150, 150);
       width: 300px;
@@ -232,7 +242,8 @@
   </style>
 
   <body>
-    <div id="loading_background"></div>
+    <div id="loading_background">
+      <div id="small_info">This may take around 2 minutes to process the model</div></div>
     <div id="loading" class="loading">
       <span style="animation-delay: 0s">L</span
       ><span style="animation-delay: 0.1s">o</span

@@ -2563,7 +2563,7 @@ function produce_geo1(position, line = false) {
         material.push(default_m);
     }
     geo=smoothNormals(geo)
-
+    gui_options.clear()
     return [geo, material];
 }
 
