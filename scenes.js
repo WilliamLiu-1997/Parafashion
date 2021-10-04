@@ -422,12 +422,19 @@ var TextureParams = {
             selected_patch[0].material = selected_patch[0].material.clone()
             selected[0].material[selected[1]][TextureParams.current] = null;
             selected_patch[0].material[TextureParams.current] = null;
+            let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
+            selected[0].material[sym] = selected[0].material[sym].clone()
+            selected[0].material[sym][TextureParams.current] = null;
+            selected_patch[0].parent.children[sym].material = selected_patch[0].parent.children[sym].material.clone()
+            selected_patch[0].parent.children[sym].material[TextureParams.current] = null;
+            load_material();
         }
         else if (selected.length == 1) {
             selected[0].material = selected[0].material.clone()
             selected_patch[0].material = selected_patch[0].material.clone()
             selected[0].material[TextureParams.current] = null;
             selected_patch[0].material[TextureParams.current] = null;
+            load_material();
         }
 
         Texture_to_GUI()
