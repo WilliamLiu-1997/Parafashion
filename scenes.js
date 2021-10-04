@@ -2863,7 +2863,7 @@ function obj_loader(url_obj, scale) {
             obj_size = 1
             let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
             let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
-            $("#small_info").text("This may take around " + Math.max(1, Math.floor(obj_vertices_count / 10000)) + " minutes to process the model")
+            $("#small_info").text("This may take around " + Math.max(1, Math.floor(obj_vertices_count / 10000)) + " minutes to process the model ")
             root.traverse(function (child) {
                 if (child.type === 'Mesh') {
                     rearrange_geo(child.geometry, geo_position, geo_scale)
