@@ -26,6 +26,7 @@ let pointer_patch = new THREE.Vector2();
 let original = [];
 let cut_obj = [];
 let mouse_down = false;
+let begin = true;
 
 let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
@@ -435,7 +436,6 @@ var TextureParams = {
 };
 
 function start() {
-    try{
     let inte = setInterval(() => {
         if (Module.DerivePatchLayout) {
             clearInterval(inte);
@@ -446,13 +446,7 @@ function start() {
             animate();
         }
     }, 500)
-    }
-    catch (e) {
-        $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, please upload a new OBJ!&nbsp;&nbsp;</div>');
-        $(".dragObj").show();
-        $(".startbtn").show();
-        show_loading();
-    }
+
 }
 
 
@@ -554,7 +548,6 @@ function init() {
     window.addEventListener("keyup", onKeyUp, false);
     document.getElementById("container").addEventListener("wheel", onMouseWheel, false);
     document.getElementById("container_patch").addEventListener("wheel", onMouseWheel_patch, false);
-
 
 }
 
@@ -736,7 +729,7 @@ function animate() {
 
         }
         else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
-
+            begin = false;
             gui.updateDisplay();
             directional_light.position.copy(new THREE.Vector3(0, 3, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
@@ -2443,9 +2436,15 @@ function produce_geo1(position, line = false) {
 
     try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV) }
     catch (error) {
-        $("#small_info").html("Failed processing the model, trying to recover the it...")
-        Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV)
-        $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
+        if (begin) {
+            alert("Failed processing the model, please upload a new OBJ!")
+            window.location.reload();
+            return
+        } else {
+            $("#small_info").html("Failed processing the model, trying to recover the it...")
+            Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV)
+            $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
+        }
     }
 
 

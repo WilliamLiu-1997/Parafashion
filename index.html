@@ -92,7 +92,7 @@
       z-index: 10;
       text-align: center;
       cursor: auto;
-      display:none;
+      display: none;
     }
 
     .btn:active.focus,
@@ -123,7 +123,7 @@
       z-index: 3;
       user-select: none;
       overflow: hidden;
-      display:none;
+      display: none;
     }
 
     .alert_container {
@@ -251,7 +251,6 @@
       left: calc(50% - 200px);
       text-align: center;
       font-family: sans-serif;
-      font-size: 5vh;
       font-weight: bold;
       color: #0c0c0c;
       background-color: rgb(255, 255, 255);
@@ -267,6 +266,7 @@
       height: 25px;
       width: 340px;
       font-size: 18px;
+      border-radius: 5px;
       position: absolute;
       color: #ffffffdd;
       position: absolute;
@@ -438,9 +438,12 @@
     <div id="transform"></div>
     <div id="vertice_num"></div>
     <script>
+      var render_patch_flag = true;
+      var patch_scaled = false;
+      var resize_patch = false;
       show_loading();
-
       function show_loading() {
+        render_patch_flag = false;
         $("#loading").show();
         $("#processing").hide();
         $("#loading").css({ display: "flex", opacity: 0 });
@@ -450,6 +453,7 @@
         $("#gui_container").fadeOut();
       }
       function show_processing() {
+        render_patch_flag = false;
         $("#loading").hide();
         $("#processing").show();
         $("#processing").css({ display: "flex", opacity: 0 });
@@ -459,16 +463,15 @@
         $("#gui_container").fadeOut();
       }
       function hide_loading() {
+        if ($("#hide-patches").text() != "Show Patches") {
+          render_patch_flag = true;
+        }
         $("#loading").fadeOut(800);
         $("#processing").fadeOut(800);
         $("#loading_background").fadeOut(800);
         $(".panel_box").fadeIn();
         $("#gui_container").fadeIn();
       }
-
-      var render_patch_flag = true;
-      var patch_scaled = false;
-      var resize_patch = false;
       function hidePatches() {
         if (resize_patch) return;
         resize_patch = true;
@@ -507,11 +510,11 @@
         }
       }
       function scalePatches() {
-        resize_patch = true;
         if (
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() != "<"
         ) {
+          resize_patch = true;
           $(".panel_box").animate(
             {
               width: Math.max(
@@ -532,6 +535,7 @@
           $("#hide-patches").text() != "Show Patches" &&
           $("#scale-patches").text() == "<"
         ) {
+          resize_patch = true;
           $(".panel_box").animate({ width: "22%" }, 350, function () {
             setTimeout(function () {
               resize_patch = false;
