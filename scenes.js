@@ -2487,7 +2487,13 @@ function produce_geo1(position, line = false) {
         }
     }
 
-    Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV)
+    try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV) }
+    catch (error) {
+        $("#small_info").html("Failed processing the model, trying to recover the it...")
+        Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV)
+        $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
+    }
+
 
 
     let partitions = []
@@ -2863,7 +2869,6 @@ function obj_loader(url_obj, scale) {
             obj_size = 1
             let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
             let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
-            $("#small_info").text("This may take around " + Math.max(1, Math.floor(obj_vertices_count / 10000)) + " minutes to process the model ")
             root.traverse(function (child) {
                 if (child.type === 'Mesh') {
                     rearrange_geo(child.geometry, geo_position, geo_scale)
