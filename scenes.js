@@ -2437,12 +2437,17 @@ function produce_geo1(position, line = false) {
     try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV) }
     catch (error) {
         if (begin) {
-            alert("Failed processing the model, please upload a new OBJ!")
+            alert("Failed processing the model. Please upload a new OBJ!")
             window.location.reload();
             return
         } else {
             $("#small_info").html("Failed processing the model, trying to recover the it...")
-            Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV)
+            try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV) }
+            catch (error) {
+                alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
+                window.location.reload();
+                return
+            }
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
         }
     }
