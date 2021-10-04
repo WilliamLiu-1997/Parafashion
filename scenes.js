@@ -2421,20 +2421,14 @@ function seperateGroups_garmentToPatch(bufGeom) {
 
 
 function smoothNormals(geo) {
-    let tempGeo = mergeVertices(geo,0);
+    let tempGeo = mergeVertices(geo, 0);
     tempGeo.computeVertexNormals();
     geo.computeVertexNormals();
     for (let i = 0; i < geo.getAttribute('position').count; i++) {
         for (let j = 0; j < tempGeo.getAttribute('position').count; j++) {
-            let position = new THREE.Vector3(geo.getAttribute('position').getX(i), geo.getAttribute('position').getY(i), geo.getAttribute('position').getZ(i))
-            let comparePosition = new THREE.Vector3(tempGeo.getAttribute('position').getX(j), tempGeo.getAttribute('position').getY(j), tempGeo.getAttribute('position').getZ(j))
-            if (position.distanceToSquared(comparePosition) == 0) {
-                let normal1 = new THREE.Vector3(geo.getAttribute('normal').getX(i), geo.getAttribute('normal').getY(i), geo.getAttribute('normal').getZ(i))
-                let normal2 = new THREE.Vector3(tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j))
-                if (normal1.angleTo(normal2)<1.5){
-                    geo.getAttribute('normal').setXYZ(i, tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j));
-                    break;
-                }
+            if (geo.getAttribute('position').getX(i) == tempGeo.getAttribute('position').getX(j) && geo.getAttribute('position').getY(i) == tempGeo.getAttribute('position').getY(j) && geo.getAttribute('position').getZ(i) == tempGeo.getAttribute('position').getZ(j)) {
+                geo.getAttribute('normal').setXYZ(i, tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j));
+                break;
             }
         }
     }
@@ -2562,7 +2556,7 @@ function produce_geo1(position, line = false) {
         material.push(default_m);
         material.push(default_m);
     }
-    geo=smoothNormals(geo)
+    geo = smoothNormals(geo)
     gui_options.clear()
     return [geo, material];
 }
