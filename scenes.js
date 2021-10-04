@@ -292,7 +292,6 @@ var gui_options = {
                 let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array, draw_line)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
-
                 reload_patch(garment, 1);
                 hide_loading()
             }, 500);
@@ -303,7 +302,6 @@ var gui_options = {
                 let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
-
                 reload_patch(garment, 1);
                 hide_loading()
             }, 500);
@@ -2845,7 +2843,7 @@ function obj_loader(url_obj, scale) {
                     child.name = randomString();
 
                     //***************************************************************]
-
+                    // child.geometry = new THREE.DodecahedronGeometry(2, 3)
                     //***************************************************************
 
                     child.castShadow = true;
@@ -2865,7 +2863,7 @@ function obj_loader(url_obj, scale) {
             obj_size = 1
             let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
             let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
-            $("#small_info").text("This may take around " + Math.floor(obj_vertices_count/10000) +" minutes to process the model")
+            $("#small_info").text("This may take around " + Math.max(1, Math.floor(obj_vertices_count / 10000)) + " minutes to process the model")
             root.traverse(function (child) {
                 if (child.type === 'Mesh') {
                     rearrange_geo(child.geometry, geo_position, geo_scale)
@@ -2875,9 +2873,9 @@ function obj_loader(url_obj, scale) {
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
                     original.push(child.clone())
+                    child.geometry.computeBoundingBox();
                     //***************************************************************
 
-                    child.geometry.computeBoundingBox();
                 }
             })
             newobj.add(root);
@@ -3033,7 +3031,7 @@ function patch_loader(garment, scale) {
         if (patch_geo.groups && patch_geo.groups.length > 0) {
             let group_3d = new THREE.Group();
             for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
-                if (last_x > scale * 5) {
+                if (last_x > scale * 5 && individual_i % 2 == 0) {
                     last_x = -Infinity;
                     last_y -= max_height * 1.5;
                     max_height = 0
