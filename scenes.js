@@ -2855,12 +2855,7 @@ function obj_loader(url_obj, scale) {
                     child.name = randomString();
 
                     //***************************************************************]
-                    child.geometry = new THREE.DodecahedronGeometry(2, 5)
-                    let geo_mat = produce_geo1(child.geometry.attributes.position.array)
-                    child.geometry = geo_mat[0]
-                    child.material = geo_mat[1]
-                    original.push(child.clone())
-                    obj_vertices_count += child.geometry.attributes.position.count;
+
                     //***************************************************************
 
                     child.castShadow = true;
@@ -2884,7 +2879,11 @@ function obj_loader(url_obj, scale) {
                     rearrange_geo(child.geometry, geo_position, geo_scale)
 
                     //***************************************************************
-
+                    let geo_mat = produce_geo1(child.geometry.attributes.position.array)
+                    child.geometry = geo_mat[0]
+                    child.material = geo_mat[1]
+                    original.push(child.clone())
+                    obj_vertices_count += child.geometry.attributes.position.count;
                     //***************************************************************
 
                     child.geometry.computeBoundingBox();
