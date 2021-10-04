@@ -3132,7 +3132,7 @@ function GUI_init() {
     document.getElementById('gui_container_gui').appendChild(gui.domElement);
 
     folder_basic = gui.addFolder("Basic")
-    folder_basic.add(gui_options, 'Mode', ["Customizing Material", "Cutting Model"]).name("Mode").onChange(() => Change_Mode());
+    folder_basic.add(gui_options, 'Mode', ["Cutting Model", "Customizing Material"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(gui_options.light));
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     cut_component = folder_basic.addFolder("Cutting Control");
