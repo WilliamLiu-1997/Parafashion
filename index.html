@@ -146,7 +146,7 @@
       font-family: Lato, sans-serif;
       letter-spacing: 10px;
       text-transform: uppercase;
-      cursor: wait;
+      cursor: auto;
     }
     .loading span {
       animation: shrink 2s infinite;
@@ -185,7 +185,7 @@
         transform: rotate(15deg);
       }
       10% {
-        transform: rotate(0deg)
+        transform: rotate(0deg);
       }
     }
 
@@ -196,7 +196,7 @@
       color: rgb(228, 228, 228);
     }
 
-    #small_info{
+    #small_info {
       position: absolute;
       font-family: Lato, sans-serif;
       width: 100%;
@@ -237,13 +237,73 @@
       z-index: 98;
       height: 100%;
       width: 100%;
-      cursor: wait;
+      cursor: auto;
+    }
+
+    .dragObj {
+      z-index: 101;
+      height: 120px;
+      width: 400px;
+      position: absolute;
+      border-radius: 5px;
+      top: calc(48% - 60px);
+      left: calc(50% - 200px);
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 5vh;
+      font-weight: bold;
+      color: #0c0c0c;
+      background-color: rgb(255, 255, 255);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.79);
+      transition: transform 0.3s, box-shadow 0.5s;
+    }
+    .dragObj:hover {
+      box-shadow: 0 0 20px rgb(255, 255, 255);
+      transform: scale(1.05, 1.05);
+    }
+    .startbtn {
+      z-index: 101;
+      height: 25px;
+      width: 340px;
+      font-size: 18px;
+      position: absolute;
+      color: #ffffffdd;
+      position: absolute;
+      user-select: none;
+      text-align: center;
+      top: calc(48% + 80px);
+      left: calc(50% - 170px);
+      box-shadow: 0 0 5px rgba(255, 255, 255, 0.79);
+      transition: font-size 0.2s, color 0.3s, transform 0.3s;
+      -webkit-transition: font-size 0.2s, color 0.3s, -webkit-transform 0.3s;
+    }
+    .startbtn:hover {
+      transform: scale(1.02, 1.03);
+      color: #aaaaaa;
     }
   </style>
 
   <body>
+    <div class="dragObj">
+      <img
+        src="./upload.png"
+        alt="/"
+        style="background-color: rgba(255, 255, 255, 0); margin: auto"
+        height="100%"
+      />
+      <input
+        type="file"
+        style="display: none"
+        id="objDrag"
+        name="objDragselect"
+      />
+    </div>
+    <div class="startbtn">OPEN WITH DEFAULT OBJECT</div>
     <div id="loading_background">
-      <div id="small_info">This may take around 2-5 minutes to process the model </div></div>
+      <div id="small_info">
+        This may take around 2-5 minutes to process the model
+      </div>
+    </div>
     <div id="loading" class="loading">
       <span style="animation-delay: 0s">L</span
       ><span style="animation-delay: 0.1s">o</span

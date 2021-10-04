@@ -435,17 +435,19 @@ var TextureParams = {
     },
 };
 
+function start() {
+    let inte = setInterval(() => {
+        if (Module.DerivePatchLayout) {
+            clearInterval(inte);
+            init();
+            init_patch();
+            init_transform();
+            onWindowResize();
+            animate();
+        }
+    }, 500)
+}
 
-const inte = setInterval(() => {
-    if (Module.DerivePatchLayout) {
-        clearInterval(inte);
-        init();
-        init_patch();
-        init_transform();
-        onWindowResize();
-        animate();
-    }
-}, 500)
 
 function init() {
 
@@ -670,7 +672,6 @@ function animate() {
             onWindowResize()
         }
         if (progress_obj + progress_mtl == 200 && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
-            old_garment = garment.clone()
             camera.position.set(0, obj_size / 2, obj_size * 2);
             controls.saveState();
             var lack = false;
@@ -3763,9 +3764,11 @@ $('#fileDrag').change((event) => {
 
 var dragbox = document.querySelector('.dragFile');
 dragbox.addEventListener('dragover', function (e) {
+    e.stopPropagation()
     e.preventDefault();
 }, false);
 dragbox.addEventListener('drop', function (e) {
+    e.stopPropagation()
     e.preventDefault();
     var files = e.dataTransfer.files;
     appendFile(files)
@@ -3786,5 +3789,47 @@ function appendFile(files) {
         $(".tip").hide();
         GUI_to_Texture()
         document.getElementById("fileDrag").value = "";
+    }
+}
+
+document.querySelector('.startbtn').addEventListener('click', () => {
+    start();
+    $(".dragObj").fadeOut();
+    $(".startbtn").fadeOut();
+})
+
+var dragboxObj = document.querySelector('.dragObj');
+dragboxObj.addEventListener('click', () => { $('#objDrag').click(); })
+$('#objDrag').change((event) => {
+    var files = event.target.files;
+    appendObj(files);
+})
+dragboxObj.addEventListener('dragover', function (e) {
+    e.stopPropagation()
+    e.preventDefault();
+    var files = e.dataTransfer.files;
+    appendObj(files)
+}, false);
+dragboxObj.addEventListener('drop', function (e) {
+    e.stopPropagation()
+    e.preventDefault();
+    var files = e.dataTransfer.files;
+    appendObj(files)
+}, false);
+
+function appendObj(files) {
+    for (var file of files) {
+        var fileType = file.name.substr(file.name.lastIndexOf(".")).toUpperCase();
+        if (fileType != ".OBJ") {
+            $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>OBJ</b> files are acceptable!&nbsp;&nbsp;</div>');
+            setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
+            setTimeout(function () { $("#alert_img").html("") }, 3500)
+            return
+        }
+        garments_obj = window.URL.createObjectURL(file);
+        document.getElementById("objDrag").value = "";
+        $(".dragObj").fadeOut();
+        $(".startbtn").fadeOut();
+        start();
     }
 }
