@@ -115,14 +115,14 @@ var env1 = new THREE.CubeTextureLoader().load(urls1);
 var env1_refre = new THREE.CubeTextureLoader().load(urls1);
 env1_refre.mapping = THREE.CubeRefractionMapping;
 
-var env2 = textureloader.load('./texture/11.jpg');
+var env2 = textureloader.load('./images/11.jpg');
 env2.mapping = THREE.EquirectangularReflectionMapping;
-var env2_refre = textureloader.load('./texture/11.jpg');
+var env2_refre = textureloader.load('./images/11.jpg');
 env2_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env3 = textureloader.load('./texture/7.jpg');
+var env3 = textureloader.load('./images/7.jpg');
 env3.mapping = THREE.EquirectangularReflectionMapping;
-var env3_refre = textureloader.load('./texture/7.jpg');
+var env3_refre = textureloader.load('./images/7.jpg');
 env3_refre.mapping = THREE.EquirectangularRefractionMapping;
 
 var path4 = "./three.js/examples/textures/cube/skyboxsun25deg/";
@@ -145,14 +145,14 @@ var env5 = new THREE.CubeTextureLoader().load(urls5);
 var env5_refre = new THREE.CubeTextureLoader().load(urls5);
 env5_refre.mapping = THREE.CubeRefractionMapping;
 
-var env6 = textureloader.load('./texture/5.jpg');
+var env6 = textureloader.load('./images/5.jpg');
 env6.mapping = THREE.EquirectangularReflectionMapping;
-var env6_refre = textureloader.load('./texture/5.jpg');
+var env6_refre = textureloader.load('./images/5.jpg');
 env6_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env7 = textureloader.load('./texture/9.jpg');
+var env7 = textureloader.load('./images/9.jpg');
 env7.mapping = THREE.EquirectangularReflectionMapping;
-var env7_refre = textureloader.load('./texture/9.jpg');
+var env7_refre = textureloader.load('./images/9.jpg');
 env7_refre.mapping = THREE.EquirectangularRefractionMapping;
 
 var path8 = "./three.js/examples/textures/cube/Park3Med/";
@@ -165,39 +165,39 @@ var env8 = new THREE.CubeTextureLoader().load(urls8);
 var env8_refre = new THREE.CubeTextureLoader().load(urls8);
 env8_refre.mapping = THREE.CubeRefractionMapping;
 
-var env9 = textureloader.load('./texture/4.jpg');
+var env9 = textureloader.load('./images/4.jpg');
 env9.mapping = THREE.EquirectangularReflectionMapping;
-var env9_refre = textureloader.load('./texture/4.jpg');
+var env9_refre = textureloader.load('./images/4.jpg');
 env9_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env10 = textureloader.load('./texture/1.jpg');
+var env10 = textureloader.load('./images/1.jpg');
 env10.mapping = THREE.EquirectangularReflectionMapping;
-var env10_refre = textureloader.load('./texture/1.jpg');
+var env10_refre = textureloader.load('./images/1.jpg');
 env10_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env11 = textureloader.load('./texture/2.jpg');
+var env11 = textureloader.load('./images/2.jpg');
 env11.mapping = THREE.EquirectangularReflectionMapping;
-var env11_refre = textureloader.load('./texture/2.jpg');
+var env11_refre = textureloader.load('./images/2.jpg');
 env11_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env12 = textureloader.load('./texture/3.jpg');
+var env12 = textureloader.load('./images/3.jpg');
 env12.mapping = THREE.EquirectangularReflectionMapping;
-var env12_refre = textureloader.load('./texture/3.jpg');
+var env12_refre = textureloader.load('./images/3.jpg');
 env12_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env13 = textureloader.load('./texture/10.jpg');
+var env13 = textureloader.load('./images/10.jpg');
 env13.mapping = THREE.EquirectangularReflectionMapping;
-var env13_refre = textureloader.load('./texture/10.jpg');
+var env13_refre = textureloader.load('./images/10.jpg');
 env13_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env14 = textureloader.load('./texture/6.jpg');
+var env14 = textureloader.load('./images/6.jpg');
 env14.mapping = THREE.EquirectangularReflectionMapping;
-var env14_refre = textureloader.load('./texture/6.jpg');
+var env14_refre = textureloader.load('./images/6.jpg');
 env14_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var env15 = textureloader.load('./texture/8.jpg');
+var env15 = textureloader.load('./images/8.jpg');
 env15.mapping = THREE.EquirectangularReflectionMapping;
-var env15_refre = textureloader.load('./texture/8.jpg');
+var env15_refre = textureloader.load('./images/8.jpg');
 env15_refre.mapping = THREE.EquirectangularRefractionMapping;
 
 
