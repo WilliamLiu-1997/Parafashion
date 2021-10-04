@@ -416,7 +416,6 @@ var TextureParams = {
         set_cursor(4);
     },
     remove: function () {
-
         if (selected.length == 2) {
             selected[0].material[selected[1]] = selected[0].material[selected[1]].clone()
             selected_patch[0].material = selected_patch[0].material.clone()
@@ -436,9 +435,6 @@ var TextureParams = {
             selected_patch[0].material[TextureParams.current] = null;
             load_material();
         }
-
-        Texture_to_GUI()
-
     },
 };
 
