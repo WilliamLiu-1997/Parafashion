@@ -311,7 +311,7 @@ var gui_options = {
     env: "None",
     Enable_Patch_Background: false,
     cut: false,
-    Mode: "Customizing Material",
+    Mode: "Cutting Model",
     focus: false,
     Straight: false,
     light: "Camera Light",
