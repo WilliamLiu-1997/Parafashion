@@ -18,7 +18,6 @@ let cut_component;
 let obj_vertices_count = 0;
 let drawing = false, cover = true;
 let draw_line = [];
-let old_garment;
 let obj3D = new THREE.Object3D();
 let progress_obj = 0, progress_mtl = 0;
 let patch_panel_width = $("#container_patch").css("width");
@@ -74,25 +73,12 @@ let texture_state = 0;
 
 var url = ""
 
-let composer, outlinePass, outlinePass_select, effectFXAA, composer_patch, outlinePass_patch, outlinePass_patch_select, effectFXAA_patch;
-var folder_basic, folder_env, folder_material_global, material_folder, basic_texture, lambert_texture, phong_texture, toon_texture, standard_texture, physical_texture;
+let composer, outlinePass, outlinePass_select, composer_patch, outlinePass_patch, outlinePass_patch_select;
+var folder_basic, folder_env, material_folder, basic_texture, lambert_texture, phong_texture, toon_texture, standard_texture, physical_texture;
 
 
-var garments_obj = "./leggins/leggins_patch.obj";
+
 var garments_obj = "./leggins/leggins.obj"
-var garments_obj = "./leggins/leggins.obj"
-var garments_obj1 = "./leggins/leggins.ply"
-// var garments_mtl = "./obj/village1/village_final.mtl"
-// var garments_obj = "./obj/village1/village_final.obj"
-// var garments_mtl = "./obj/city2/city2.mtl"
-// var garments_obj = "./obj/city2/city2.obj"
-// var garments_mtl = "./obj/tower/tower3.mtl"
-// var garments_obj = "./obj/tower/tower3.obj"
-// var garments_mtl = "./obj/S/S.mtl"
-// var garments_obj = "./obj/S/S.obj"
-// var garments_mtl = "./obj/house/house.mtl"
-// var garments_obj = "./obj/house/house.obj"
-// garments_mtl = false
 
 
 let outlinePass_params_cover = {
