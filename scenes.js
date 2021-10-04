@@ -232,48 +232,6 @@ var gui_options = {
         select_recovery();
         cover_recovery();
     },
-    reset: function () {
-        select_recovery()
-        garment.traverse(function (child) {
-            if (child.type === "Mesh") {
-                let o;
-                for (let original_obj of original) { if (original_obj.name == child.name) { o = original_obj.clone(); break; } }
-                if (Array.isArray(child.material)) {
-                    for (let m = 0; m < child.material.length; m++) {
-                        child.material[m] = o.material[m]
-                    }
-                }
-                else {
-                    child.material = o.material
-                }
-            }
-        })
-        reload_patch(garment, 1);
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
-        gui_options.Overall_Reflectivity = NaN
-    },
-    set_default: function () {
-        select_recovery()
-        garment.traverse(function (child) {
-            if (child.type === "Mesh") {
-                if (Array.isArray(child.material)) {
-                    for (let m = 0; m < child.material.length; m++) {
-                        let default_set = default_material.clone()
-                        default_set.color.set(randomColor())
-                        child.material[m] = default_set
-                    }
-                }
-                else {
-                    let default_set = default_material.clone()
-                    default_set.color.set(randomColor())
-                    child.material = default_set
-                }
-            }
-        })
-        reload_patch(garment, 1);
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
-        gui_options.Overall_Reflectivity = NaN
-    },
     clear: function () {
         line.clear();
         line_back.clear();
@@ -286,7 +244,7 @@ var gui_options = {
         draw_line_show_back_left = [];
     },
     process_geo: function () {
-        if (draw_line.length > 0 && cut_obj.length > 0) {
+        if (cut_obj.length > 0) {
             show_processing()
             setTimeout(() => {
                 let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array, draw_line)
@@ -294,16 +252,17 @@ var gui_options = {
                 cut_obj[0].material = geo_mat[1]
                 reload_patch(garment, 1);
                 hide_loading()
-            }, 500);
-        }
-        else if (cut_obj.length > 0) {
-            show_processing()
-            setTimeout(() => {
-                let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array)
-                cut_obj[0].geometry = geo_mat[0]
-                cut_obj[0].material = geo_mat[1]
-                reload_patch(garment, 1);
-                hide_loading()
+                original = []
+                garment.traverse(function (child) {
+                    if (child.type === 'Mesh') {
+                        original.push(child.clone())
+                    }
+                })
+                for (var i = 0; i < original.length; i++) {
+                    if (original[i].geometry.groups.length > 0) {
+                        original[i].material = original[i].material.slice(0)
+                    }
+                }
             }, 500);
         }
     },
@@ -404,8 +363,10 @@ var Material = {
                 if (n.name == name) {
                     selected[0].material[selected[1]] = n.material[selected[1]].clone()
                     selected_patch[0].material = n.material[selected[1]].clone()
+                    let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
+                    selected[0].material[sym] = n.material[sym].clone()
+                    selected_patch[0].parent.children[sym].material = n.material[sym].clone()
                     load_material()
-
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
@@ -418,7 +379,6 @@ var Material = {
                     selected[0].material = n.material.clone()
                     selected_patch[0].material = n.material.clone()
                     load_material()
-
                     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
@@ -426,28 +386,31 @@ var Material = {
         }
         else { return }
     },
-    set_default: function () {
+    save: function () {
         gui_options.Overall_Reflectivity = NaN
         if (selected.length == 2) {
-            let default_set = default_material.clone()
-            default_set.color.set(randomColor())
-            selected[0].material[selected[1]] = default_set
-            selected_patch[0].material = selected[0].material[selected[1]].clone()
-            load_material()
-
-            Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
-            return;
-
+            let name = selected[0].name
+            for (var n of original) {
+                if (n.name == name) {
+                    n.material[selected[1]] = selected[0].material[selected[1]].clone()
+                    let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
+                    n.material[sym] = selected[0].material[sym].clone()
+                    load_material()
+                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+                    return;
+                }
+            }
         }
         else if (selected.length == 1) {
-            let default_set = default_material.clone()
-            default_set.color.set(randomColor())
-            selected[0].material = default_set
-            selected_patch[0].material = selected[0].material.clone()
-            load_material()
-
-            Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
-            return;
+            let name = selected[0].name
+            for (var n of original) {
+                if (n.name == name) {
+                    n.material = selected[0].material.clone()
+                    load_material()
+                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+                    return;
+                }
+            }
         }
         else { return }
     },
@@ -2164,6 +2127,7 @@ function rearrange_geo(geo, position, scale) {
 }
 
 
+
 function individual(bufGeom, ig) {
     try {
         var groups = bufGeom.groups;
@@ -3128,9 +3092,6 @@ function reload_patch(garment, scale) {
 }
 
 
-
-
-
 function GUI_init() {
     gui = new GUI({ width: 300, autoPlace: false, scrollable: true })
 
@@ -3156,16 +3117,11 @@ function GUI_init() {
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe());
     // other options: "BathRoom", 'Church', "Gallery", "Square"
-
-    // folder_material_global = gui.addFolder("Material Global Settings")
-    // folder_material_global.add(gui_options, "reset").name('Materials Recovery')
-    // folder_material_global.add(gui_options, "set_default").name('Random Materials')
-    // folder_material_global.open()
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
-    material_folder.add(Material, "reset").name('Materials Recovery')
-    material_folder.add(Material, "set_default").name('Random Material')
+    material_folder.add(Material, "reset").name('Material Recovery')
+    material_folder.add(Material, "save").name('Save Material')
     material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
     //material_folder.add(Material, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
