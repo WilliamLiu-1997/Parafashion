@@ -9,9 +9,8 @@ import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectCom
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
 import { mergeVertices } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
-import Stats from './three.js/examples/jsm/libs/stats.module.js';
 
-let camera, cameralight, controls, scene, renderer, garment, gui, env_light, stats;
+let camera, cameralight, controls, scene, renderer, garment, gui, env_light;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
 let cut_component;
@@ -436,6 +435,7 @@ var TextureParams = {
 };
 
 function start() {
+    try{
     let inte = setInterval(() => {
         if (Module.DerivePatchLayout) {
             clearInterval(inte);
@@ -446,6 +446,13 @@ function start() {
             animate();
         }
     }, 500)
+    }
+    catch (e) {
+        $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, please upload a new OBJ!&nbsp;&nbsp;</div>');
+        $(".dragObj").show();
+        $(".startbtn").show();
+        show_loading();
+    }
 }
 
 
@@ -460,8 +467,6 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById("container").appendChild(renderer.domElement);
-    stats = new Stats();
-    document.getElementById("container").appendChild(stats.dom);
 
     camera = new THREE.PerspectiveCamera(
         45,
@@ -666,7 +671,6 @@ function animate() {
     requestAnimationFrame(animate);
     timeStamp += delta;
     if (timeStamp > singleFrameTime) {
-        stats.begin();
         if (patch_panel_width != $("#container_patch").css("width")) {
             patch_panel_width = $("#container_patch").css("width")
             onWindowResize()
@@ -746,7 +750,6 @@ function animate() {
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
         render();
-        stats.end();
         timeStamp = timeStamp % singleFrameTime;
     }
 }
@@ -3793,9 +3796,9 @@ function appendFile(files) {
 }
 
 document.querySelector('.startbtn').addEventListener('click', () => {
-    start();
     $(".dragObj").fadeOut();
     $(".startbtn").fadeOut();
+    start();
 })
 
 var dragboxObj = document.querySelector('.dragObj');
