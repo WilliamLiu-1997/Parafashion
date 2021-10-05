@@ -243,57 +243,110 @@
 
     .dragObj {
       z-index: 101;
-      height: 120px;
-      width: 400px;
+      height: 240px;
+      width: 800px;
       position: absolute;
       border-radius: 5px;
-      top: calc(45% - 60px);
-      left: calc(50% - 200px);
+      top: calc(45% - 120px);
+      left: calc(50% - 400px);
       text-align: center;
       font-family: sans-serif;
       font-weight: bold;
-      color: #0c0c0c;
+      color: #000000dd;
       background-color: rgb(255, 255, 255);
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.79);
+      box-shadow: 0 0 10px 1px rgba(255, 255, 255, 0.79);
       transition: transform 0.3s, box-shadow 0.5s;
     }
     .dragObj:hover {
-      box-shadow: 0 0 20px rgb(255, 255, 255);
+      box-shadow: 0 0 20px 1px rgb(255, 255, 255);
       transform: scale(1.05, 1.05);
+    }
+    .dragObj:active {
+      box-shadow: 0 0 8px 1.5px rgb(255, 255, 255);
+      transform: scale(0.98, 0.98);
+    }
+    #dragObjInfo {
+      font-size: 32px;
+      user-select: none;
     }
     .startbtn {
       z-index: 101;
-      height: 24px;
-      width: 340px;
-      font-size: 16px;
-      padding-top:1.6px;
+      height: 48px;
+      width: 800px;
+      font-size: 32px;
+      padding-top: 3px;
       border-radius: 5px;
       position: absolute;
       color: #ffffffdd;
       position: absolute;
       user-select: none;
       text-align: center;
-      top: calc(45% + 80px);
-      left: calc(50% - 170px);
-      box-shadow: 0 0 5px rgba(255, 255, 255, 0.79);
-      transition: font-size 0.2s, color 0.3s, transform 0.3s;
-      -webkit-transition: font-size 0.2s, color 0.3s, -webkit-transform 0.3s;
+      top: calc(45% + 200px);
+      left: calc(50% - 400px);
+      box-shadow: 0 0 5px 1.5px rgba(255, 255, 255, 0.79);
+      transition: font-size 0.2s, color 0.3s, transform 0.3s, box-shadow 0.3s;
+      -webkit-transition: font-size 0.2s, color 0.3s, -webkit-transform 0.3s,
+        box-shadow 0.3s;
     }
     .startbtn:hover {
       transform: scale(1.025, 1.025);
-      box-shadow: 0 0 6px rgb(255, 255, 255);
-      color: #aaaaaa;
+      box-shadow: 0 0 7px 1px rgb(255, 255, 255);
+      color: #eeeeeedd;
+    }
+    .startbtn:active {
+      transform: scale(0.985, 0.985);
+      box-shadow: 0 0 3px 1.5px rgb(255, 255, 255);
+      color: #ffffffee;
+    }
+    .homebtn {
+      display:none;
+      z-index: 101;
+      height: 30px;
+      width: 95px;
+      font-size: 18px;
+      padding-top: 3px;
+      border-radius: 5px;
+      position: absolute;
+      color: #ffffffdd;
+      position: absolute;
+      user-select: none;
+      text-align: center;
+      top: 10px;
+      left: 10px;
+      box-shadow: 0 0 5px 1.5px rgba(255, 255, 255, 0.79);
+      transition: font-size 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+      -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
+        box-shadow 0.2s;
+    }
+    .homebtn:hover {
+      transform: scale(1.025, 1.025);
+      box-shadow: 0 0 7px 1px rgb(255, 255, 255);
+      color: #eeeeeedd;
+    }
+    .homebtn:active {
+      transform: scale(0.985, 0.985);
+      box-shadow: 0 0 3px 1.5px rgb(255, 255, 255);
+      color: #ffffffee;
     }
   </style>
 
   <body>
-    <div class="dragObj">
+    <div class="homebtn">HOME</div>
+    <div class="dragObj" ondragstart="return false;">
       <img
+        id="uploadImg"
         src="./images/upload.png"
         alt="/"
-        style="background-color: rgba(255, 255, 255, 0); margin: auto"
-        height="100%"
+        style="
+          background-color: rgba(255, 255, 255, 0);
+          margin: auto;
+          user-select: none;
+        "
+        height="77%"
+        oncontextmenu="return false;"
+        ondragstart="return false;"
       />
+      <div id="dragObjInfo">Drag or click to upload an OBJ</div>
       <input
         type="file"
         style="display: none"
@@ -452,6 +505,7 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
+        $(".homebtn").fadeOut();
       }
       function show_processing() {
         render_patch_flag = false;
@@ -462,6 +516,7 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
+        $(".homebtn").fadeOut();
       }
       function hide_loading() {
         if ($("#hide-patches").text() != "Show Patches") {
@@ -472,6 +527,7 @@
         $("#loading_background").fadeOut(800);
         $(".panel_box").fadeIn();
         $("#gui_container").fadeIn();
+        $(".homebtn").fadeIn();
       }
       function hidePatches() {
         if (resize_patch) return;
