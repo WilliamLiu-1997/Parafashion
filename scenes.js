@@ -2766,7 +2766,7 @@ function patch_loader(garment, scale) {
                 first = (-radius_x / 2) * scale;
             }
             last_x = last_x == -Infinity ? first * scale : last_x;
-            //patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
+            patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
             last_x += radius_x * 1.5 * scale;
             patch_map.scale.set(scale, scale, scale);
             newobj.add(patch_map);
