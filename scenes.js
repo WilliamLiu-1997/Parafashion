@@ -3811,9 +3811,8 @@ document.querySelector('.startbtn').addEventListener('click', () => {
 })
 
 document.querySelector('.homebtn').addEventListener('click', () => {
-    $(".dragObj").fadeOut();
-    $(".startbtn").fadeOut();
-    start();
+    window.location.reload();
+    return
 })
 
 var dragboxObj = document.querySelector('.dragObj');
