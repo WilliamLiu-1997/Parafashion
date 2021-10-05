@@ -233,9 +233,12 @@ var gui_options = {
         if (cut_obj.length > 0) {
             show_processing()
             setTimeout(() => {
+                obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
                 let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array, draw_line)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
+                obj_vertices_count += geo_mat[0].getAttribute("position").count;
+                $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
                 reload_patch(garment, 1);
                 hide_loading()
                 original = []
@@ -2436,7 +2439,6 @@ function produce_geo1(position, line = false) {
             Points.push_back(Points_c)
         }
     }
-
     try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV) }
     catch (error) {
         if (begin) {
@@ -2816,7 +2818,7 @@ function obj_loader(url_obj, scale) {
                     child.castShadow = true;
                     child.receiveShadow = true;
 
-                    obj_vertices_count += child.geometry.attributes.position.count;
+
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
                     y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
@@ -2841,7 +2843,7 @@ function obj_loader(url_obj, scale) {
                     original.push(child.clone())
                     child.geometry.computeBoundingBox();
                     //***************************************************************
-
+                    obj_vertices_count += child.geometry.attributes.position.count;
                 }
             })
             newobj.add(root);
@@ -3803,6 +3805,12 @@ function appendFile(files) {
 }
 
 document.querySelector('.startbtn').addEventListener('click', () => {
+    $(".dragObj").fadeOut();
+    $(".startbtn").fadeOut();
+    start();
+})
+
+document.querySelector('.homebtn').addEventListener('click', () => {
     $(".dragObj").fadeOut();
     $(".startbtn").fadeOut();
     start();
