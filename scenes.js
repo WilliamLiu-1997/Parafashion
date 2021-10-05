@@ -2022,29 +2022,6 @@ function select_cut(cover_pointer, cover_camera, event) {
         var num = patch ? patch.children.length : 0;
 
         if (last_select.length != 1 || last_select[0] != intersects[0].object) {
-            // if (Array.isArray(intersects[0].object.material)) {
-            //     for (let m = 0; m < intersects[0].object.material.length; m++) {
-            //         let default_set = default_material.clone()
-            //         default_set.color.set(randomColor())
-            //         intersects[0].object.material[m] = default_set
-            //     }
-            // }
-            // else {
-            //     let default_set = default_material.clone()
-            //     default_set.color.set(randomColor())
-            //     intersects[0].object.material = default_set
-            // }
-            // for (let o = 0; o < original.length; o++) {
-            //     if (original[o].name === intersects[0].object.name) {
-            //         original[o].geometry.dispose()
-            //         if (Array.isArray(original[o].material)) {
-            //             for (let m = 0; m < original[o].material.length; m++) {
-            //                 original[o].material[m].dispose()
-            //             }
-            //         } else { original[o].material.dispose() }
-            //         original[o] = intersects[0].object.clone()
-            //     }
-            // }
             cut_obj = [intersects[0].object];
             outlinePass_select.selectedObjects = [intersects[0].object];
             last_select = []
