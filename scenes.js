@@ -3,8 +3,6 @@ import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
 import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
-import { PLYLoader } from './three.js/examples/jsm/loaders/PLYLoader.js';
-import { MTLLoader } from "./three.js/examples/jsm/loaders/MTLLoader.js";
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
@@ -218,6 +216,17 @@ var gui_options = {
         select_recovery();
         cover_recovery();
     },
+    back: function () {
+        if (line.children.length > 0) line.remove(line.children[line.children.length - 1]);
+        if (line_back.children.length > 0) line_back.remove(line_back.children[line_back.children.length - 1]);
+        if (line_left.children.length > 0) line_left.remove(line_left.children[line_left.children.length - 1]);
+        if (line_back_left.children.length > 0) line_back_left.remove(line_back_left.children[line_back_left.children.length - 1]);
+        draw_line.pop();
+        draw_line_show.pop();
+        draw_line_show_back.pop();
+        draw_line_show_left.pop();
+        draw_line_show_back_left.pop();
+    },
     clear: function () {
         line.clear();
         line_back.clear();
@@ -234,7 +243,7 @@ var gui_options = {
             show_processing()
             setTimeout(() => {
                 obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
-                let geo_mat = produce_geo1(cut_obj[0].geometry.attributes.position.array, draw_line)
+                let geo_mat = produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
                 cut_obj[0].geometry = geo_mat[0]
                 cut_obj[0].material = geo_mat[1]
                 obj_vertices_count += geo_mat[0].getAttribute("position").count;
@@ -2377,7 +2386,7 @@ function get_face_position(position) {
     return [faces, positions]
 }
 
-function produce_geo1(position, line = false) {
+function produce_geo(position, line = false) {
 
     let [face_js, position_js] = get_face_position(position)
 
@@ -2502,111 +2511,6 @@ function produce_geo1(position, line = false) {
 }
 
 
-function produce_geo(positions, line = false) {
-    let Faces = new Module.vector$vector$size_t$$()
-    let Coords = new Module.vector$vector$double$$()
-    for (let i = 0; i < positions.length; i += 3) {
-        let Coords_Vector = new Module.vector$double$()
-        Coords_Vector.push_back(positions[i])
-        Coords_Vector.push_back(positions[i + 1])
-        Coords_Vector.push_back(positions[i + 2])
-        Coords.push_back(Coords_Vector)
-    }
-    for (let i = 0; i < positions.length / 3; i += 3) {
-        let Faces_Vector = new Module.vector$size_t$()
-        Faces_Vector.push_back(i)
-        Faces_Vector.push_back(i + 1)
-        Faces_Vector.push_back(i + 2)
-        Faces.push_back(Faces_Vector)
-    }
-    let Points = new Module.vector$vector$vector$double$$$()
-    let FacesOut = new Module.vector$vector$size_t$$()
-    let CoordsOut = new Module.vector$vector$double$$()
-    let Partition = new Module.vector$int$()
-    let FaceVertUV = new Module.vector$vector$vector$double$$$()
-
-    if (line) {
-        for (let i = 0; i < line.length; i++) {
-            let Points_c = new Module.vector$vector$double$$()
-            for (let j = 0; j < line[i].length; j++) {
-                let Points_p = new Module.vector$double$()
-                Points_p.push_back(line[i][j].x)
-                Points_p.push_back(line[i][j].y)
-                Points_p.push_back(line[i][j].z)
-                Points_c.push_back(Points_p)
-            }
-            Points.push_back(Points_c)
-        }
-    }
-
-    Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV)
-
-
-    let partitions = []
-    for (let i = 0; i < Partition.size(); i++) {
-        partitions.push(Partition.get(i))
-    }
-    let groups_o = []
-    for (let i = 0; i < partitions.length; i++) {
-        if (groups_o[partitions[i]] == undefined) {
-            groups_o[partitions[i]] = [i]
-        } else {
-            groups_o[partitions[i]].push(i)
-        }
-    }
-    let groups = []
-    for (let i = 0; i < groups_o.length / 2; i++) {
-        groups.push(groups_o[i])
-        groups.push(groups_o[i + groups_o.length / 2])
-    }
-
-    let faces = []
-    let uvs = []
-    for (let i = 0; i < groups.length; i++) {
-        for (let j = 0; j < groups[i].length; j++) {
-            faces.push([FacesOut.get(groups[i][j]).get(0), FacesOut.get(groups[i][j]).get(1), FacesOut.get(groups[i][j]).get(2)])
-            let x = i % 2 == 0 ? i : i - 1
-            if (i % 2 == 0) { uvs.push(FaceVertUV.get(groups[x][j]).get(0).get(0), FaceVertUV.get(groups[x][j]).get(0).get(1), FaceVertUV.get(groups[x][j]).get(1).get(0), FaceVertUV.get(groups[x][j]).get(1).get(1), FaceVertUV.get(groups[x][j]).get(2).get(0), FaceVertUV.get(groups[x][j]).get(2).get(1)) }
-            else { uvs.push(-FaceVertUV.get(groups[x][j]).get(1).get(0), FaceVertUV.get(groups[x][j]).get(1).get(1), -FaceVertUV.get(groups[x][j]).get(0).get(0), FaceVertUV.get(groups[x][j]).get(0).get(1), -FaceVertUV.get(groups[x][j]).get(2).get(0), FaceVertUV.get(groups[x][j]).get(2).get(1)) }
-        }
-    }
-
-    let pos = new Float32Array(faces.length * 9);
-    for (let i = 0; i < faces.length * 9; i += 9) {
-        pos[i] = CoordsOut.get(faces[i / 9][0]).get(0)
-        pos[i + 1] = CoordsOut.get(faces[i / 9][0]).get(1)
-        pos[i + 2] = CoordsOut.get(faces[i / 9][0]).get(2)
-
-        pos[i + 3] = CoordsOut.get(faces[i / 9][1]).get(0)
-        pos[i + 4] = CoordsOut.get(faces[i / 9][1]).get(1)
-        pos[i + 5] = CoordsOut.get(faces[i / 9][1]).get(2)
-
-        pos[i + 6] = CoordsOut.get(faces[i / 9][2]).get(0)
-        pos[i + 7] = CoordsOut.get(faces[i / 9][2]).get(1)
-        pos[i + 8] = CoordsOut.get(faces[i / 9][2]).get(2)
-    }
-    let uv = new Float32Array(uvs);
-    let geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-    let index = 0;
-    for (let i = 0; i < groups.length; i++) {
-        geo.addGroup(index, groups[i].length * 3, i);
-        index += groups[i].length * 3
-    }
-    geo.computeVertexNormals();
-
-    let material = []
-    for (let group_i = 0; group_i < geo.groups.length; group_i += 2) {
-        let default_m = default_material.clone()
-        default_m.color.set(randomColor())
-        material.push(default_m);
-        material.push(default_m);
-    }
-
-    return [geo, material];
-}
-
 
 
 function Display(show_env, patch_env, light) {
@@ -2712,62 +2616,6 @@ function Display(show_env, patch_env, light) {
 }
 
 
-function ply_loader(url_obj, scale) {
-    original = []
-    let onProgress_obj = function (xhr) {
-        if (xhr.lengthComputable) {
-            let percentComplete = (xhr.loaded / xhr.total) * 100;
-            console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
-            progress_obj = Math.round(percentComplete, 2);
-        }
-    };
-    let newobj = obj3D.clone();
-    const loader = new PLYLoader();
-    progress_mtl = 100
-    loader.load(url_obj, function (geometry) {
-        let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-        let geo_mat = produce_geo1(geometry.attributes.position.array)
-        geometry = geo_mat[0]
-        let group = new THREE.Group()
-        let root = new THREE.Mesh();
-        root.name = randomString();
-        obj_vertices_count += geometry.attributes.position.count;
-        root.castShadow = true;
-        root.receiveShadow = true;
-
-        geometry.computeVertexNormals();
-        geometry.computeBoundingBox();
-        x_max = x_max < geometry.boundingBox.max.x ? geometry.boundingBox.max.x : x_max;
-        y_max = y_max < geometry.boundingBox.max.y ? geometry.boundingBox.max.y : y_max;
-        z_max = z_max < geometry.boundingBox.max.z ? geometry.boundingBox.max.z : z_max;
-        x_min = x_min > geometry.boundingBox.min.x ? geometry.boundingBox.min.x : x_min;
-        y_min = y_min > geometry.boundingBox.min.y ? geometry.boundingBox.min.y : y_min;
-        z_min = z_min > geometry.boundingBox.min.z ? geometry.boundingBox.min.z : z_min;
-        root.geometry = geometry
-        root.material = geo_mat[1]
-        original.push(root.clone())
-
-        let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-        obj_size = 1
-        let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
-        let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
-
-        rearrange_geo(root.geometry, geo_position, geo_scale)
-
-        //***************************************************************
-
-        //***************************************************************
-
-        root.geometry.computeBoundingBox();
-        group.add(root)
-        newobj.add(group);
-    },
-        onProgress_obj
-    );
-    return newobj;
-}
-
-
 function obj_loader(url_obj, scale) {
     original = []
     let onProgress_obj = function (xhr) {
@@ -2814,7 +2662,7 @@ function obj_loader(url_obj, scale) {
                     rearrange_geo(child.geometry, geo_position, geo_scale)
 
                     //***************************************************************
-                    let geo_mat = produce_geo1(child.geometry.attributes.position.array)
+                    let geo_mat = produce_geo(child.geometry.attributes.position.array)
                     child.geometry = geo_mat[0]
                     child.material = geo_mat[1]
                     original.push(child.clone())
@@ -2831,122 +2679,6 @@ function obj_loader(url_obj, scale) {
 }
 
 
-function loader(url_obj, url_mtl, scale, double = true) {
-    original = []
-    let onProgress_obj = function (xhr) {
-        if (xhr.lengthComputable) {
-            let percentComplete = (xhr.loaded / xhr.total) * 100;
-            console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
-            progress_obj = Math.round(percentComplete, 2);
-        }
-    };
-    let onProgress_mtl = function (xhr) {
-        if (xhr.lengthComputable) {
-            let percentComplete = (xhr.loaded / xhr.total) * 100;
-            console.log(Math.round(percentComplete, 2) + "% downloaded(mtl)");
-            progress_mtl = Math.round(percentComplete, 2);
-        }
-    };
-    let newobj = obj3D.clone();
-    let newmtl = new MTLLoader();
-    if (double) {
-        newmtl.setMaterialOptions({ side: THREE.DoubleSide });
-    }
-    if (!url_mtl) {
-        progress_mtl = 100
-        let objLoader = new OBJLoader();
-        objLoader.load(
-            url_obj,
-            function (root) {
-                let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-                root.traverse(function (child) {
-                    if (child.type === 'Mesh') {
-                        child.name = randomString();
-                        original.push(child.clone())
-                        obj_vertices_count += child.geometry.attributes.position.count;
-                        child.material = []
-
-                        if (child.geometry.groups.length > 0) {
-                            for (let group_i = 0; group_i < child.geometry.groups.length; group_i++) {
-                                let default_m = default_material.clone()
-                                if (!double) { default_m.side = THREE.FrontSide }
-                                default_m.color.set(randomColor())
-                                child.material.push(default_m);
-                            }
-                        }
-                        else {
-                            let default_m = default_material.clone()
-                            if (!double) { default_m.side = THREE.FrontSide }
-                            default_m.color.set(randomColor())
-                            child.material = default_m;
-                        }
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        child.geometry.computeVertexNormals();
-
-                        child.geometry.computeBoundingBox();
-                        x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
-                        y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
-                        z_max = z_max < child.geometry.boundingBox.max.z ? child.geometry.boundingBox.max.z : z_max;
-                        x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
-                        y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
-                        z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
-                    }
-                })
-                let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-                obj_size = 1
-                root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
-                root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
-                newobj.add(root);
-            },
-            onProgress_obj
-        );
-        return newobj;
-    }
-    else {
-        newmtl.load(
-            url_mtl,
-            (mtl) => {
-                mtl.preload();
-                let objLoader = new OBJLoader();
-                objLoader.setMaterials(mtl);
-                objLoader.load(
-                    url_obj,
-                    function (root) {
-                        let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
-                        root.traverse(function (child) {
-                            if (child.type === 'Mesh') {
-                                child.name = randomString();
-                                original.push(child.clone())
-                                obj_vertices_count += child.geometry.attributes.position.count;
-                                if (!Array.isArray(child.material) && child.material.envMap !== undefined) { child.material.envMap = null }
-                                child.castShadow = true;
-                                child.receiveShadow = true;
-                                child.geometry.computeVertexNormals();
-
-                                child.geometry.computeBoundingBox();
-                                x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
-                                y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
-                                z_max = z_max < child.geometry.boundingBox.max.z ? child.geometry.boundingBox.max.z : z_max;
-                                x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
-                                y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
-                                z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
-                            }
-                        })
-                        let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-                        obj_size = 1
-                        root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
-                        root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
-                        newobj.add(root);
-                    },
-                    onProgress_obj
-                );
-            },
-            onProgress_mtl
-        );
-        return newobj;
-    }
-}
 
 function array_default_material_clone(array, clone) {
     var result = []
@@ -3082,7 +2814,8 @@ function GUI_init() {
     cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
     cut_component.add(gui_options, 'Straight').name("Straight Line");
     cut_component.add(gui_options, 'clear').name("Clear Lines");
-    cut_component.add(gui_options, 'process_geo').name("CUT");
+    cut_component.add(gui_options, 'back').name("Go Back");
+    cut_component.add(gui_options, 'process_geo').name("PROCESS");
     cut_component.open();
     cut_component.hide();
     folder_basic.open()

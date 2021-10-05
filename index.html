@@ -155,7 +155,7 @@
 
     @keyframes shrink {
       50% {
-        transform: scale(0.2);
+        transform: scale(0.3);
       }
     }
 
@@ -204,7 +204,7 @@
       font-size: 1px;
       text-align: center;
       top: calc(45% + 40px);
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.75);
     }
 
     .up-area {
@@ -299,8 +299,8 @@
       color: #ffffffee;
     }
     .homebtn {
-      display:none;
-      background-color:#000;
+      display: none;
+      background-color: #000;
       z-index: 101;
       height: 30px;
       width: 100px;
@@ -328,6 +328,17 @@
       transform: scale(0.985, 0.985);
       box-shadow: 0 0 3px 1.5px rgb(255, 255, 255);
       color: #ffffffee;
+    }
+
+    @media screen and (max-width: 800px) {
+      .dragObj{
+      width: 600px;
+      left: calc(50% - 300px);
+      }
+      .startbtn {
+      width: 500px;
+      left: calc(50% - 250px);
+    }
     }
   </style>
 
@@ -358,17 +369,20 @@
     <div class="startbtn">OPEN WITH DEFAULT OBJECT</div>
     <div id="loading_background">
       <div id="small_info">
-        This may take around 2-5 minutes to process the model
+        This may take around 1-5 minutes to process the model
       </div>
     </div>
     <div id="loading" class="loading">
-      <span style="animation-delay: 0s">L</span
-      ><span style="animation-delay: 0.1s">o</span
-      ><span style="animation-delay: 0.2s">a</span
-      ><span style="animation-delay: 0.3s">d</span
-      ><span style="animation-delay: 0.4s">i</span
-      ><span style="animation-delay: 0.5s">n</span
-      ><span style="animation-delay: 0.6s">g</span>
+      <span style="animation-delay: 0s">p</span
+      ><span style="animation-delay: 0.1s">r</span
+      ><span style="animation-delay: 0.2s">o</span
+      ><span style="animation-delay: 0.3s">c</span
+      ><span style="animation-delay: 0.4s">e</span
+      ><span style="animation-delay: 0.5s">s</span
+      ><span style="animation-delay: 0.6s">s</span
+      ><span style="animation-delay: 0.7s">i</span
+      ><span style="animation-delay: 0.8s">n</span
+      ><span style="animation-delay: 0.9s">g</span>
     </div>
     <div id="processing" class="processing">
       <span style="animation-delay: 0s">P</span>
