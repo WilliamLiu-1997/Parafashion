@@ -81,7 +81,7 @@ class CameraControls extends EventDispatcher {
 		// Set to true to automatically rotate
 		// If auto-rotate is enabled, you must call controls.update() in your animation loop
 		this.autoRotate = false;
-		this.autoRotateSpeed = 0.2;
+		this.autoRotateSpeed = 2;
 
 		// Set to false to disable use of the keys
 		this.enableKeys = true;
@@ -318,7 +318,7 @@ class CameraControls extends EventDispatcher {
 
 		function getAutoRotationAngle() {
 
-			return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
+			return -2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
 
 		}
 

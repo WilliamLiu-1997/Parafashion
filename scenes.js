@@ -510,6 +510,7 @@ function init() {
     controls.dampingFactor = 0.15;
     controls.rotateSpeed = 1.3;
     controls.target = O;
+    controls.autoRotateSpeed = 2;
 
     //garment = ply_loader(garments_obj1, 1);
     garment = obj_loader(garments_obj, 1);
@@ -2779,6 +2780,7 @@ function GUI_init() {
     folder_env = gui.addFolder("Environment")
     folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
+    folder_env.add(controls, 'autoRotate').name("Auto Rotate");
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe());
     // other options: "BathRoom", 'Church', "Gallery", "Square"
