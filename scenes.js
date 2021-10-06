@@ -70,6 +70,7 @@ let shift = false;
 let ctrl = false;
 let reset_position = false;
 let mouse_position = new THREE.Vector2();
+let O = new THREE.Vector3();
 let texture_state = 0;
 
 var url = ""
@@ -508,6 +509,7 @@ function init() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.15;
     controls.rotateSpeed = 1.3;
+    controls.target = O;
 
     //garment = ply_loader(garments_obj1, 1);
     garment = obj_loader(garments_obj, 1);
@@ -1449,7 +1451,7 @@ function select_recovery() {
     controls.maxDistance = 5;
     set_cursor(0)
     if (controls !== undefined) {
-        controls.target = false;
+        controls.target = O;
         controls.rotateSpeed = 1.3;
     }
     url = ""
