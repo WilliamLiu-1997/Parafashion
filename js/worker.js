@@ -112,7 +112,7 @@ self.addEventListener('message', function (e) {
                 geo.addGroup(index, groups[i].length * 3, i);
                 index += groups[i].length * 3
             }
-            self.postMessage([geo, 2]);
+            self.postMessage([geo, success]);
 
         }
     }
