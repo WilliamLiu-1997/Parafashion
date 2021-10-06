@@ -243,9 +243,10 @@ var gui_options = {
     },
     process_geo: function () {
         if (cut_obj.length > 0) {
+            $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 300) + "s(" + passed_time + "s) to process the model.");
             loading_time = setInterval(() => {
                 passed_time += 1
-                $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 200) + "s(" + passed_time + "s) to process the model.");
+                $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 300) + "s(" + passed_time + "s) to process the model.");
             }, 1000)
             show_processing()
             obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
@@ -2624,7 +2625,7 @@ function obj_loader(url_obj, scale) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     vertices += child.geometry.attributes.position.count
-                    $("#small_info").text("This may take around " + Math.ceil(vertices / 200) + "s(" + passed_time + "s) to process the model.");
+                    $("#small_info").text("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.");
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
                     y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
@@ -2637,7 +2638,7 @@ function obj_loader(url_obj, scale) {
             passed_time = 0;
             loading_time = setInterval(() => {
                 passed_time += 1
-                $("#small_info").text("This may take around " + Math.ceil(vertices / 200) + "s(" + passed_time + "s) to process the model.");
+                $("#small_info").text("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.");
             }, 1000)
             let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             obj_size = 1
