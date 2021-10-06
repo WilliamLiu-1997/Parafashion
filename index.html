@@ -147,7 +147,7 @@
       font-family: Lato, sans-serif;
       letter-spacing: 10px;
       text-transform: uppercase;
-      cursor: auto;
+      cursor: wait;
     }
     .loading span {
       animation: shrink 2s infinite;
@@ -238,7 +238,7 @@
       z-index: 98;
       height: 100%;
       width: 100%;
-      cursor: auto;
+      cursor: wait;
     }
 
     .dragObj {
@@ -520,7 +520,6 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
-        $(".homebtn").fadeOut();
       }
       function show_processing() {
         render_patch_flag = false;
@@ -531,7 +530,6 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
-        $(".homebtn").fadeOut();
       }
       function hide_loading() {
         if ($("#hide-patches").text() != "Show Patches") {
@@ -542,7 +540,6 @@
         $("#loading_background").fadeOut(800);
         $(".panel_box").fadeIn();
         $("#gui_container").fadeIn();
-        $(".homebtn").fadeIn();
       }
       function hidePatches() {
         if (resize_patch) return;
@@ -618,7 +615,6 @@
         }
       }
     </script>
-    <script type="text/javascript" src="js/DerivePatchLayout.js"></script>
     <script type="module" src="scenes.js"></script>
   </body>
 </html>
