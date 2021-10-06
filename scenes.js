@@ -76,7 +76,7 @@ var folder_basic, folder_env, material_folder, basic_texture, lambert_texture, p
 
 
 
-var garments_obj = "./leggins/leggins.obj"
+var garments_obj = "./obj/garments.obj"
 
 
 let outlinePass_params_cover = {
@@ -248,8 +248,14 @@ var gui_options = {
                 cut_obj[0].material = geo_mat[1]
                 obj_vertices_count += geo_mat[0].getAttribute("position").count;
                 $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
+                show_all(garment);
+                Wireframe();
+                Reflectivity();
+                select_recovery();
+                cover_recovery();
                 reload_patch(garment, 1);
-                hide_loading()
+                Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+                hide_loading();
                 original = []
                 garment.traverse(function (child) {
                     if (child.type === 'Mesh') {
@@ -2694,25 +2700,20 @@ function array_default_material_clone(array, clone) {
 function patch_loader(garment, scale) {
     let num = garment.children[0].children.length;
     max_radius = 0;
-    let first = false;
-    let max_height = 0;
     let newobj = obj3D.clone();
-    let last_x = -Infinity;
-    let last_y = 4;
+    let highest = { layer:0, y:0,last_layer_y:0};
     for (let x = 0; x < num; x++) {
         let patch_geo = garment.children[0].children[x].geometry.clone();
         let patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_default_material_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
 
         let geo_uv = patch_geo.getAttribute('uv').array
-
+        if (highest.layer < x) {
+            highest.layer += 1;
+            highest.last_layer_y=highest.y+0.5
+        }
         if (patch_geo.groups && patch_geo.groups.length > 0) {
             let group_3d = new THREE.Group();
             for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
-                if (last_x > scale * 5 && individual_i % 2 == 0) {
-                    last_x = -Infinity;
-                    last_y -= max_height * 1.5;
-                    max_height = 0
-                }
                 let individual_patch = individual_garmentToPatch(patch_geo, individual_i, geo_uv)
                 let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
                 individual_patch.computeBoundingBox();
@@ -2720,19 +2721,14 @@ function patch_loader(garment, scale) {
                 let y_max = individual_patch.boundingBox.max.y;
                 let x_min = individual_patch.boundingBox.min.x;
                 let y_min = individual_patch.boundingBox.min.y;
+                if (highest.y < (y_max + highest.last_layer_y)) {
+                    highest.y = y_max + highest.last_layer_y
+                }
                 let radius_x = (x_max - x_min);
                 let radius_y = (y_max - y_min);
                 max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
                 max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
-                max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
-                if (!first) {
-                    last_x = (-radius_x / 2) * scale
-                    last_y = (radius_y / 2) * scale
-                    first = (-radius_x / 2) * scale;
-                }
-                last_x = last_x == -Infinity ? first : last_x;
-                patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
-                last_x += (radius_x) * 1.5 * scale;
+                patch_map.position.set(0, highest.last_layer_y-0.5, 0);
                 patch_map.scale.set(scale, scale, scale);
                 patch_map.name = randomString();
                 group_3d.add(patch_map);
@@ -2741,11 +2737,6 @@ function patch_loader(garment, scale) {
             newobj.add(group_3d)
         }
         else {
-            if (last_x > scale * 5) {
-                last_x = -Infinity;
-                last_y -= max_height * 1.5;
-                max_height = 0
-            }
             patch_geo = individual_garmentToPatch(patch_geo, 0, geo_uv);
             let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
             patch_map.name = garment.children[0].children[x].name;
@@ -2754,30 +2745,18 @@ function patch_loader(garment, scale) {
             let y_max = patch_geo.boundingBox.max.y;
             let x_min = patch_geo.boundingBox.min.x;
             let y_min = patch_geo.boundingBox.min.y;
+            if (highest.y < (y_max + highest.last_layer_y)) {
+                highest.y = y_max + highest.last_layer_y
+            }
             let radius_x = (x_max - x_min);
             let radius_y = (y_max - y_min);
             max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
             max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
-            max_height = max_height < radius_y * scale ? radius_y * scale : max_height;
-            if (!first) {
-                last_x = (-radius_x / 2) * scale
-                last_y = (radius_y / 2) * scale
-                first = (-radius_x / 2) * scale;
-            }
-            last_x = last_x == -Infinity ? first * scale : last_x;
-            patch_map.position.set(last_x - x_min * scale, last_y - y_max * scale, 0);
-            last_x += radius_x * 1.5 * scale;
+            patch_map.position.set(0, highest.last_layer_y - 0.5, 0);
             patch_map.scale.set(scale, scale, scale);
             newobj.add(patch_map);
         }
     }
-    newobj.traverse(function (child) {
-        if (child.type === 'Mesh') {
-            child.scale.multiplyScalar(scale / max_radius)
-            child.position.multiplyScalar(scale / max_radius)
-        }
-    })
-    max_radius = 1;
     return newobj
 }
 
