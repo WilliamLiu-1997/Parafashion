@@ -27,6 +27,9 @@ let mouse_down = false;
 let ready = [];
 let load_num = 0;
 let failed = false;
+let loading_time;
+let passed_time = 0;
+let vertices;
 
 let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
@@ -240,8 +243,11 @@ var gui_options = {
     },
     process_geo: function () {
         if (cut_obj.length > 0) {
+            loading_time = setInterval(() => {
+                passed_time += 1
+                $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 200) + "s(" + passed_time + "s) to process the model.");
+            }, 1000)
             show_processing()
-            $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 250) + "s to process the model.");
             obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
             produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
         }
@@ -661,6 +667,8 @@ function animate() {
             onWindowResize()
         }
         if (progress_obj + progress_mtl == 200 && ready.length == load_num && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
+            passed_time = 0;
+            clearInterval(loading_time);
             camera.position.set(0, obj_size / 2, obj_size * 2);
             controls.saveState();
             var lack = false;
@@ -2406,6 +2414,8 @@ function produce_geo(position, line = false) {
         reload_patch(garment, 1);
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         hide_loading();
+        passed_time = 0;
+        clearInterval(loading_time);
         original = []
         garment.traverse(function (child) {
             if (child.type === 'Mesh') {
@@ -2595,7 +2605,7 @@ function obj_loader(url_obj, scale) {
             progress_obj = Math.round(percentComplete, 2);
         }
     };
-    let vertices = 0;
+    vertices = 0;
     let newobj = obj3D.clone();
     progress_mtl = 100
     let objLoader = new OBJLoader();
@@ -2614,7 +2624,7 @@ function obj_loader(url_obj, scale) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     vertices += child.geometry.attributes.position.count
-                    $("#small_info").text("This may take around " + Math.ceil(vertices / 250) + "s to process the model.");
+                    $("#small_info").text("This may take around " + Math.ceil(vertices / 200) + "s(" + passed_time + "s) to process the model.");
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
                     y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
@@ -2624,6 +2634,11 @@ function obj_loader(url_obj, scale) {
                     z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
                 }
             })
+            passed_time = 0;
+            loading_time = setInterval(() => {
+                passed_time += 1
+                $("#small_info").text("This may take around " + Math.ceil(vertices / 200) + "s(" + passed_time + "s) to process the model.");
+            }, 1000)
             let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             obj_size = 1
             let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
