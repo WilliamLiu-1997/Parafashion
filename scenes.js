@@ -241,6 +241,7 @@ var gui_options = {
     process_geo: function () {
         if (cut_obj.length > 0) {
             show_processing()
+            $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 250) + "s to process the model.");
             obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
             produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
         }
@@ -2370,7 +2371,7 @@ function produce_geo(position, line = false) {
     worker.onmessage = function (e) {
         let [geo_Derive, result_Derive] = e.data
         if (result_Derive == 0 && !failed) {
-            failed=true
+            failed = true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
             window.location.reload();
         }
@@ -2445,7 +2446,7 @@ function init_produce_geo(position, child) {
     worker.onmessage = function (e) {
         let [geo_Derive, result_Derive] = e.data
         if (result_Derive == 0 && !failed) {
-            failed=true
+            failed = true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
             window.location.reload();
         }
@@ -2594,6 +2595,7 @@ function obj_loader(url_obj, scale) {
             progress_obj = Math.round(percentComplete, 2);
         }
     };
+    let vertices = 0;
     let newobj = obj3D.clone();
     progress_mtl = 100
     let objLoader = new OBJLoader();
@@ -2611,8 +2613,8 @@ function obj_loader(url_obj, scale) {
 
                     child.castShadow = true;
                     child.receiveShadow = true;
-
-
+                    vertices += child.geometry.attributes.position.count
+                    $("#small_info").text("This may take around " + Math.ceil(vertices / 250) + "s to process the model.");
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
                     y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
