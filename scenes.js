@@ -2628,6 +2628,7 @@ function obj_loader(url_obj, scale) {
                     child.castShadow = true;
                     child.receiveShadow = true;
                     vertices += child.geometry.attributes.position.count
+                    $("#vertice_num").html("<p>Vertices: " + vertices + "</p>")
                     $("#small_info").text("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.");
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
