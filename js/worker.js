@@ -3,7 +3,7 @@ importScripts('three_worker.js')
 
 self.addEventListener('message', function (e) {
     Module["onRuntimeInitialized"] = function () {
-        let success = true;
+        let success = 2;
         let [face_js, position_js, line] = e.data
 
         let Faces = new Module.vector$vector$size_t$$()
