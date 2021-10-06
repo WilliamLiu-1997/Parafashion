@@ -45,12 +45,14 @@ self.addEventListener('message', function (e) {
         try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV) }
         catch (error) {
             if (line === false) {
-                self.postMessage([false, 0]);
+                success = 0;
+                self.postMessage([false, success]);
             } else {
                 success = 1;
                 try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV) }
                 catch (error) {
-                    self.postMessage([false, 0]);
+                    success = 0;
+                    self.postMessage([false, success]);
                 }
             }
         }
