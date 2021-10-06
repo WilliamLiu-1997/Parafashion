@@ -248,11 +248,14 @@ var gui_options = {
                 cut_obj[0].material = geo_mat[1]
                 obj_vertices_count += geo_mat[0].getAttribute("position").count;
                 $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
-                show_all(garment)
+                show_all(garment);
+                Wireframe();
+                Reflectivity();
                 select_recovery();
                 cover_recovery();
                 reload_patch(garment, 1);
-                hide_loading()
+                Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+                hide_loading();
                 original = []
                 garment.traverse(function (child) {
                     if (child.type === 'Mesh') {
