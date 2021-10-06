@@ -26,6 +26,7 @@ let cut_obj = [];
 let mouse_down = false;
 let ready = [];
 let load_num = 0;
+let failed = false;
 
 let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
@@ -2368,7 +2369,8 @@ function produce_geo(position, line = false) {
     worker.postMessage([face_js, position_js, line]);
     worker.onmessage = function (e) {
         let [geo_Derive, result_Derive] = e.data
-        if (result_Derive == 0) {
+        if (result_Derive == 0 && !failed) {
+            failed=true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
             window.location.reload();
         }
@@ -2442,7 +2444,8 @@ function init_produce_geo(position, child) {
     worker.postMessage([face_js, position_js, false]);
     worker.onmessage = function (e) {
         let [geo_Derive, result_Derive] = e.data
-        if (result_Derive == 0) {
+        if (result_Derive == 0 && !failed) {
+            failed=true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
             window.location.reload();
         }
