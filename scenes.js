@@ -2368,11 +2368,11 @@ function produce_geo(position, line = false) {
     worker.postMessage([face_js, position_js, line]);
     worker.onmessage = function (e) {
         let [geo_Derive, result_Derive] = e.data
-        if (result_Derive === 0) {
+        if (result_Derive == 0) {
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
             window.location.reload();
         }
-        if (result_Derive === 1) {
+        if (result_Derive == 1) {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
         }
 
