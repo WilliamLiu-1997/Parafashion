@@ -2397,7 +2397,7 @@ function produce_geo(position, line = false) {
         $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
         show_all(garment);
         Wireframe();
-        Reflectivity();
+        Material_Update_Param(true);
         select_recovery();
         cover_recovery();
         reload_patch(garment, 1);
