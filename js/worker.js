@@ -44,7 +44,7 @@ self.addEventListener('message', function (e) {
 
         try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, Points, FacesOut, CoordsOut, Partition, FaceVertUV) }
         catch (error) {
-            if (line === false) {
+            if (line == false) {
                 success = 0;
                 self.postMessage([false, success]);
             } else {
