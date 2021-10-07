@@ -957,6 +957,9 @@ function onmouseDown(event) {
         else if (event.button == 1) { cover = false; }
         else if (event.button == 2) { cover = false; }
     }
+    if (selected.length == 0) {
+        $("#texture").slideUp();
+    }
 }
 
 
@@ -1030,6 +1033,9 @@ function onmouseDown_patch(event) {
         }
         else if (event.button == 1) { cover = false; }
         else if (event.button == 2) { cover = false; }
+    }
+    if (selected.length == 0) {
+        $("#texture").slideUp();
     }
 }
 
@@ -1900,6 +1906,8 @@ function select_material(cover_pointer, cover_camera) {
                 }
             }
         }
+
+        $("#texture").slideDown();
     } else { select_recovery() }
 }
 
@@ -1999,6 +2007,7 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                 })
             }
         }
+        $("#texture").slideDown();
     } else { select_recovery() }
 }
 
