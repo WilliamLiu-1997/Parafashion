@@ -569,7 +569,7 @@ function init_patch() {
     );
     camera_patch.position.set(0, 0, 2);
 
-    cameralight_patch = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
+    cameralight_patch = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.6, 0, 0);
     cameralight_patch.position.set(0, 0, 0)
     camera_patch.add(cameralight_patch);
     scene_patch.add(camera_patch);
