@@ -680,7 +680,7 @@ function animate() {
             progress_obj = progress_mtl = -1;
             var num = garment.children[0].children.length;
 
-            patch = patch_loader(garment, 1);
+            patch = patch_loader(garment);
             patch.name = "patch";
             scene_patch.add(patch);
             camera_patch.position.set(0, 0, 2 * max_radius);
@@ -740,11 +740,11 @@ function animate() {
 
         }
 
-        let w = parseFloat($(".dg.main").css("width")) - 10
+        let w = parseFloat($(".dg.main").css("width")) - 12
         if (w === NaN) {
             w = 0;
         }
-        $(".up-area").css({ "width": String(w) + "px" })
+        $("#texture_container").css({ "width": String(w) + "px" })
         $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.80 - 15 })
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
@@ -2247,103 +2247,6 @@ function individual_garmentToPatch(bufGeom, ig, uv) {
 }
 
 
-function seperateGroups(bufGeom) {
-    var outGeometries = [];
-    var groups = bufGeom.groups;
-
-    var origVerts = bufGeom.getAttribute('position').array;
-    var origNormals = bufGeom.getAttribute('normal').array;
-    var origUVs = bufGeom.getAttribute('uv').array;
-    for (var ig = 0, ng = groups.length; ig < ng; ig++) {
-        var group = groups[ig];
-
-        var destNumVerts = group.count;
-
-        var newBufGeom = new THREE.BufferGeometry();
-        var newPositions = new Float32Array(destNumVerts * 3);
-        var newNormals = new Float32Array(destNumVerts * 3);
-        var newUVs = new Float32Array(destNumVerts * 2);
-
-        for (var iv = 0; iv < destNumVerts; iv++) {
-
-            var indexOrig = 3 * (group.start + iv);
-            var indexDest = 3 * iv;
-
-            var indexOrigUV = 2 * (group.start + iv);
-            var indexDestUV = 2 * iv;
-
-            newPositions[indexDest] = origVerts[indexOrig];
-            newPositions[indexDest + 1] = origVerts[indexOrig + 1];
-            newPositions[indexDest + 2] = origVerts[indexOrig + 2];
-
-            newNormals[indexDest] = origNormals[indexOrig];
-            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
-            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
-
-            newUVs[indexDestUV] = origUVs[indexOrigUV];
-            newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
-
-        }
-
-        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
-        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
-
-        outGeometries.push(newBufGeom);
-
-    }
-    return outGeometries;
-
-}
-
-function seperateGroups_garmentToPatch(bufGeom) {
-    var outGeometries = [];
-    var groups = bufGeom.groups;
-
-    var origNormals = bufGeom.getAttribute('normal').array;
-    var origUVs = bufGeom.getAttribute('uv').array;
-    for (var ig = 0, ng = groups.length; ig < ng; ig++) {
-        var group = groups[ig];
-
-        var destNumVerts = group.count;
-
-        var newBufGeom = new THREE.BufferGeometry();
-        var newPositions = new Float32Array(destNumVerts * 3);
-        var newNormals = new Float32Array(destNumVerts * 3);
-        var newUVs = new Float32Array(destNumVerts * 2);
-
-        for (var iv = 0; iv < destNumVerts; iv++) {
-
-            var indexOrig = 3 * (group.start + iv);
-            var indexDest = 3 * iv;
-
-            var indexOrigUV = 2 * (group.start + iv);
-            var indexDestUV = 2 * iv;
-
-            newPositions[indexDest] = origUVs[indexOrigUV];
-            newPositions[indexDest + 1] = origUVs[indexOrigUV + 1];
-            newPositions[indexDest + 2] = 0;
-
-            newNormals[indexDest] = origNormals[indexOrig];
-            newNormals[indexDest + 1] = origNormals[indexOrig + 1];
-            newNormals[indexDest + 2] = origNormals[indexOrig + 2];
-
-            newUVs[indexDestUV] = origUVs[indexOrigUV];
-            newUVs[indexDestUV + 1] = origUVs[indexOrigUV + 1];
-
-        }
-
-        newBufGeom.setAttribute('position', new THREE.Float32BufferAttribute(newPositions, 3));
-        newBufGeom.setAttribute('normal', new THREE.Float32BufferAttribute(newNormals, 3));
-        newBufGeom.setAttribute('uv', new THREE.Float32BufferAttribute(newUVs, 2));
-
-        outGeometries.push(newBufGeom);
-
-    }
-    return outGeometries;
-
-}
-
 
 function smoothNormals(geo) {
     let tempGeo = mergeVertices(geo, 0);
@@ -2415,7 +2318,7 @@ function produce_geo(position, line = false) {
         Material_Update_Param(true);
         select_recovery();
         cover_recovery();
-        reload_patch(garment, 1);
+        reload_patch(garment);
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         hide_loading();
         passed_time = 0;
@@ -2676,7 +2579,7 @@ function array_default_material_clone(array, clone) {
 }
 
 
-function patch_loader(garment, scale) {
+function patch_loader(garment) {
     let num = garment.children[0].children.length;
     max_radius = 0;
     let newobj = obj3D.clone();
@@ -2705,10 +2608,9 @@ function patch_loader(garment, scale) {
                 }
                 let radius_x = (x_max - x_min);
                 let radius_y = (y_max - y_min);
-                max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
-                max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
+                max_radius = max_radius < radius_x ? radius_x : max_radius;
+                max_radius = max_radius < radius_y ? radius_y : max_radius;
                 patch_map.position.set(0, highest.last_layer_y - 0.5, 0);
-                patch_map.scale.set(scale, scale, scale);
                 patch_map.name = randomString();
                 group_3d.add(patch_map);
             }
@@ -2729,10 +2631,9 @@ function patch_loader(garment, scale) {
             }
             let radius_x = (x_max - x_min);
             let radius_y = (y_max - y_min);
-            max_radius = max_radius < radius_x * scale ? radius_x * scale : max_radius;
-            max_radius = max_radius < radius_y * scale ? radius_y * scale : max_radius;
+            max_radius = max_radius < radius_x ? radius_x : max_radius;
+            max_radius = max_radius < radius_y ? radius_y : max_radius;
             patch_map.position.set(0, highest.last_layer_y - 0.5, 0);
-            patch_map.scale.set(scale, scale, scale);
             newobj.add(patch_map);
         }
     }
@@ -2740,7 +2641,7 @@ function patch_loader(garment, scale) {
 }
 
 
-function reload_patch(garment, scale) {
+function reload_patch(garment) {
     patch.traverse(function (child) {
         if (child.type === "Mesh") {
             child.geometry.dispose()
@@ -2752,7 +2653,7 @@ function reload_patch(garment, scale) {
         }
     })
     scene_patch.remove(patch)
-    patch = patch_loader(garment, scale);
+    patch = patch_loader(garment);
     patch.name = "patch";
     scene_patch.add(patch);
 }
@@ -2805,7 +2706,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update_Param())
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
-    basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    // basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     basic_texture.add(TextureParams, "reset_position").name("Reset Position")
     basic_texture.add(TextureParams, "remove").name("Remove Texture")
     basic_texture.open()
@@ -2984,6 +2885,7 @@ function Reflectivity() {
 
 
 function Texture_to_GUI() {
+    $("#CustomTexture").text($("#CustomTexture").text().split("(")[0] + "(" + TextureParams.current + ")")
     let obj_material
     if (selected.length == 2) { obj_material = selected[0].material[selected[1]] }
     else if (selected.length == 1) { obj_material = selected[0].material }
@@ -3427,10 +3329,6 @@ function randomString(e) {
         n = "";
     for (let i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
     return n
-}
-
-function randomColor() {
-    return Math.random() * 0xccffff
 }
 
 document.querySelector('.up-area').addEventListener('click', texture_click)

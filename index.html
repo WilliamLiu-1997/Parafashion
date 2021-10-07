@@ -208,8 +208,7 @@
 
     .up-area {
       border: 1px dashed rgb(150, 150, 150);
-      float:right;
-      width: 300px;
+      width: 100%;
       min-height: 50px;
       line-height: 50px;
       background-color: rgba(90, 90, 90, 0);
@@ -221,7 +220,8 @@
     }
 
     #texture_container {
-      display:none;
+      display: none;
+      float: right;
     }
 
     #gui_container_gui {
@@ -408,13 +408,31 @@
           color: #fff;
           padding: 3px;
           width: 100%;
-          min-width:100px;
+          min-width: 100px;
         "
       >
         Controls
       </button>
       <div id="gui_container_gui" class="panel-collapse collapse in">
         <div id="texture_container">
+          <button
+            type="button"
+            id="CustomTexture"
+            class="btn-default"
+            style="
+              background-color: rgb(10, 10, 10);
+              border: 1px solid rgb(90, 90, 90);
+              border-style: none none solid none;
+              color: #eee;
+              font: 11px 'Lucida Grande', sans-serif;
+              padding: 3px;
+              width: 100%;
+              min-width: 100px;
+              text-align: left;
+            "
+            onclick="customtextureToggle()"
+          >
+          </button>
           <div class="dragFile">
             <div class="up-area">
               <div class="tip">Click or Drag to upload a texture...</div>
@@ -486,6 +504,7 @@
     <div id="transform"></div>
     <div id="vertice_num"></div>
     <script>
+      $("#CustomTexture").text("⏷ Custom Texture (map)")
       var render_patch_flag = true;
       var patch_scaled = false;
       var resize_patch = false;
@@ -519,6 +538,14 @@
         $("#loading_background").fadeOut(800);
         $(".panel_box").fadeIn();
         $("#gui_container").fadeIn();
+      }
+      function customtextureToggle() {
+        $(".up-area").toggle();
+        if ($("#CustomTexture").text().substr(0, 1) != "⏵") {
+          $("#CustomTexture").text("⏵" + $("#CustomTexture").text().substr(1));
+        } else {
+          $("#CustomTexture").text("⏷" + $("#CustomTexture").text().substr(1));
+        }
       }
       function hidePatches() {
         if (resize_patch) return;
