@@ -508,7 +508,7 @@ function init() {
     controls.dynamicSensitivity = true;
     controls.enableDamping = true;
     controls.dampingFactor = 0.15;
-    controls.rotateSpeed = 1.3;
+    controls.rotateSpeed = 2.5;
     controls.target = O;
     controls.autoRotateSpeed = 2;
 
@@ -740,9 +740,12 @@ function animate() {
 
         }
 
-        $("#texture_container").css({ "max-height": window.innerHeight * 0.91 * 0.45 })
-        $(".up-area").css({ "width": $(".dg.main").css("width") })
-        $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.91 - 50 - $('#texture_container').height() })
+        let w = parseFloat($(".dg.main").css("width")) - 10
+        if (w === NaN) {
+            w = 0;
+        }
+        $(".up-area").css({ "width": String(w) + "px" })
+        $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.80 - 15 })
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
         render();
@@ -791,7 +794,7 @@ function onWindowResize() {
 function onKeyDown(e) {
     switch (e.keyCode) {
         case 16:
-            let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
+            let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + window.innerHeight * 0.1 + 25) / window.innerHeight * 2) && pointer.y < 0.8
             let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
             if (!on_gui && !on_transform
                 && !gui_options.cut
@@ -893,7 +896,6 @@ function onmouseDown(event) {
                 if (cut_obj.length === 1) {
                     controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
                     controls.target.x = 0;
-                    controls.rotateSpeed = 2.5;
                 }
             }
         }
@@ -938,12 +940,10 @@ function onmouseDown(event) {
                     if (selected.length === 1) {
                         controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
                         controls.target.x = 0;
-                        controls.rotateSpeed = 2.5;
                     } else if (selected.length === 2) {
                         selected_obj.geometry.computeBoundingSphere();
                         controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
                         controls.target.x = 0;
-                        controls.rotateSpeed = 2.5;
                     }
 
                 }
@@ -956,9 +956,6 @@ function onmouseDown(event) {
         }
         else if (event.button == 1) { cover = false; }
         else if (event.button == 2) { cover = false; }
-    }
-    if (selected.length == 0) {
-        $("#texture").slideUp();
     }
 }
 
@@ -1016,12 +1013,10 @@ function onmouseDown_patch(event) {
                     if (selected.length === 1) {
                         controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
                         controls.target.x = 0;
-                        controls.rotateSpeed = 2.5;
                     } else if (selected.length === 2) {
                         selected_obj.geometry.computeBoundingSphere();
                         controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
                         controls.target.x = 0;
-                        controls.rotateSpeed = 2.5;
                     }
 
                 } if (find_new) {
@@ -1033,9 +1028,6 @@ function onmouseDown_patch(event) {
         }
         else if (event.button == 1) { cover = false; }
         else if (event.button == 2) { cover = false; }
-    }
-    if (selected.length == 0) {
-        $("#texture").slideUp();
     }
 }
 
@@ -1459,8 +1451,8 @@ function select_recovery() {
     set_cursor(0)
     if (controls !== undefined) {
         controls.target = O;
-        controls.rotateSpeed = 1.3;
     }
+    $("#texture_container").hide();
     url = ""
     let liStr = "";
     $('.list-drag').html(liStr);
@@ -1607,7 +1599,7 @@ function draw_straight(pointers, camera, cut_obj) {
 
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
 
-    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
+    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + window.innerHeight * 0.1 + 25) / window.innerHeight * 2) && pointer.y < 0.8
     let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
     if (on_gui || on_transform) {
         cover_recovery();
@@ -1766,7 +1758,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
 function cover_cut(cover_pointer, cover_camera, event) {
     if (cut_obj.length > 0) return;
 
-    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + document.getElementById('texture_container').offsetHeight + window.innerHeight * 0.05 + 50) / window.innerHeight * 2)
+    let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + window.innerHeight * 0.1 + 25) / window.innerHeight * 2) && pointer.y < 0.8
     let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
 
     if (on_gui || on_transform) {
@@ -1906,8 +1898,7 @@ function select_material(cover_pointer, cover_camera) {
                 }
             }
         }
-
-        $("#texture").slideDown();
+        $("#texture_container").show();
     } else { select_recovery() }
 }
 
@@ -2007,7 +1998,7 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                 })
             }
         }
-        $("#texture").slideDown();
+        $("#texture_container").show();
     } else { select_recovery() }
 }
 
@@ -2770,7 +2761,7 @@ function reload_patch(garment, scale) {
 function GUI_init() {
     gui = new GUI({ width: 300, autoPlace: false, scrollable: true })
 
-    document.getElementById('gui_container_gui').appendChild(gui.domElement);
+    document.getElementById('gui_container_gui').insertBefore(gui.domElement, document.getElementById('gui_container_gui').childNodes[0]);
 
     folder_basic = gui.addFolder("Basic")
     folder_basic.add(gui_options, 'Mode', ["Cutting Model", "Customizing Material"]).name("Mode").onChange(() => Change_Mode());

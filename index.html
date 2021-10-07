@@ -117,12 +117,11 @@
 
     #gui_container {
       position: absolute;
-      max-height: 91%;
-      top: 5%;
+      max-height: 80%;
+      top: 10%;
       right: 0px;
       z-index: 3;
       user-select: none;
-      overflow: hidden;
       display: none;
     }
 
@@ -209,6 +208,7 @@
 
     .up-area {
       border: 1px dashed rgb(150, 150, 150);
+      float:right;
       width: 300px;
       min-height: 50px;
       line-height: 50px;
@@ -220,15 +220,12 @@
       display: inline-block;
     }
 
-    .texture_container {
-      max-height: 45%;
-      overflow-y: auto;
-      overflow-x: hidden;
+    #texture_container {
+      display:none;
     }
 
     #gui_container_gui {
-      max-height: 55%;
-      overflow-y: auto;
+      overflow-y: scroll;
       overflow-x: hidden;
     }
 
@@ -340,10 +337,6 @@
         left: calc(50% - 250px);
       }
     }
-
-    #texture{
-      display:none;
-    }
   </style>
 
   <body>
@@ -362,7 +355,7 @@
         oncontextmenu="return false;"
         ondragstart="return false;"
       />
-      <div id="dragObjInfo">Drag or click to upload an OBJ</div>
+      <div id="dragObjInfo">Drag or Click to Upload an OBJ File</div>
       <input
         type="file"
         style="display: none"
@@ -370,7 +363,7 @@
         name="objDragselect"
       />
     </div>
-    <div class="startbtn">OPEN WITH DEFAULT OBJECT</div>
+    <div class="startbtn">OPEN WITH DEFAULT OBJ</div>
     <div id="loading_background">
       <div id="small_info">
         This may take around 0s(0s) to process the model.
@@ -402,28 +395,26 @@
     </div>
     <div id="container"></div>
     <div id="gui_container">
-      <div id="texture">
-        <button
-          type="button"
-          class="btn-default"
-          data-toggle="collapse"
-          data-target="#texture_container"
-          style="
-            background-color: rgb(60, 60, 60);
-            border: 1px solid rgb(90, 90, 90);
-            border-style: solid none solid none;
-            font-size: 12px;
-            color: #fff;
-            padding: 3px;
-            width: 100%;
-          "
-        >
-          Custom Texture
-        </button>
-        <div
-          id="texture_container"
-          class="texture_container panel-collapse collapse in"
-        >
+      <button
+        type="button"
+        class="btn-default"
+        data-toggle="collapse"
+        data-target="#gui_container_gui"
+        style="
+          background-color: rgb(60, 60, 60);
+          border: 1px solid rgb(90, 90, 90);
+          border-style: none none solid none;
+          font-size: 12px;
+          color: #fff;
+          padding: 3px;
+          width: 100%;
+          min-width:100px;
+        "
+      >
+        Controls
+      </button>
+      <div id="gui_container_gui" class="panel-collapse collapse in">
+        <div id="texture_container">
           <div class="dragFile">
             <div class="up-area">
               <div class="tip">Click or Drag to upload a texture...</div>
@@ -439,24 +430,6 @@
           </div>
         </div>
       </div>
-      <button
-        type="button"
-        class="btn-default"
-        data-toggle="collapse"
-        data-target="#gui_container_gui"
-        style="
-          background-color: rgb(60, 60, 60);
-          border: 1px solid rgb(90, 90, 90);
-          border-style: none none solid none;
-          font-size: 12px;
-          color: #fff;
-          padding: 3px;
-          width: 100%;
-        "
-      >
-        Controls
-      </button>
-      <div id="gui_container_gui" class="panel-collapse collapse in"></div>
     </div>
     <div id="alert_uv" class="alert_container"></div>
     <div id="alert_size" class="alert_container"></div>
