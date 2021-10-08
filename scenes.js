@@ -686,9 +686,9 @@ function animate() {
             camera_patch.position.set(0, 0.5*max_radius, 2 * max_radius);
             controls_patch.saveState();
             camera_patch.far = 100;
-            camera_patch.near = 0.05;
+            camera_patch.near = 0.01;
             controls_patch.maxZ = 50;
-            controls_patch.minZ = 0.1;
+            controls_patch.minZ = 0.02;
             controls.maxDistance = 5;
             directional_light.shadow.mapSize.width = 4096;
             directional_light.shadow.mapSize.height = 4096;
