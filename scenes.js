@@ -683,12 +683,12 @@ function animate() {
             patch = patch_loader(garment);
             patch.name = "patch";
             scene_patch.add(patch);
-            camera_patch.position.set(0, 0, 2 * max_radius);
+            camera_patch.position.set(0, 0.5*max_radius, 2 * max_radius);
             controls_patch.saveState();
-            camera_patch.far = max_radius * 50;
-            camera_patch.near = max_radius * 0.01;
-            controls_patch.maxZ = max_radius * 20;
-            controls_patch.minZ = max_radius * 0.015;
+            camera_patch.far = 100;
+            camera_patch.near = 0.05;
+            controls_patch.maxZ = 50;
+            controls_patch.minZ = 0.1;
             controls.maxDistance = 5;
             directional_light.shadow.mapSize.width = 4096;
             directional_light.shadow.mapSize.height = 4096;
@@ -2599,18 +2599,12 @@ function patch_loader(garment) {
                 let individual_patch = individual_garmentToPatch(patch_geo, individual_i, geo_uv)
                 let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
                 individual_patch.computeBoundingBox();
-                let x_max = individual_patch.boundingBox.max.x;
                 let y_max = individual_patch.boundingBox.max.y;
-                let x_min = individual_patch.boundingBox.min.x;
-                let y_min = individual_patch.boundingBox.min.y;
                 if (highest.y < (y_max + highest.last_layer_y)) {
                     highest.y = y_max + highest.last_layer_y
                 }
-                let radius_x = (x_max - x_min);
-                let radius_y = (y_max - y_min);
-                max_radius = max_radius < radius_x ? radius_x : max_radius;
-                max_radius = max_radius < radius_y ? radius_y : max_radius;
-                patch_map.position.set(0, highest.last_layer_y - 0.5, 0);
+                if (highest.y > max_radius) max_radius = highest.y
+                patch_map.position.set(0, highest.last_layer_y, 0);
                 patch_map.name = randomString();
                 group_3d.add(patch_map);
             }
@@ -2622,18 +2616,12 @@ function patch_loader(garment) {
             let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
             patch_map.name = garment.children[0].children[x].name;
             patch_geo.computeBoundingBox();
-            let x_max = patch_geo.boundingBox.max.x;
             let y_max = patch_geo.boundingBox.max.y;
-            let x_min = patch_geo.boundingBox.min.x;
-            let y_min = patch_geo.boundingBox.min.y;
             if (highest.y < (y_max + highest.last_layer_y)) {
                 highest.y = y_max + highest.last_layer_y
             }
-            let radius_x = (x_max - x_min);
-            let radius_y = (y_max - y_min);
-            max_radius = max_radius < radius_x ? radius_x : max_radius;
-            max_radius = max_radius < radius_y ? radius_y : max_radius;
-            patch_map.position.set(0, highest.last_layer_y - 0.5, 0);
+            if (highest.y > max_radius) max_radius = highest.y
+            patch_map.position.set(0, highest.last_layer_y, 0);
             newobj.add(patch_map);
         }
     }
