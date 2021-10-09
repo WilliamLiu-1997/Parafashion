@@ -80,7 +80,7 @@ var folder_basic, folder_env, material_folder, basic_texture, lambert_texture, p
 
 
 
-var garments_obj = "./obj/garments_high_poly.obj"
+var garments_obj = "./obj/garments.obj"
 
 
 let outlinePass_params_cover = {
