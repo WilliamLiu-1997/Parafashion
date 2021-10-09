@@ -251,7 +251,7 @@ var gui_options = {
             }, 1000)
             show_processing()
             obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
-            produce_geo(cut_obj[0].geometry.attributes.position.array, draw_line)
+            produce_geo(cut_obj[0].geometry.attributes.position.array, cut_obj[0], draw_line)
         }
     },
     Overall_Reflectivity: 1,
@@ -683,7 +683,7 @@ function animate() {
             patch = patch_loader(garment);
             patch.name = "patch";
             scene_patch.add(patch);
-            camera_patch.position.set(0, 0.5*max_radius, 2 * max_radius);
+            camera_patch.position.set(0, 0.5 * max_radius, 2 * max_radius);
             controls_patch.saveState();
             camera_patch.far = 100;
             camera_patch.near = 0.01;
@@ -2277,7 +2277,14 @@ function get_face_position(position) {
     return [faces, positions]
 }
 
-function produce_geo(position, line = false) {
+function produce_geo(position, cut_geometry, line = false) {
+
+    for (let i = 0; i < patch.children.length; i++) {
+        if (patch.children[i].name == cut_geometry.name) {
+            patch.remove(patch.children[i])
+            break
+        }
+    }
 
     let [face_js, position_js] = get_face_position(position)
 
@@ -2316,9 +2323,9 @@ function produce_geo(position, line = false) {
         show_all(garment);
         Wireframe();
         Material_Update_Param(true);
+        reload_patch(cut_obj[0]);
         select_recovery();
         cover_recovery();
-        reload_patch(garment);
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         hide_loading();
         passed_time = 0;
@@ -2629,21 +2636,57 @@ function patch_loader(garment) {
 }
 
 
-function reload_patch(garment) {
-    patch.traverse(function (child) {
-        if (child.type === "Mesh") {
-            child.geometry.dispose()
-            if (Array.isArray(child.material)) {
-                for (let m = 0; m < child.material.length; m++) {
-                    child.material[m].dispose()
-                }
-            } else { child.material.dispose() }
+function reload_patch(new_mesh) {
+    let patch_geo = new_mesh.geometry.clone();
+    let patch_mtl = Array.isArray(new_mesh.material) ? array_default_material_clone(new_mesh.material, true) : new_mesh.material.clone();
+
+    let geo_uv = patch_geo.getAttribute('uv').array
+    if (patch_geo.groups && patch_geo.groups.length > 0) {
+        let group_3d = new THREE.Group();
+        for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
+            let individual_patch = individual_garmentToPatch(patch_geo, individual_i, geo_uv)
+            let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
+            individual_patch.computeBoundingBox();
+            patch_map.name = randomString();
+            group_3d.add(patch_map);
         }
-    })
-    scene_patch.remove(patch)
-    patch = patch_loader(garment);
-    patch.name = "patch";
-    scene_patch.add(patch);
+        group_3d.name = new_mesh.name;
+        patch.add(group_3d)
+    }
+    else {
+        patch_geo = individual_garmentToPatch(patch_geo, 0, geo_uv);
+        let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
+        patch_map.name = new_mesh.name;
+        patch_geo.computeBoundingBox();
+        patch.add(patch_map);
+    }
+    let highest = { layer: 0, y: 0, last_layer_y: 0 };
+    for (let i = 0; i < patch.children.length; i++) {
+        if (highest.layer < i) {
+            highest.layer += 1;
+            highest.last_layer_y = highest.y + 0.5
+        }
+        if (patch.children[i].hasOwnProperty("children") && patch.children[i].children.length > 0) {
+            for (let individual_i = 0; individual_i < patch.children[i].children.length; individual_i++) {
+                patch.children[i].children[individual_i].geometry.computeBoundingBox();
+                let y_max = patch.children[i].children[individual_i].geometry.boundingBox.max.y;
+                if (highest.y < (y_max + highest.last_layer_y)) {
+                    highest.y = y_max + highest.last_layer_y
+                }
+                if (highest.y > max_radius) max_radius = highest.y
+                patch.children[i].children[individual_i].position.set(0, highest.last_layer_y, 0);
+            }
+        }
+        else {
+            patch.children[i].geometry.computeBoundingBox();
+            let y_max = patch.children[i].geometry.boundingBox.max.y;
+            if (highest.y < (y_max + highest.last_layer_y)) {
+                highest.y = y_max + highest.last_layer_y
+            }
+            if (highest.y > max_radius) max_radius = highest.y
+            patch.children[i].position.set(0, highest.last_layer_y, 0);
+        }
+    }
 }
 
 
@@ -2916,14 +2959,14 @@ function GUI_to_Texture() {
     }
     if (selected.length == 2) {
         selected[0].material[selected[1]] = obj_material
-        selected_patch[0].material = obj_material
+        selected_patch[0].material = obj_material.clone()
         let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
         selected[0].material[sym] = obj_material
-        selected_patch[0].parent.children[sym].material = obj_material
+        selected_patch[0].parent.children[sym].material = obj_material.clone()
     }
     else if (selected.length == 1) {
         selected[0].material = obj_material
-        selected_patch[0].material = obj_material
+        selected_patch[0].material = obj_material.clone()
     }
     Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
 }
@@ -3059,16 +3102,16 @@ function Material_Update_Param(reflectivity_change = false) {
         material_folder.show()
         let material = GUI_to_Obj_Param(selected[0].material[selected[1]])
         selected[0].material[selected[1]] = material
-        selected_patch[0].material = material
+        selected_patch[0].material = material.clone()
         let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
         selected[0].material[sym] = material
-        selected_patch[0].parent.children[sym].material = material
+        selected_patch[0].parent.children[sym].material = material.clone()
     }
     else if (selected.length == 1) {
         material_folder.show()
         let material = GUI_to_Obj_Param(selected[0].material)
         selected[0].material = material
-        selected_patch[0].material = material
+        selected_patch[0].material = material.clone()
     }
 }
 
@@ -3245,14 +3288,14 @@ function GUI_to_Obj(obj_material_original) {
     }
     if (selected.length == 2) {
         selected[0].material[selected[1]] = obj_material
-        selected_patch[0].material = obj_material
+        selected_patch[0].material = obj_material.clone()
         let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
         selected[0].material[sym] = obj_material
-        selected_patch[0].parent.children[sym].material = obj_material
+        selected_patch[0].parent.children[sym].material = obj_material.clone()
     }
     else if (selected.length == 1) {
         selected[0].material = obj_material
-        selected_patch[0].material = obj_material
+        selected_patch[0].material = obj_material.clone()
     }
     GUI_to_Texture()
 }
@@ -3283,6 +3326,8 @@ function load_material() {
 
 
 function Change_Mode() {
+    cover_recovery()
+    select_recovery()
     if (gui_options.Mode == "Cutting Model") {
         $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After drawing a line for cutting, we will remove its materials and they cannot be recovered!&nbsp;&nbsp;</div>');
         gui_options.cut = true;
@@ -3295,10 +3340,6 @@ function Change_Mode() {
         cut_component.hide();
         gui_options.cut = false;
     }
-
-    cover_recovery()
-    select_recovery()
-    return;
 }
 
 function Change_material() {
