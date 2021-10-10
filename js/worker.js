@@ -3,8 +3,12 @@ importScripts('three_worker.js')
 
 self.addEventListener('message', function (e) {
     Module["onRuntimeInitialized"] = function () {
-        let success = 2;
+        let success = 3;
         let [face_js, position_js, line] = e.data
+        if (line && line.length == 0) {
+            self.postMessage([false, 2]);
+            return
+        }
 
         let Faces = new Module.vector$vector$size_t$$()
         let Coords = new Module.vector$vector$double$$()
@@ -49,11 +53,7 @@ self.addEventListener('message', function (e) {
                 self.postMessage([false, success]);
             } else {
                 success = 1;
-                try { Module.DerivePatchLayout(Faces, Coords, Faces, Coords, new Module.vector$vector$vector$double$$$(), FacesOut, CoordsOut, Partition, FaceVertUV) }
-                catch (error) {
-                    success = 0;
-                    self.postMessage([false, success]);
-                }
+                self.postMessage([false, success]);
             }
         }
 

@@ -30,6 +30,7 @@ let failed = false;
 let loading_time;
 let passed_time = 0;
 let vertices;
+let old_garment = new THREE.Object3D();
 
 let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
@@ -244,11 +245,20 @@ var gui_options = {
     },
     process_geo: function () {
         if (cut_obj.length > 0) {
-            $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 300) + "s(" + passed_time + "s) to process the model.");
-            loading_time = setInterval(() => {
-                passed_time += 1
-                $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 300) + "s(" + passed_time + "s) to process the model.");
-            }, 1000)
+            if (draw_line.length > 0) {
+                $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 300 + draw_line.length) + "s(" + passed_time + "s) to process the model.");
+                loading_time = setInterval(() => {
+                    passed_time += 1
+                    $("#small_info").text("This may take around " + Math.ceil(cut_obj[0].geometry.getAttribute("position").count / 300 + draw_line.length) + "s(" + passed_time + "s) to process the model.");
+                }, 1000)
+            }
+            else {
+                $("#small_info").text("This may take around " + Math.ceil(10 / 300) + "s(" + passed_time + "s) to process the model.");
+                loading_time = setInterval(() => {
+                    passed_time += 1
+                    $("#small_info").text("This may take around " + Math.ceil(10 / 300) + "s(" + passed_time + "s) to process the model.");
+                }, 1000)
+            }
             show_processing()
             obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
             produce_geo(cut_obj[0].geometry.attributes.position.array, cut_obj[0], draw_line)
@@ -730,7 +740,21 @@ function animate() {
 
             hide_loading();
             GUI_init();
-
+            garment.traverse((child) => {
+                if (child.type === "Mesh") {
+                    let copy = child.clone()
+                    copy.geometry = copy.geometry.clone()
+                    if (Array.isArray(copy.material)) {
+                        for (let m = 0; m < copy.material.length; m++) {
+                            copy.material[m] = copy.material[m].clone()
+                        }
+                    }
+                    else {
+                        copy.material = copy.material.clone()
+                    }
+                    old_garment.add(copy)
+                }
+            })
         }
         else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
             gui.updateDisplay();
@@ -1041,7 +1065,7 @@ function onmouseUp(event) {
     }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
-        if (draw_line.length > 0 && draw_line[draw_line.length - 1].length <= 5) {
+        if (draw_line.length > 0 && draw_line[draw_line.length - 1].length <= 10) {
             draw_line.pop()
             draw_line_show.pop()
             draw_line_show_back.pop()
@@ -1484,7 +1508,7 @@ function draw(pointers, camera, cut_obj) {
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line[draw_line.length - 1].length <= 5) {
+                } else if (draw_line[draw_line.length - 1].length <= 10) {
                     draw_line[draw_line.length - 1] = []
                     draw_line_show[draw_line_show.length - 1] = []
                     draw_line_show_back[draw_line_show_back.length - 1] = []
@@ -1561,7 +1585,7 @@ function draw_straight(pointers, camera, cut_obj) {
                 if (a < 5) {
                     let position = intersects[0].point.clone();
                     last_instance_position = position.clone()
-                } else if (draw_line[draw_line.length - 1].length <= 5) {
+                } else if (draw_line[draw_line.length - 1].length <= 10) {
                     draw_line[draw_line.length - 1] = []
                     draw_line_show[draw_line_show.length - 1] = []
                     draw_line_show_back[draw_line_show_back.length - 1] = []
@@ -2291,6 +2315,7 @@ function produce_geo(position, cut_geometry, line = false) {
     let worker = new Worker("js/worker.js")
     worker.postMessage([face_js, position_js, line]);
     worker.onmessage = function (e) {
+        let geo = new THREE.BufferGeometry()
         let [geo_Derive, result_Derive] = e.data
         if (result_Derive == 0 && !failed) {
             failed = true
@@ -2299,11 +2324,23 @@ function produce_geo(position, cut_geometry, line = false) {
         }
         if (result_Derive == 1) {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
+            old_garment.traverse((child) => {
+                if (child.type === "Mesh" && child.name === cut_obj[0].name) {
+                    geo = child.geometry.clone()
+                }
+            })
+        }
+        else if (result_Derive == 2) {
+            old_garment.traverse((child) => {
+                if (child.type === "Mesh" && child.name === cut_obj[0].name) {
+                    geo = child.geometry.clone()
+                }
+            })
+        } else {
+            clone_attribute(geo, geo_Derive)
+            geo.groups = geo_Derive.groups
         }
 
-        let geo = new THREE.BufferGeometry()
-        clone_attribute(geo, geo_Derive)
-        geo.groups = geo_Derive.groups
         let default_material = new THREE.MeshPhongMaterial({ color: 0xccffff, reflectivity: 0.1, side: THREE.DoubleSide })
         let material = []
         for (let group_i = 0; group_i < geo.groups.length; group_i += 2) {
