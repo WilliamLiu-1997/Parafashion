@@ -3181,14 +3181,20 @@ function Stress() {
                         let pos_patch = geo_patch.getAttribute("position");
                         let color_patch = new Float32Array(count * 3);
                         for (let i = start; i < start + count; i += 3) {
-                            let vec_A = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
-                            let vec_B = new THREE.Vector3(pos.getX(i + 1), pos.getY(i + 1), pos.getZ(i + 1));
-                            let vec_C = new THREE.Vector3(pos.getX(i + 2), pos.getY(i + 2), pos.getZ(i + 2));
-                            let vec_patch_A = new THREE.Vector3(pos_patch.getX(i - start), pos_patch.getY(i - start), pos_patch.getZ(i - start));
-                            let vec_patch_B = new THREE.Vector3(pos_patch.getX(i - start + 1), pos_patch.getY(i - start + 1), pos_patch.getZ(i - start + 1));
-                            let vec_patch_C = new THREE.Vector3(pos_patch.getX(i - start + 2), pos_patch.getY(i - start + 2), pos_patch.getZ(i - start + 2));
-                            let area = vec_B.sub(vec_A).cross(vec_C.sub(vec_A)).length();
-                            let area_patch = vec_patch_B.sub(vec_patch_A).cross(vec_patch_C.sub(vec_patch_A)).length();
+                            let pos_A = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
+                            let pos_B = new THREE.Vector3(pos.getX(i + 1), pos.getY(i + 1), pos.getZ(i + 1));
+                            let pos_C = new THREE.Vector3(pos.getX(i + 2), pos.getY(i + 2), pos.getZ(i + 2));
+                            let pos_patch_A = new THREE.Vector3(pos_patch.getX(i - start), pos_patch.getY(i - start), pos_patch.getZ(i - start));
+                            let pos_patch_B = new THREE.Vector3(pos_patch.getX(i - start + 1), pos_patch.getY(i - start + 1), pos_patch.getZ(i - start + 1));
+                            let pos_patch_C = new THREE.Vector3(pos_patch.getX(i - start + 2), pos_patch.getY(i - start + 2), pos_patch.getZ(i - start + 2));
+                            // let vec1 = pos_B.sub(pos_A).clone();
+                            // let vec2 = pos_C.sub(pos_A).clone();
+                            // let area = vec1.length() * vec2.length() * Math.abs(Math.sin(vec1.angleTo(vec2)))
+                            // let vec1_patch = pos_patch_B.sub(pos_patch_A).clone();
+                            // let vec2_patch = pos_patch_C.sub(pos_patch_A).clone();
+                            // let area_patch = vec1_patch.length() * vec2_patch.length() * Math.abs(Math.sin(vec1_patch.angleTo(vec2_patch)))
+                            let area = pos_B.sub(pos_A).cross(pos_C.sub(pos_A)).length();
+                            let area_patch = pos_patch_B.sub(pos_patch_A).cross(pos_patch_C.sub(pos_patch_A)).length();
                             let h = (area_patch - area) / area_patch * 3 + 1 / 3
                             h = h < 0 ? 0 : h;
                             h > 1 / 3 ? 1 / 3 : h;
