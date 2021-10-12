@@ -273,6 +273,7 @@ var gui_options = {
     Straight: false,
     light: "Camera Light",
     Wireframe: false,
+    Stress: false,
 }
 
 
@@ -353,6 +354,25 @@ var Material_Type_Folder = {
 }
 
 var Material = {
+    resetAll: function () {
+        gui_options.Overall_Reflectivity = NaN
+        garment.traverse((child) => {
+            if (child.type == "Mesh") {
+                for (var n of original) {
+                    if (n.name == child.name) {
+                        patch.traverse((child_patch) => {
+                            if (child_patch.type == "Group" && child_patch.name == child.name) {
+                                for (let i = 0; i < child.material.length; i++) {
+                                    child.material[i] = n.material[i].clone()
+                                    child_patch.children[i].material = n.material[i].clone()
+                                }
+                            }
+                        })
+                    }
+                }
+            }
+        })
+    },
     reset: function () {
         gui_options.Overall_Reflectivity = NaN
         if (selected.length == 2) {
@@ -383,6 +403,20 @@ var Material = {
             }
         }
         else { return }
+    },
+    saveAll: function () {
+        gui_options.Overall_Reflectivity = NaN
+        garment.traverse((child) => {
+            if (child.type == "Mesh") {
+                for (var n of original) {
+                    if (n.name == child.name) {
+                        for (let i = 0; i < child.material.length; i++) {
+                            n.material[i] = child.material[i].clone()
+                        }
+                    }
+                }
+            }
+        })
     },
     save: function () {
         gui_options.Overall_Reflectivity = NaN
@@ -2359,6 +2393,7 @@ function produce_geo(position, cut_geometry, line = false) {
         $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
         show_all(garment);
         Wireframe();
+        Stress();
         Material_Update_Param(true);
         reload_patch(cut_obj[0]);
         select_recovery();
@@ -2752,13 +2787,14 @@ function GUI_init() {
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     folder_env.add(controls, 'autoRotate').name("Auto Rotate");
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
-    folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe());
+    folder_env.add(gui_options, 'Stress').onChange(() => Stress()).name('Show Stress');
+    folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe()).name('Show Wireframe');
     // other options: "BathRoom", 'Church', "Gallery", "Square"
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
-    material_folder.add(Material, "reset").name('Material Recovery')
-    material_folder.add(Material, "save").name('Save Material')
+    // material_folder.add(Material, "reset").name('Material Recovery')
+    // material_folder.add(Material, "save").name('Save Material')
     material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
     //material_folder.add(Material, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
@@ -3130,6 +3166,112 @@ function Wireframe() {
     })
 }
 
+function Stress() {
+    garment.traverse((child) => {
+        if (child.type === "Mesh") {
+            patch.traverse((patch_child) => {
+                if (patch_child.type === "Group" && patch_child.name == child.name) {
+                    let geo = child.geometry;
+                    let pos = geo.getAttribute("position");
+                    let color = new Float32Array(pos.count * 3);
+                    for (let group = 0; group < geo.groups.length; group++) {
+                        let start = geo.groups[group].start;
+                        let count = geo.groups[group].count;
+                        let geo_patch = patch_child.children[group].geometry;
+                        let pos_patch = geo_patch.getAttribute("position");
+                        let color_patch = new Float32Array(count * 3);
+                        for (let i = start; i < start + count; i += 3) {
+                            let vec_A = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
+                            let vec_B = new THREE.Vector3(pos.getX(i + 1), pos.getY(i + 1), pos.getZ(i + 1));
+                            let vec_C = new THREE.Vector3(pos.getX(i + 2), pos.getY(i + 2), pos.getZ(i + 2));
+                            let vec_patch_A = new THREE.Vector3(pos_patch.getX(i - start), pos_patch.getY(i - start), pos_patch.getZ(i - start));
+                            let vec_patch_B = new THREE.Vector3(pos_patch.getX(i - start + 1), pos_patch.getY(i - start + 1), pos_patch.getZ(i - start + 1));
+                            let vec_patch_C = new THREE.Vector3(pos_patch.getX(i - start + 2), pos_patch.getY(i - start + 2), pos_patch.getZ(i - start + 2));
+                            let area = vec_B.sub(vec_A).cross(vec_C.sub(vec_A)).length();
+                            let area_patch = vec_patch_B.sub(vec_patch_A).cross(vec_patch_C.sub(vec_patch_A)).length();
+                            let h = (area_patch - area) / area_patch * 3 + 1 / 3
+                            h = h < 0 ? 0 : h;
+                            h > 1 / 3 ? 1 / 3 : h;
+                            let c = new THREE.Color();
+                            c.setHSL(h * 360, 1, 0.5);
+                            color[i * 3] = c.r;
+                            color[i * 3 + 1] = c.g;
+                            color[i * 3 + 2] = c.b;
+                            color[i * 3 + 3] = c.r;
+                            color[i * 3 + 4] = c.g;
+                            color[i * 3 + 5] = c.b;
+                            color[i * 3 + 6] = c.r;
+                            color[i * 3 + 7] = c.g;
+                            color[i * 3 + 8] = c.b;
+                            color_patch[i * 3 - start * 3] = c.r;
+                            color_patch[i * 3 + 1 - start * 3] = c.g;
+                            color_patch[i * 3 + 2 - start * 3] = c.b;
+                            color_patch[i * 3 + 3 - start * 3] = c.r;
+                            color_patch[i * 3 + 4 - start * 3] = c.g;
+                            color_patch[i * 3 + 5 - start * 3] = c.b;
+                            color_patch[i * 3 + 6 - start * 3] = c.r;
+                            color_patch[i * 3 + 7 - start * 3] = c.g;
+                            color_patch[i * 3 + 8 - start * 3] = c.b;
+                        }
+                        geo_patch.setAttribute('color', new THREE.Float32BufferAttribute(color_patch, 3));
+                    }
+                    geo.setAttribute('color', new THREE.Float32BufferAttribute(color, 3));
+                }
+            });
+        }
+    });
+    if (gui_options.Stress) {
+        Material.saveAll();
+    }
+    garment.traverse(function (child) {
+        if (child.type === "Mesh" && child.material) {
+            if (Array.isArray(child.material)) {
+                for (let i = 0; i < child.material.length; i++) {
+                    if (gui_options.Stress) {
+                        child.material[i] = new THREE.MeshBasicMaterial();
+                    }
+                    child.material[i].side=THREE.DoubleSide
+                    child.material[i].vertexColors = gui_options.Stress
+                    child.material[i].needsUpdate = true;
+                }
+            }
+            else {
+                if (gui_options.Stress) {
+                    child.material = new THREE.MeshBasicMaterial();
+                }
+                child.material.side = THREE.DoubleSide
+                child.material.vertexColors = gui_options.Stress
+                child.material.needsUpdate = true;
+            }
+        }
+    })
+    patch.traverse(function (child) {
+        if (child.type === "Mesh" && child.material) {
+            if (Array.isArray(child.material)) {
+                for (let i = 0; i < child.material.length; i++) {
+                    if (gui_options.Stress) {
+                        child.material[i] = new THREE.MeshBasicMaterial();
+                    }
+                    child.material[i].side = THREE.DoubleSide
+                    child.material[i].vertexColors = gui_options.Stress
+                    child.material[i].needsUpdate = true;
+                }
+            }
+            else {
+                if (gui_options.Stress) {
+                    child.material = new THREE.MeshBasicMaterial();
+                }
+                child.material.side = THREE.DoubleSide
+                child.material.vertexColors = gui_options.Stress
+                child.material.needsUpdate = true;
+            }
+        }
+    })
+    if (!gui_options.Stress) {
+        Material.resetAll();
+    }
+}
+
 
 function Material_Update_Param(reflectivity_change = false) {
     if (reflectivity_change) {
@@ -3366,7 +3508,7 @@ function Change_Mode() {
     cover_recovery()
     select_recovery()
     if (gui_options.Mode == "Cutting Model") {
-        $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After drawing a line for cutting, we will remove its materials and they cannot be recovered!&nbsp;&nbsp;</div>');
+        $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After drawing a line for cutting, we will remove its materials!&nbsp;&nbsp;</div>');
         gui_options.cut = true;
         cut_component.show();
         cut_component.open();
