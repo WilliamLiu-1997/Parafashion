@@ -2392,6 +2392,8 @@ function produce_geo(position, cut_geometry, line = false) {
         obj_vertices_count += geo_mat[0].getAttribute("position").count;
         $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
         show_all(garment);
+        gui_options.Wireframe = false;
+        gui_options.Stress = false;
         Wireframe();
         Stress();
         Material_Update_Param(true);
@@ -3153,6 +3155,7 @@ function Wireframe() {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Wireframe) {
                         child.material[i] = new THREE.MeshBasicMaterial();
+                        child.material[i].color.setRGB(0.8, 0.8, 0.8)
                     }
                     child.material[i].wireframe = gui_options.Wireframe
                 }
@@ -3160,6 +3163,7 @@ function Wireframe() {
             else {
                 if (gui_options.Wireframe) {
                     child.material = new THREE.MeshBasicMaterial();
+                    child.material.color.setRGB(0.8, 0.8, 0.8)
                 }
                 child.material.wireframe = gui_options.Wireframe
             }
@@ -3171,6 +3175,7 @@ function Wireframe() {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Wireframe) {
                         child.material[i] = new THREE.MeshBasicMaterial();
+                        child.material[i].color.setRGB(0.8, 0.8, 0.8)
                     }
                     child.material[i].wireframe = gui_options.Wireframe
                 }
@@ -3178,6 +3183,7 @@ function Wireframe() {
             else {
                 if (gui_options.Wireframe) {
                     child.material = new THREE.MeshBasicMaterial();
+                    child.material.color.setRGB(0.8, 0.8, 0.8)
                 }
                 child.material.wireframe = gui_options.Wireframe
             }
@@ -3205,7 +3211,6 @@ function Stress() {
                         let count = geo.groups[group].count;
                         let geo_patch = patch_child.children[group].geometry;
                         let pos_patch = geo_patch.getAttribute("position");
-                        let color_patch = new Float32Array(count * 3);
                         for (let i = start; i < start + count; i += 3) {
                             let pos_A = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
                             let pos_B = new THREE.Vector3(pos.getX(i + 1), pos.getY(i + 1), pos.getZ(i + 1));
@@ -3213,19 +3218,13 @@ function Stress() {
                             let pos_patch_A = new THREE.Vector3(pos_patch.getX(i - start), pos_patch.getY(i - start), pos_patch.getZ(i - start));
                             let pos_patch_B = new THREE.Vector3(pos_patch.getX(i - start + 1), pos_patch.getY(i - start + 1), pos_patch.getZ(i - start + 1));
                             let pos_patch_C = new THREE.Vector3(pos_patch.getX(i - start + 2), pos_patch.getY(i - start + 2), pos_patch.getZ(i - start + 2));
-                            // let vec1 = pos_B.sub(pos_A).clone();
-                            // let vec2 = pos_C.sub(pos_A).clone();
-                            // let area = vec1.length() * vec2.length() * Math.abs(Math.sin(vec1.angleTo(vec2)))
-                            // let vec1_patch = pos_patch_B.sub(pos_patch_A).clone();
-                            // let vec2_patch = pos_patch_C.sub(pos_patch_A).clone();
-                            // let area_patch = vec1_patch.length() * vec2_patch.length() * Math.abs(Math.sin(vec1_patch.angleTo(vec2_patch)))
                             let area = pos_B.sub(pos_A).cross(pos_C.sub(pos_A)).length();
                             let area_patch = pos_patch_B.sub(pos_patch_A).cross(pos_patch_C.sub(pos_patch_A)).length();
-                            let h = (area_patch - area) / area_patch * 3 + 1 / 3
+                            let h = (area_patch - area) / area_patch * 4.5 + 1 / 3
                             h = h < 0 ? 0 : h;
-                            h > 1 / 3 ? 1 / 3 : h;
+                            h > 2 / 3 ? 2 / 3 : h;
                             let c = new THREE.Color();
-                            c.setHSL(h * 360, 1, 0.5);
+                            c.setHSL(h, 1, 0.5);
                             color[i * 3] = c.r;
                             color[i * 3 + 1] = c.g;
                             color[i * 3 + 2] = c.b;
@@ -3235,17 +3234,46 @@ function Stress() {
                             color[i * 3 + 6] = c.r;
                             color[i * 3 + 7] = c.g;
                             color[i * 3 + 8] = c.b;
-                            color_patch[i * 3 - start * 3] = c.r;
-                            color_patch[i * 3 + 1 - start * 3] = c.g;
-                            color_patch[i * 3 + 2 - start * 3] = c.b;
-                            color_patch[i * 3 + 3 - start * 3] = c.r;
-                            color_patch[i * 3 + 4 - start * 3] = c.g;
-                            color_patch[i * 3 + 5 - start * 3] = c.b;
-                            color_patch[i * 3 + 6 - start * 3] = c.r;
-                            color_patch[i * 3 + 7 - start * 3] = c.g;
-                            color_patch[i * 3 + 8 - start * 3] = c.b;
                         }
-                        geo_patch.setAttribute('color', new THREE.Float32BufferAttribute(color_patch, 3));
+                    }
+
+                    let position_index = {}
+                    for (let i = 0; i < pos.count; i++) {
+                        let position = []
+                        position.push(pos.getX(i), pos.getY(i), pos.getZ(i))
+                        if (!position_index.hasOwnProperty(position)) {
+                            position_index[position] = [i]
+                        }
+                        else {
+                            position_index[position].push(i)
+                        }
+                    }
+                    for (let x in position_index) {
+                        let color_rgb = { "H": 0, "N": 0 }
+                        for (let y in position_index[x]) {
+                            let c = new THREE.Color(color[position_index[x][y] * 3], color[position_index[x][y] * 3 + 1], color[position_index[x][y] * 3 + 2])
+                            color_rgb["H"] += c.getHSL({}).h
+                            color_rgb["N"] += 1
+                        }
+                        color_rgb["H"] /= color_rgb["N"]
+                        let c = new THREE.Color()
+                        c.setHSL(color_rgb["H"], 1, 0.5)
+                        for (let y in position_index[x]) {
+                            color[position_index[x][y] * 3] = c.r;
+                            color[position_index[x][y] * 3 + 1] = c.g;
+                            color[position_index[x][y] * 3 + 2] = c.b;
+                        }
+                    }
+                    for (let group = 0; group < geo.groups.length; group++) {
+                        let start = geo.groups[group].start;
+                        let count = geo.groups[group].count;
+                        let color_patch = new Float32Array(count * 3);
+                        for (let i = start; i < start + count; i++) {
+                            color_patch[i * 3 - start * 3] = color[i * 3];
+                            color_patch[i * 3 + 1 - start * 3] = color[i * 3 + 1];
+                            color_patch[i * 3 + 2 - start * 3] = color[i * 3 + 2];
+                        }
+                        patch_child.children[group].geometry.setAttribute('color', new THREE.Float32BufferAttribute(color_patch, 3));
                     }
                     geo.setAttribute('color', new THREE.Float32BufferAttribute(color, 3));
                 }
