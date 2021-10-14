@@ -2613,7 +2613,7 @@ function obj_loader(url_obj, scale) {
                     child.receiveShadow = true;
                     vertices += child.geometry.attributes.position.count
                     $("#vertice_num").html("<p>Vertices: " + vertices + "</p>")
-                    $("#small_info").text("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.");
+                    $("#small_info").html("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.<br>This may be longer for the first time.");
                     child.geometry.computeBoundingBox();
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
                     y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
@@ -2626,7 +2626,7 @@ function obj_loader(url_obj, scale) {
             passed_time = 0;
             loading_time = setInterval(() => {
                 passed_time += 1
-                $("#small_info").text("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.");
+                $("#small_info").html("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.<br>This may be longer for the first time.");
             }, 1000)
             let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             obj_size = 1
