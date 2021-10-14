@@ -3140,14 +3140,27 @@ function Material_Update(reflectivity_change = false) {
 }
 
 function Wireframe() {
+    if (gui_options.Stress) {
+        gui_options.Wireframe = false;
+        return;
+    }
+    if (gui_options.Wireframe) {
+        Material.saveAll();
+    }
     garment.traverse(function (child) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
-                child.material.forEach(function (m) {
-                    m.wireframe = gui_options.Wireframe
-                })
+                for (let i = 0; i < child.material.length; i++) {
+                    if (gui_options.Wireframe) {
+                        child.material[i] = new THREE.MeshBasicMaterial();
+                    }
+                    child.material[i].wireframe = gui_options.Wireframe
+                }
             }
             else {
+                if (gui_options.Wireframe) {
+                    child.material = new THREE.MeshBasicMaterial();
+                }
                 child.material.wireframe = gui_options.Wireframe
             }
         }
@@ -3155,18 +3168,31 @@ function Wireframe() {
     patch.traverse(function (child) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
-                child.material.forEach(function (m) {
-                    m.wireframe = gui_options.Wireframe
-                })
+                for (let i = 0; i < child.material.length; i++) {
+                    if (gui_options.Wireframe) {
+                        child.material[i] = new THREE.MeshBasicMaterial();
+                    }
+                    child.material[i].wireframe = gui_options.Wireframe
+                }
             }
             else {
+                if (gui_options.Wireframe) {
+                    child.material = new THREE.MeshBasicMaterial();
+                }
                 child.material.wireframe = gui_options.Wireframe
             }
         }
     })
+    if (!gui_options.Wireframe) {
+        Material.resetAll();
+    }
 }
 
 function Stress() {
+    if (gui_options.Wireframe) {
+        gui_options.Stress = false;
+        return;
+    }
     garment.traverse((child) => {
         if (child.type === "Mesh") {
             patch.traverse((patch_child) => {
@@ -3236,7 +3262,7 @@ function Stress() {
                     if (gui_options.Stress) {
                         child.material[i] = new THREE.MeshBasicMaterial();
                     }
-                    child.material[i].side=THREE.DoubleSide
+                    child.material[i].side = THREE.DoubleSide
                     child.material[i].vertexColors = gui_options.Stress
                     child.material[i].needsUpdate = true;
                 }
