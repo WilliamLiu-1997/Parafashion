@@ -77,7 +77,7 @@ let texture_state = 0;
 var url = ""
 
 let composer, outlinePass, outlinePass_select, composer_patch, outlinePass_patch, outlinePass_patch_select;
-var folder_basic, folder_env, material_folder, basic_texture, lambert_texture, phong_texture, toon_texture, standard_texture, physical_texture;
+var folder_basic, folder_env, folder_sen, material_folder, basic_texture, lambert_texture, phong_texture, toon_texture, standard_texture, physical_texture;
 
 
 
@@ -274,6 +274,7 @@ var gui_options = {
     light: "Camera Light",
     Wireframe: false,
     Stress: false,
+    Stress_Sensitivity: 3,
 }
 
 
@@ -2789,8 +2790,12 @@ function GUI_init() {
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     folder_env.add(controls, 'autoRotate').name("Auto Rotate");
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
-    folder_env.add(gui_options, 'Stress').onChange(() => Stress()).name('Show Stress');
     folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe()).name('Show Wireframe');
+    folder_env.add(gui_options, 'Stress').onChange(() => Stress()).name('Show Stress');
+    folder_sen = gui.addFolder("Stress Sensitivity")
+    folder_sen.add(gui_options, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false)).name('Stress Sensitivity');
+    folder_sen.open();
+    folder_sen.hide();
     // other options: "BathRoom", 'Church', "Gallery", "Square"
     folder_env.open()
 
@@ -3194,11 +3199,14 @@ function Wireframe() {
     }
 }
 
-function Stress() {
+function Stress(save = true) {
     if (gui_options.Wireframe) {
         gui_options.Stress = false;
+        folder_sen.hide();
         return;
     }
+    if (gui_options.Stress) { folder_sen.show(); }
+    else { folder_sen.hide(); }
     garment.traverse((child) => {
         if (child.type === "Mesh") {
             patch.traverse((patch_child) => {
@@ -3206,6 +3214,7 @@ function Stress() {
                     let geo = child.geometry;
                     let pos = geo.getAttribute("position");
                     let color = new Float32Array(pos.count * 3);
+                    let color_h = [];
                     for (let group = 0; group < geo.groups.length; group++) {
                         let start = geo.groups[group].start;
                         let count = geo.groups[group].count;
@@ -3220,20 +3229,10 @@ function Stress() {
                             let pos_patch_C = new THREE.Vector3(pos_patch.getX(i - start + 2), pos_patch.getY(i - start + 2), pos_patch.getZ(i - start + 2));
                             let area = pos_B.sub(pos_A).cross(pos_C.sub(pos_A)).length();
                             let area_patch = pos_patch_B.sub(pos_patch_A).cross(pos_patch_C.sub(pos_patch_A)).length();
-                            let h = (area_patch - area) / area_patch * 4.5 + 1 / 3
-                            h = h < 0 ? 0 : h;
-                            h > 2 / 3 ? 2 / 3 : h;
-                            let c = new THREE.Color();
-                            c.setHSL(h, 1, 0.5);
-                            color[i * 3] = c.r;
-                            color[i * 3 + 1] = c.g;
-                            color[i * 3 + 2] = c.b;
-                            color[i * 3 + 3] = c.r;
-                            color[i * 3 + 4] = c.g;
-                            color[i * 3 + 5] = c.b;
-                            color[i * 3 + 6] = c.r;
-                            color[i * 3 + 7] = c.g;
-                            color[i * 3 + 8] = c.b;
+                            let h = (area_patch - area) / area_patch * gui_options.Stress_Sensitivity + 1 / 3
+                            color_h[i] = h;
+                            color_h[i + 1] = h;
+                            color_h[i + 2] = h;
                         }
                     }
 
@@ -3251,11 +3250,12 @@ function Stress() {
                     for (let x in position_index) {
                         let color_rgb = { "H": 0, "N": 0 }
                         for (let y in position_index[x]) {
-                            let c = new THREE.Color(color[position_index[x][y] * 3], color[position_index[x][y] * 3 + 1], color[position_index[x][y] * 3 + 2])
-                            color_rgb["H"] += c.getHSL({}).h
+                            color_rgb["H"] += color_h[position_index[x][y]]
                             color_rgb["N"] += 1
                         }
                         color_rgb["H"] /= color_rgb["N"]
+                        color_rgb["H"] = color_rgb["H"] < 0 ? 0 : color_rgb["H"];
+                        color_rgb["H"] > 2 / 3 ? 2 / 3 : color_rgb["H"];
                         let c = new THREE.Color()
                         c.setHSL(color_rgb["H"], 1, 0.5)
                         for (let y in position_index[x]) {
@@ -3280,7 +3280,7 @@ function Stress() {
             });
         }
     });
-    if (gui_options.Stress) {
+    if (gui_options.Stress && save) {
         Material.saveAll();
     }
     garment.traverse(function (child) {
