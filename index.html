@@ -86,6 +86,7 @@
 
     div.panel_box {
       position: absolute;
+      box-shadow: 0 0 2px 1px rgba(255, 255, 255, 0.5);
       top: 10%;
       width: 22%;
       min-width: 240px;
@@ -99,7 +100,7 @@
     .btn:active:focus,
     .btn:focus {
       outline: 0px auto -webkit-focus-ring-color;
-      outline-offset: 2px;
+      outline-offset: 0px;
     }
 
     .btn-group > .btn:first-child:not(:last-child):not(.dropdown-toggle) {
@@ -111,8 +112,9 @@
     .btn-group > .btn:last-child:not(:first-child),
     .btn-group > .dropdown-toggle:not(:first-child) {
       border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
+      border-top-right-radius: 0;
       border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
     }
 
     #gui_container {
@@ -401,7 +403,7 @@
         data-toggle="collapse"
         data-target="#gui_container_gui"
         style="
-          background-color: rgb(60, 60, 60);
+          background-color: rgb(45, 45, 45);
           border: 1px solid rgb(90, 90, 90);
           border-style: none none solid none;
           font-size: 12px;
@@ -431,8 +433,7 @@
               text-align: left;
             "
             onclick="customtextureToggle()"
-          >
-          </button>
+          ></button>
           <div class="dragFile">
             <div class="up-area">
               <div class="tip">Click or Drag to upload a texture...</div>
@@ -462,8 +463,8 @@
           type="button"
           class="btn"
           style="
-            background-color: rgb(60, 60, 60);
-            border: 1px solid rgb(90, 90, 90);
+            background-color: rgb(45, 45, 45);
+            border-right: 1px solid rgb(90, 90, 90);
             font-size: 12px;
             color: #fff;
             padding: 2px;
@@ -478,8 +479,8 @@
           type="button"
           class="btn"
           style="
-            background-color: rgb(60, 60, 60);
-            border: 1px solid rgb(90, 90, 90);
+            background-color: rgb(45, 45, 45);
+            border-left: 1px solid rgb(90, 90, 90);
             font-size: 12px;
             color: #fff;
             padding: 2px;
@@ -504,7 +505,7 @@
     <div id="transform"></div>
     <div id="vertice_num"></div>
     <script>
-      $("#CustomTexture").text("⏷ Custom Texture (map)")
+      $("#CustomTexture").text("⏷ Custom Texture (map)");
       var render_patch_flag = true;
       var patch_scaled = false;
       var resize_patch = false;
