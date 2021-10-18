@@ -2792,7 +2792,7 @@ function GUI_init() {
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe()).name('Show Wireframe');
     folder_env.add(gui_options, 'Stress').onChange(() => Stress()).name('Show Stress');
-    folder_sen = gui.addFolder("Stress Sensitivity")
+    folder_sen = folder_env.addFolder("Stress Sensitivity")
     folder_sen.add(gui_options, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false)).name('Stress Sensitivity');
     folder_sen.open();
     folder_sen.hide();
