@@ -3160,7 +3160,7 @@ function Wireframe() {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Wireframe) {
                         child.material[i] = new THREE.MeshBasicMaterial();
-                        child.material[i].color.setRGB(0.8, 0.8, 0.8)
+                        child.material[i].color.setRGB(0.9, 0.9, 0.9)
                     }
                     child.material[i].wireframe = gui_options.Wireframe
                 }
@@ -3168,7 +3168,7 @@ function Wireframe() {
             else {
                 if (gui_options.Wireframe) {
                     child.material = new THREE.MeshBasicMaterial();
-                    child.material.color.setRGB(0.8, 0.8, 0.8)
+                    child.material.color.setRGB(0.9, 0.9, 0.9)
                 }
                 child.material.wireframe = gui_options.Wireframe
             }
@@ -3180,7 +3180,7 @@ function Wireframe() {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Wireframe) {
                         child.material[i] = new THREE.MeshBasicMaterial();
-                        child.material[i].color.setRGB(0.8, 0.8, 0.8)
+                        child.material[i].color.setRGB(0.9, 0.9, 0.9)
                     }
                     child.material[i].wireframe = gui_options.Wireframe
                 }
@@ -3188,7 +3188,7 @@ function Wireframe() {
             else {
                 if (gui_options.Wireframe) {
                     child.material = new THREE.MeshBasicMaterial();
-                    child.material.color.setRGB(0.8, 0.8, 0.8)
+                    child.material.color.setRGB(0.9, 0.9, 0.9)
                 }
                 child.material.wireframe = gui_options.Wireframe
             }
