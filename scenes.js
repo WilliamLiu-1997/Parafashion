@@ -3195,11 +3195,11 @@ function Wireframe(reload_edge = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (reload_edge && gui_options.Wireframe && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
-                        let g = individual(child.geometry, i, 0.0005)
+                        let g = individual(child.geometry, i, 0.00035)
                         let edge_g = new THREE.EdgesGeometry(g, 90)
                         let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
                         edge.add(line)
-                        g = individual(child.geometry, i, -0.0005)
+                        g = individual(child.geometry, i, -0.00035)
                         edge_g = new THREE.EdgesGeometry(g, 90)
                         line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
                         edge.add(line)
@@ -3344,11 +3344,11 @@ function Stress(save = true, reload_edge = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (reload_edge && gui_options.Stress && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
-                        let g = individual(child.geometry, i, 0.0005)
+                        let g = individual(child.geometry, i, 0.00035)
                         let edge_g = new THREE.EdgesGeometry(g, 90)
                         let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
                         edge.add(line)
-                        g = individual(child.geometry, i, -0.0005)
+                        g = individual(child.geometry, i, -0.00035)
                         edge_g = new THREE.EdgesGeometry(g, 90)
                         line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
                         edge.add(line)
