@@ -3205,8 +3205,7 @@ function Wireframe(reload_edge = true) {
                         edge.add(line)
                     }
                     if (gui_options.Wireframe) {
-                        child.material[i] = new THREE.MeshPhongMaterial();
-                        child.material[i].color.setRGB(0.9, 0.9, 0.9)
+                        child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     }
                     child.material[i].wireframe = gui_options.Wireframe
                 }
@@ -3218,8 +3217,7 @@ function Wireframe(reload_edge = true) {
                     edge.add(line)
                 }
                 if (gui_options.Wireframe) {
-                    child.material = new THREE.MeshPhongMaterial();
-                    child.material.color.setRGB(0.9, 0.9, 0.9)
+                    child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                 }
                 child.material.wireframe = gui_options.Wireframe
             }
@@ -3230,16 +3228,14 @@ function Wireframe(reload_edge = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Wireframe) {
-                        child.material[i] = new THREE.MeshPhongMaterial();
-                        child.material[i].color.setRGB(0.9, 0.9, 0.9)
+                        child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     }
                     child.material[i].wireframe = gui_options.Wireframe
                 }
             }
             else {
                 if (gui_options.Wireframe) {
-                    child.material = new THREE.MeshPhongMaterial();
-                    child.material.color.setRGB(0.9, 0.9, 0.9)
+                    child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                 }
                 child.material.wireframe = gui_options.Wireframe
             }
@@ -3249,6 +3245,7 @@ function Wireframe(reload_edge = true) {
         Material.resetAll();
     }
     if (gui_options.focus) { hide_others(garment, cut_obj) }
+    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
 }
 
 function Stress(save = true, reload_edge = true) {
@@ -3354,7 +3351,7 @@ function Stress(save = true, reload_edge = true) {
                         edge.add(line)
                     }
                     if (gui_options.Stress) {
-                        child.material[i] = new THREE.MeshPhongMaterial();
+                        child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                         child.material[i].side = THREE.DoubleSide
                         child.material[i].needsUpdate = true;
                     }
@@ -3368,7 +3365,7 @@ function Stress(save = true, reload_edge = true) {
                     edge.add(line)
                 }
                 if (gui_options.Stress) {
-                    child.material = new THREE.MeshPhongMaterial();
+                    child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     child.material.side = THREE.DoubleSide
                     child.material.needsUpdate = true;
                 }
@@ -3381,7 +3378,7 @@ function Stress(save = true, reload_edge = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Stress) {
-                        child.material[i] = new THREE.MeshPhongMaterial();
+                        child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                         child.material[i].side = THREE.DoubleSide
                         child.material[i].needsUpdate = true;
                     }
@@ -3390,7 +3387,7 @@ function Stress(save = true, reload_edge = true) {
             }
             else {
                 if (gui_options.Stress) {
-                    child.material = new THREE.MeshPhongMaterial();
+                    child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     child.material.side = THREE.DoubleSide
                     child.material.needsUpdate = true;
                 }
@@ -3402,6 +3399,9 @@ function Stress(save = true, reload_edge = true) {
         Material.resetAll();
     }
     if (gui_options.focus) { hide_others(garment, cut_obj) }
+    if (save) {
+        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+    }
 }
 
 
