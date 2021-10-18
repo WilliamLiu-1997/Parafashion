@@ -221,6 +221,8 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
+        Stress(false, true)
+        Wireframe(true)
     },
     back: function () {
         if (line.children.length > 0) line.remove(line.children[line.children.length - 1]);
@@ -1494,8 +1496,6 @@ function select_recovery() {
     scene.remove(selected_obj_sym);
     show_all(garment);
     gui_options.focus = false;
-    Stress(false, true)
-    Wireframe(true)
     material_folder.hide()
     outlinePass_select.selectedObjects = []
     outlinePass_patch_select.selectedObjects = []
@@ -3195,11 +3195,11 @@ function Wireframe(reload_edge = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (reload_edge && gui_options.Wireframe && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
-                        let g = individual(child.geometry, i, 0.0003)
+                        let g = individual(child.geometry, i, 0.0005)
                         let edge_g = new THREE.EdgesGeometry(g, 90)
                         let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
                         edge.add(line)
-                        g = individual(child.geometry, i, -0.0003)
+                        g = individual(child.geometry, i, -0.0005)
                         edge_g = new THREE.EdgesGeometry(g, 90)
                         line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
                         edge.add(line)
@@ -3344,11 +3344,11 @@ function Stress(save = true, reload_edge = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (reload_edge && gui_options.Stress && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
-                        let g = individual(child.geometry, i, 0.0003)
+                        let g = individual(child.geometry, i, 0.0005)
                         let edge_g = new THREE.EdgesGeometry(g, 90)
                         let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
                         edge.add(line)
-                        g = individual(child.geometry, i, -0.0003)
+                        g = individual(child.geometry, i, -0.0005)
                         edge_g = new THREE.EdgesGeometry(g, 90)
                         line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
                         edge.add(line)
