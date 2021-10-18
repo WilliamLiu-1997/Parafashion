@@ -950,6 +950,8 @@ function onmouseDown(event) {
             select_cut(pointer, camera, event);
             if (cut_obj.length > 0) {
                 hide_others(garment, cut_obj);
+                Stress(false, true)
+                Wireframe(true)
                 set_cursor(4)
                 controls.maxDistance = 2;
             }
@@ -1491,6 +1493,9 @@ function select_recovery() {
     })
     scene.remove(selected_obj_sym);
     show_all(garment);
+    gui_options.focus = false;
+    Stress(false, true)
+    Wireframe(true)
     material_folder.hide()
     outlinePass_select.selectedObjects = []
     outlinePass_patch_select.selectedObjects = []
@@ -2099,10 +2104,6 @@ function select_cut(cover_pointer, cover_camera, event) {
 }
 
 function hide_others(garment, cut_obj) {
-    gui_options.Wireframe = false;
-    gui_options.Stress = false;
-    Wireframe();
-    Stress();
     gui_options.focus = true;
     if (Array.isArray(cut_obj[0].material)) {
         for (let i in cut_obj[0].material) {
@@ -2125,7 +2126,6 @@ function hide_others(garment, cut_obj) {
 }
 
 function show_all(garment) {
-    gui_options.focus = false;
     garment.traverse(function (child) {
         if (child.type === "Mesh") {
             if (Array.isArray(child.material)) {
@@ -2343,11 +2343,6 @@ function get_face_position(position) {
 
 function produce_geo(position, cut_geometry, line = false) {
 
-    gui_options.Wireframe = false;
-    gui_options.Stress = false;
-    Wireframe();
-    Stress();
-
     for (let i = 0; i < patch.children.length; i++) {
         if (patch.children[i].name == cut_geometry.name) {
             patch.remove(patch.children[i])
@@ -2397,6 +2392,18 @@ function produce_geo(position, cut_geometry, line = false) {
         gui_options.clear()
         geo = smoothNormals(geo)
 
+        let isWireframe = false;
+        let isStress = false;
+        if (gui_options.Wireframe) {
+            isWireframe = true;
+            gui_options.Wireframe = false;
+            Wireframe(false);
+        }
+        if (gui_options.Stress) {
+            isStress = true;
+            gui_options.Stress = false;
+            Stress(false, false);
+        }
         let geo_mat = [geo, material];
         cut_obj[0].geometry = geo_mat[0]
         cut_obj[0].material = geo_mat[1]
@@ -2420,6 +2427,14 @@ function produce_geo(position, cut_geometry, line = false) {
             if (original[i].geometry.groups.length > 0) {
                 original[i].material = original[i].material.slice(0)
             }
+        }
+        if (isWireframe) {
+            gui_options.Wireframe = true;
+            Wireframe(true);
+        }
+        if (isStress) {
+            gui_options.Stress = true;
+            Stress(true, true);
         }
         worker.terminate();
     }
@@ -2781,7 +2796,19 @@ function GUI_init() {
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     cut_component = folder_basic.addFolder("Cutting Control");
     cut_component.add(gui_options, 'Unselect');
-    cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => { if (gui_options.focus && cut_obj.length === 1) { hide_others(garment, cut_obj) } else { show_all(garment) } });
+    cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => {
+        if (gui_options.focus && cut_obj.length === 1) {
+            hide_others(garment, cut_obj);
+            Stress(false, true)
+            Wireframe(true)
+        }
+        else {
+            show_all(garment);
+            gui_options.focus = false;
+            Stress(false, true)
+            Wireframe(true)
+        }
+    });
     cut_component.add(gui_options, 'Straight').name("Straight Line");
     cut_component.add(gui_options, 'clear').name("Clear Lines");
     cut_component.add(gui_options, 'back').name("Go Back");
@@ -2798,7 +2825,7 @@ function GUI_init() {
     folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe()).name('Show Wireframe');
     folder_env.add(gui_options, 'Stress').onChange(() => Stress()).name('Show Stress');
     folder_sen = folder_env.addFolder("Stress Sensitivity")
-    folder_sen.add(gui_options, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false)).name('Stress Sensitivity');
+    folder_sen.add(gui_options, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false, false)).name('Stress Sensitivity');
     folder_sen.open();
     folder_sen.hide();
     // other options: "BathRoom", 'Church', "Gallery", "Square"
@@ -3151,11 +3178,14 @@ function Material_Update(reflectivity_change = false) {
     }
 }
 
-function Wireframe() {
-    show_all(garment);
+function Wireframe(reload_edge = true) {
     if (gui_options.Stress) {
         gui_options.Wireframe = false;
         return;
+    }
+    show_all(garment)
+    if (reload_edge) {
+        edge.clear();
     }
     if (gui_options.Wireframe) {
         Material.saveAll();
@@ -3164,16 +3194,31 @@ function Wireframe() {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
+                    if (reload_edge && gui_options.Wireframe && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
+                        let g = individual(child.geometry, i, 0.0003)
+                        let edge_g = new THREE.EdgesGeometry(g, 90)
+                        let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
+                        edge.add(line)
+                        g = individual(child.geometry, i, -0.0003)
+                        edge_g = new THREE.EdgesGeometry(g, 90)
+                        line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
+                        edge.add(line)
+                    }
                     if (gui_options.Wireframe) {
-                        child.material[i] = new THREE.MeshBasicMaterial();
+                        child.material[i] = new THREE.MeshPhongMaterial();
                         child.material[i].color.setRGB(0.9, 0.9, 0.9)
                     }
                     child.material[i].wireframe = gui_options.Wireframe
                 }
             }
             else {
+                if (reload_edge && gui_options.Wireframe && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
+                    let edge_g = new THREE.EdgesGeometry(child.geometry.clone(), 90)
+                    let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
+                    edge.add(line)
+                }
                 if (gui_options.Wireframe) {
-                    child.material = new THREE.MeshBasicMaterial();
+                    child.material = new THREE.MeshPhongMaterial();
                     child.material.color.setRGB(0.9, 0.9, 0.9)
                 }
                 child.material.wireframe = gui_options.Wireframe
@@ -3185,7 +3230,7 @@ function Wireframe() {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Wireframe) {
-                        child.material[i] = new THREE.MeshBasicMaterial();
+                        child.material[i] = new THREE.MeshPhongMaterial();
                         child.material[i].color.setRGB(0.9, 0.9, 0.9)
                     }
                     child.material[i].wireframe = gui_options.Wireframe
@@ -3193,7 +3238,7 @@ function Wireframe() {
             }
             else {
                 if (gui_options.Wireframe) {
-                    child.material = new THREE.MeshBasicMaterial();
+                    child.material = new THREE.MeshPhongMaterial();
                     child.material.color.setRGB(0.9, 0.9, 0.9)
                 }
                 child.material.wireframe = gui_options.Wireframe
@@ -3203,17 +3248,18 @@ function Wireframe() {
     if (!gui_options.Wireframe) {
         Material.resetAll();
     }
+    if (gui_options.focus) { hide_others(garment, cut_obj) }
 }
 
-function Stress(save = true) {
-    if (save) {
-        edge.clear();
-    }
-    show_all(garment);
+function Stress(save = true, reload_edge = true) {
     if (gui_options.Wireframe) {
         gui_options.Stress = false;
         folder_sen.hide();
         return;
+    }
+    show_all(garment)
+    if (reload_edge) {
+        edge.clear();
     }
     if (gui_options.Stress) { folder_sen.show(); }
     else { folder_sen.hide(); }
@@ -3297,7 +3343,7 @@ function Stress(save = true) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
-                    if (save && gui_options.Stress) {
+                    if (reload_edge && gui_options.Stress && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
                         let g = individual(child.geometry, i, 0.0003)
                         let edge_g = new THREE.EdgesGeometry(g, 90)
                         let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
@@ -3309,24 +3355,24 @@ function Stress(save = true) {
                     }
                     if (gui_options.Stress) {
                         child.material[i] = new THREE.MeshPhongMaterial();
+                        child.material[i].side = THREE.DoubleSide
+                        child.material[i].needsUpdate = true;
                     }
-                    child.material[i].side = THREE.DoubleSide
                     child.material[i].vertexColors = gui_options.Stress
-                    child.material[i].needsUpdate = true;
                 }
             }
             else {
-                if (save && gui_options.Stress) {
+                if (reload_edge && gui_options.Stress && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
                     let edge_g = new THREE.EdgesGeometry(child.geometry.clone(), 90)
                     let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
                     edge.add(line)
                 }
                 if (gui_options.Stress) {
                     child.material = new THREE.MeshPhongMaterial();
+                    child.material.side = THREE.DoubleSide
+                    child.material.needsUpdate = true;
                 }
-                child.material.side = THREE.DoubleSide
                 child.material.vertexColors = gui_options.Stress
-                child.material.needsUpdate = true;
             }
         }
     })
@@ -3336,25 +3382,26 @@ function Stress(save = true) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Stress) {
                         child.material[i] = new THREE.MeshPhongMaterial();
+                        child.material[i].side = THREE.DoubleSide
+                        child.material[i].needsUpdate = true;
                     }
-                    child.material[i].side = THREE.DoubleSide
                     child.material[i].vertexColors = gui_options.Stress
-                    child.material[i].needsUpdate = true;
                 }
             }
             else {
                 if (gui_options.Stress) {
                     child.material = new THREE.MeshPhongMaterial();
+                    child.material.side = THREE.DoubleSide
+                    child.material.needsUpdate = true;
                 }
-                child.material.side = THREE.DoubleSide
                 child.material.vertexColors = gui_options.Stress
-                child.material.needsUpdate = true;
             }
         }
     })
     if (!gui_options.Stress) {
         Material.resetAll();
     }
+    if (gui_options.focus) { hide_others(garment, cut_obj) }
 }
 
 
