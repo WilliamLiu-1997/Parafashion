@@ -2097,6 +2097,10 @@ function select_cut(cover_pointer, cover_camera, event) {
 }
 
 function hide_others(garment, cut_obj) {
+    gui_options.Wireframe = false;
+    gui_options.Stress = false;
+    Wireframe();
+    Stress();
     gui_options.focus = true;
     if (Array.isArray(cut_obj[0].material)) {
         for (let i in cut_obj[0].material) {
@@ -2338,6 +2342,11 @@ function get_face_position(position) {
 
 function produce_geo(position, cut_geometry, line = false) {
 
+    gui_options.Wireframe = false;
+    gui_options.Stress = false;
+    Wireframe();
+    Stress();
+
     for (let i = 0; i < patch.children.length; i++) {
         if (patch.children[i].name == cut_geometry.name) {
             patch.remove(patch.children[i])
@@ -2392,13 +2401,8 @@ function produce_geo(position, cut_geometry, line = false) {
         cut_obj[0].material = geo_mat[1]
         obj_vertices_count += geo_mat[0].getAttribute("position").count;
         $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
-        show_all(garment);
-        gui_options.Wireframe = false;
-        gui_options.Stress = false;
-        Wireframe();
-        Stress();
-        Material_Update_Param(true);
         reload_patch(cut_obj[0]);
+        Material_Update_Param(true);
         select_recovery();
         cover_recovery();
         Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
@@ -3147,6 +3151,7 @@ function Material_Update(reflectivity_change = false) {
 }
 
 function Wireframe() {
+    show_all(garment);
     if (gui_options.Stress) {
         gui_options.Wireframe = false;
         return;
@@ -3200,6 +3205,7 @@ function Wireframe() {
 }
 
 function Stress(save = true) {
+    show_all(garment);
     if (gui_options.Wireframe) {
         gui_options.Stress = false;
         folder_sen.hide();
