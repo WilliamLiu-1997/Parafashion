@@ -31,6 +31,7 @@ let loading_time;
 let passed_time = 0;
 let vertices;
 let old_garment = new THREE.Object3D();
+let edge = new THREE.Object3D();
 
 let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
@@ -521,6 +522,7 @@ function init() {
     scene.add(camera);
     env_light = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(env_light);
+    scene.add(edge);
 
     // postprocessing
     composer = new EffectComposer(renderer);
@@ -2153,8 +2155,7 @@ function rearrange_geo(geo, position, scale) {
 }
 
 
-
-function individual(bufGeom, ig) {
+function individual(bufGeom, ig, scale = 0.0005) {
     try {
         var groups = bufGeom.groups;
         var origVerts = bufGeom.getAttribute('position').array;
@@ -2178,9 +2179,9 @@ function individual(bufGeom, ig) {
 
             var indexOrigUV = 2 * (group.start + iv);
             var indexDestUV = 2 * iv;
-            newPositions[indexDest] = origVerts[indexOrig];
-            newPositions[indexDest + 1] = origVerts[indexOrig + 1];
-            newPositions[indexDest + 2] = origVerts[indexOrig + 2];
+            newPositions[indexDest] = origVerts[indexOrig] + origNormals[indexOrig] * scale;
+            newPositions[indexDest + 1] = origVerts[indexOrig + 1] + origNormals[indexOrig + 1] * scale;
+            newPositions[indexDest + 2] = origVerts[indexOrig + 2] + origNormals[indexOrig + 2] * scale;
 
             newNormals[indexDest] = origNormals[indexOrig];
             newNormals[indexDest + 1] = origNormals[indexOrig + 1];
@@ -2218,9 +2219,9 @@ function individual(bufGeom, ig) {
 
             var indexOrigUV = 2 * (group.start + iv);
             var indexDestUV = 2 * iv;
-            newPositions[indexDest] = origVerts[indexOrig];
-            newPositions[indexDest + 1] = origVerts[indexOrig + 1];
-            newPositions[indexDest + 2] = origVerts[indexOrig + 2];
+            newPositions[indexDest] = origVerts[indexOrig] + origNormals[indexOrig] * scale;
+            newPositions[indexDest + 1] = origVerts[indexOrig + 1] + origNormals[indexOrig + 1] * scale;
+            newPositions[indexDest + 2] = origVerts[indexOrig + 2] + origNormals[indexOrig + 2] * scale;
 
             newNormals[indexDest] = origNormals[indexOrig];
             newNormals[indexDest + 1] = origNormals[indexOrig + 1];
@@ -3205,6 +3206,9 @@ function Wireframe() {
 }
 
 function Stress(save = true) {
+    if (save) {
+        edge.clear();
+    }
     show_all(garment);
     if (gui_options.Wireframe) {
         gui_options.Stress = false;
@@ -3293,6 +3297,16 @@ function Stress(save = true) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
+                    if (save && gui_options.Stress) {
+                        let g = individual(child.geometry, i, 0.0003)
+                        let edge_g = new THREE.EdgesGeometry(g, 90)
+                        let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
+                        edge.add(line)
+                        g = individual(child.geometry, i, -0.0003)
+                        edge_g = new THREE.EdgesGeometry(g, 90)
+                        line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
+                        edge.add(line)
+                    }
                     if (gui_options.Stress) {
                         child.material[i] = new THREE.MeshPhongMaterial();
                     }
@@ -3302,6 +3316,11 @@ function Stress(save = true) {
                 }
             }
             else {
+                if (save && gui_options.Stress) {
+                    let edge_g = new THREE.EdgesGeometry(child.geometry.clone(), 90)
+                    let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
+                    edge.add(line)
+                }
                 if (gui_options.Stress) {
                     child.material = new THREE.MeshPhongMaterial();
                 }
