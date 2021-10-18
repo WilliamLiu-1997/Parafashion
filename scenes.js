@@ -3294,7 +3294,7 @@ function Stress(save = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Stress) {
-                        child.material[i] = new THREE.MeshBasicMaterial();
+                        child.material[i] = new THREE.MeshPhongMaterial();
                     }
                     child.material[i].side = THREE.DoubleSide
                     child.material[i].vertexColors = gui_options.Stress
@@ -3303,7 +3303,7 @@ function Stress(save = true) {
             }
             else {
                 if (gui_options.Stress) {
-                    child.material = new THREE.MeshBasicMaterial();
+                    child.material = new THREE.MeshPhongMaterial();
                 }
                 child.material.side = THREE.DoubleSide
                 child.material.vertexColors = gui_options.Stress
@@ -3316,7 +3316,7 @@ function Stress(save = true) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
                     if (gui_options.Stress) {
-                        child.material[i] = new THREE.MeshBasicMaterial();
+                        child.material[i] = new THREE.MeshPhongMaterial();
                     }
                     child.material[i].side = THREE.DoubleSide
                     child.material[i].vertexColors = gui_options.Stress
@@ -3325,7 +3325,7 @@ function Stress(save = true) {
             }
             else {
                 if (gui_options.Stress) {
-                    child.material = new THREE.MeshBasicMaterial();
+                    child.material = new THREE.MeshPhongMaterial();
                 }
                 child.material.side = THREE.DoubleSide
                 child.material.vertexColors = gui_options.Stress
