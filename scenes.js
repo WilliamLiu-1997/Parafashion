@@ -222,7 +222,7 @@ var gui_options = {
         select_recovery();
         cover_recovery();
         Stress(false, true)
-        Wireframe(true)
+        Wireframe(false, true)
     },
     back: function () {
         if (line.children.length > 0) line.remove(line.children[line.children.length - 1]);
@@ -953,7 +953,7 @@ function onmouseDown(event) {
             if (cut_obj.length > 0) {
                 hide_others(garment, cut_obj);
                 Stress(false, true)
-                Wireframe(true)
+                Wireframe(false, true)
                 set_cursor(4)
                 controls.maxDistance = 2;
             }
@@ -2397,7 +2397,7 @@ function produce_geo(position, cut_geometry, line = false) {
         if (gui_options.Wireframe) {
             isWireframe = true;
             gui_options.Wireframe = false;
-            Wireframe(false);
+            Wireframe(false, false);
         }
         if (gui_options.Stress) {
             isStress = true;
@@ -2430,7 +2430,7 @@ function produce_geo(position, cut_geometry, line = false) {
         }
         if (isWireframe) {
             gui_options.Wireframe = true;
-            Wireframe(true);
+            Wireframe(true, true);
         }
         if (isStress) {
             gui_options.Stress = true;
@@ -2800,13 +2800,13 @@ function GUI_init() {
         if (gui_options.focus && cut_obj.length === 1) {
             hide_others(garment, cut_obj);
             Stress(false, true)
-            Wireframe(true)
+            Wireframe(false, true)
         }
         else {
             show_all(garment);
             gui_options.focus = false;
             Stress(false, true)
-            Wireframe(true)
+            Wireframe(false, true)
         }
     });
     cut_component.add(gui_options, 'Straight').name("Straight Line");
@@ -3178,7 +3178,7 @@ function Material_Update(reflectivity_change = false) {
     }
 }
 
-function Wireframe(reload_edge = true) {
+function Wireframe(save = true, reload_edge = true) {
     if (gui_options.Stress) {
         gui_options.Wireframe = false;
         return;
@@ -3187,7 +3187,7 @@ function Wireframe(reload_edge = true) {
     if (reload_edge) {
         edge.clear();
     }
-    if (gui_options.Wireframe) {
+    if (gui_options.Wireframe && save) {
         Material.saveAll();
     }
     garment.traverse(function (child) {
@@ -3245,7 +3245,7 @@ function Wireframe(reload_edge = true) {
         Material.resetAll();
     }
     if (gui_options.focus) { hide_others(garment, cut_obj) }
-    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+    if (save) Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
 }
 
 function Stress(save = true, reload_edge = true) {
