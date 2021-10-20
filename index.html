@@ -318,12 +318,33 @@
       -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
         box-shadow 0.2s;
     }
-    .homebtn:hover {
+    .savebtn {
+      display: none;
+      background-color: #000;
+      z-index: 2;
+      height: 21px;
+      width: 100px;
+      font-size: 12px;
+      padding-top: 2px;
+      border-radius: 5px;
+      position: absolute;
+      color: #ffffffdd;
+      position: absolute;
+      user-select: none;
+      text-align: center;
+      top: 10px;
+      right: 10px;
+      box-shadow: 0 0 5px 1.5px rgba(255, 255, 255, 0.79);
+      transition: font-size 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+      -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
+        box-shadow 0.2s;
+    }
+    .homebtn:hover, .savebtn:hover {
       transform: scale(1.025, 1.025);
       box-shadow: 0 0 7px 1px rgb(255, 255, 255);
       color: #eeeeeedd;
     }
-    .homebtn:active {
+    .homebtn:active, .savebtn:active {
       transform: scale(0.985, 0.985);
       box-shadow: 0 0 3px 1.5px rgb(255, 255, 255);
       color: #ffffffee;
@@ -343,6 +364,7 @@
 
   <body>
     <div class="homebtn">HOME</div>
+    <div class="savebtn">SAVE</div>
     <div class="dragObj" ondragstart="return false;">
       <img
         id="uploadImg"
@@ -519,6 +541,7 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
+        $(".savebtn").fadeOut();
       }
       function show_processing() {
         render_patch_flag = false;
@@ -529,6 +552,7 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
+        $(".savebtn").fadeOut();
       }
       function hide_loading() {
         if ($("#hide-patches").text() != "Show Patches") {
@@ -539,6 +563,7 @@
         $("#loading_background").fadeOut(800);
         $(".panel_box").fadeIn();
         $("#gui_container").fadeIn();
+        $(".savebtn").fadeIn();
       }
       function customtextureToggle() {
         $(".up-area").toggle();

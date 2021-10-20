@@ -3722,6 +3722,12 @@ document.querySelector('.homebtn').addEventListener('click', () => {
     return
 })
 
+document.querySelector('.savebtn').addEventListener('click', () => {
+    let garment_json = garment.toJSON();
+    console.log(garment_json);
+    console.log(garment);
+})
+
 var dragboxObj = document.querySelector('.dragObj');
 dragboxObj.addEventListener('click', () => { $('#objDrag').click(); })
 $('#objDrag').change((event) => {
