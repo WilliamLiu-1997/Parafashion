@@ -3723,9 +3723,9 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 })
 
 document.querySelector('.savebtn').addEventListener('click', () => {
-    let garment_json = garment.toJSON();
-    console.log(garment_json);
-    console.log(garment);
+    let garment_json = JSON.stringify(garment.toJSON());
+    var blob = new Blob([garment_json], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, "Parafashion.json");
 })
 
 var dragboxObj = document.querySelector('.dragObj');
