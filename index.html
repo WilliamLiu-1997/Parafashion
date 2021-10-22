@@ -318,18 +318,67 @@
       -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
         box-shadow 0.2s;
     }
-    .homebtn:hover {
+    .savebtn {
+      display: none;
+      background-color: #000;
+      z-index: 2;
+      height: 21px;
+      width: 100px;
+      font-size: 12px;
+      padding-top: 2px;
+      border-radius: 5px;
+      position: absolute;
+      color: #ffffffdd;
+      position: absolute;
+      user-select: none;
+      text-align: center;
+      top: 10px;
+      right: 10px;
+      box-shadow: 0 0 5px 1.5px rgba(255, 255, 255, 0.79);
+      transition: font-size 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+      -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
+        box-shadow 0.2s;
+    }
+    .exportbtn {
+      display: none;
+      background-color: #000;
+      z-index: 2;
+      height: 21px;
+      width: 100%;
+      font-size: 12px;
+      padding-top: 2px;
+      position: absolute;
+      color: #ffffffdd;
+      position: absolute;
+      user-select: none;
+      text-align: center;
+      bottom: 0px;
+      right: 0px;
+      box-shadow: 0 0 1px 1px rgba(100, 100, 100, 0.79);
+      transition: font-size 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
+      -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
+        box-shadow 0.2s;
+    }
+    .homebtn:hover,
+    .savebtn:hover {
       transform: scale(1.025, 1.025);
       box-shadow: 0 0 7px 1px rgb(255, 255, 255);
       color: #eeeeeedd;
     }
-    .homebtn:active {
+    .exportbtn:hover {
+      transform: scale(1, 1.025);
+    }
+    .homebtn:active,
+    .savebtn:active {
       transform: scale(0.985, 0.985);
       box-shadow: 0 0 3px 1.5px rgb(255, 255, 255);
       color: #ffffffee;
     }
+    .exportbtn:active {
+      transform: scale(1, 0.98);
+    }
 
-    @media screen and (max-width: 800px) {
+    @media screen and (max-width: 850px) {
       .dragObj {
         width: 600px;
         left: calc(50% - 300px);
@@ -338,11 +387,15 @@
         width: 500px;
         left: calc(50% - 250px);
       }
+      #dragObjInfo {
+        font-size: 24px;
+      }
     }
   </style>
 
   <body>
     <div class="homebtn">HOME</div>
+    <div class="savebtn">SAVE</div>
     <div class="dragObj" ondragstart="return false;">
       <img
         id="uploadImg"
@@ -357,7 +410,7 @@
         oncontextmenu="return false;"
         ondragstart="return false;"
       />
-      <div id="dragObjInfo">Drag or Click to Upload an OBJ File</div>
+      <div id="dragObjInfo">Drag or Click to Upload an OBJ/JSON File</div>
       <input
         type="file"
         style="display: none"
@@ -496,6 +549,7 @@
         class="collapse in"
         style="background-color: rgba(0, 0, 0, 0.75)"
       >
+        <div class="exportbtn">Export Patches</div>
         <div id="container_patch"></div>
       </div>
     </div>
@@ -519,6 +573,7 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
+        $(".savebtn").fadeOut();
       }
       function show_processing() {
         render_patch_flag = false;
@@ -529,6 +584,7 @@
         $("#loading_background").show();
         $(".panel_box").fadeOut();
         $("#gui_container").fadeOut();
+        $(".savebtn").fadeOut();
       }
       function hide_loading() {
         if ($("#hide-patches").text() != "Show Patches") {
@@ -539,6 +595,7 @@
         $("#loading_background").fadeOut(800);
         $(".panel_box").fadeIn();
         $("#gui_container").fadeIn();
+        $(".savebtn").fadeIn();
       }
       function customtextureToggle() {
         $(".up-area").toggle();
@@ -602,6 +659,7 @@
             function () {
               setTimeout(function () {
                 resize_patch = false;
+                $(".exportbtn").fadeIn();
               }, 100);
               patch_scaled = true;
             }
@@ -612,6 +670,8 @@
           $("#scale-patches").text() == "<"
         ) {
           resize_patch = true;
+
+          $(".exportbtn").fadeOut();
           $(".panel_box").animate({ width: "22%" }, 350, function () {
             setTimeout(function () {
               resize_patch = false;
@@ -622,6 +682,7 @@
         }
       }
     </script>
+    <script src="js/FileSaver.js"></script>
     <script type="module" src="scenes.js"></script>
   </body>
 </html>

@@ -8,6 +8,7 @@ import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
 import { mergeVertices } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
 
+var continue_start_flag = false;
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
@@ -43,7 +44,6 @@ let last_cover_patch = [];
 let last_select = [];
 let last_select_patch = [];
 
-var max_radius = 0;
 var textureloader = new THREE.TextureLoader();
 let obj_size = 1;
 let find_new = false;
@@ -221,8 +221,8 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        Stress(false, true)
-        Wireframe(false, true)
+        Stress(false, true);
+        Wireframe(false, true);
     },
     back: function () {
         if (line.children.length > 0) line.remove(line.children[line.children.length - 1]);
@@ -497,6 +497,38 @@ function start() {
     animate();
 }
 
+function continue_start(garments_obj) {
+    continue_start_flag = true;
+    let objectloader = new THREE.ObjectLoader();
+    objectloader.load(
+        garments_obj,
+        function (obj) {
+            garment = obj.children[0];
+            patch = obj.children[1];
+            $(".homebtn").fadeIn();
+            init();
+            init_patch();
+            init_transform();
+            onWindowResize();
+            scene.add(garment);
+            scene_patch.add(patch);
+            animate();
+        },
+        function (xhr) {
+            if (xhr.lengthComputable) {
+                let percentComplete = (xhr.loaded / xhr.total) * 100;
+                console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
+                progress_obj = Math.round(percentComplete, 2);
+                progress_mtl = 100
+            }
+        },
+        function (err) {
+            alert("Invalid JSON file!" + str(err));
+            window.location.reload();
+        }
+    );
+}
+
 
 function init() {
 
@@ -561,10 +593,12 @@ function init() {
     controls.target = O;
     controls.autoRotateSpeed = 2;
 
-    //garment = ply_loader(garments_obj1, 1);
-    garment = obj_loader(garments_obj, 1);
+    if (continue_start_flag === false) {
+        //garment = ply_loader(garments_obj1, 1);
+        garment = obj_loader(garments_obj, 1);
+        scene.add(garment);
+    }
 
-    scene.add(garment);
 
     scene.add(covered_obj);
     scene.add(covered_obj_sym);
@@ -719,20 +753,23 @@ function animate() {
             patch_panel_width = $("#container_patch").css("width")
             onWindowResize()
         }
-        if (progress_obj + progress_mtl == 200 && ready.length == load_num && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
+        if (progress_obj + progress_mtl == 200 && (continue_start_flag === true || ready.length == load_num) && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
             passed_time = 0;
             clearInterval(loading_time);
             camera.position.set(0, obj_size / 2, obj_size * 2);
             controls.saveState();
             var lack = false;
-            var all_empty = true;
+            var all_empty = false;
             progress_obj = progress_mtl = -1;
             var num = garment.children[0].children.length;
 
-            patch = patch_loader(garment);
-            patch.name = "patch";
-            scene_patch.add(patch);
-            camera_patch.position.set(0, 0.5 * max_radius, 2 * max_radius);
+            if (continue_start_flag === false) {
+                patch = patch_loader(garment);
+                patch.name = "patch";
+                scene_patch.add(patch);
+                all_empty = true;
+            }
+            camera_patch.position.set(0, 0.5, 3);
             controls_patch.saveState();
             camera_patch.far = 100;
             camera_patch.near = 0.01;
@@ -2683,7 +2720,7 @@ function array_default_material_clone(array, clone) {
 
 function patch_loader(garment) {
     let num = garment.children[0].children.length;
-    max_radius = 0;
+    var max_radius = 0;
     let newobj = obj3D.clone();
     let highest = { layer: 0, y: 0, last_layer_y: 0 };
     for (let x = 0; x < num; x++) {
@@ -2734,7 +2771,7 @@ function patch_loader(garment) {
 function reload_patch(new_mesh) {
     let patch_geo = new_mesh.geometry.clone();
     let patch_mtl = Array.isArray(new_mesh.material) ? array_default_material_clone(new_mesh.material, true) : new_mesh.material.clone();
-
+    var max_radius = 0;
     let geo_uv = patch_geo.getAttribute('uv').array
     if (patch_geo.groups && patch_geo.groups.length > 0) {
         let group_3d = new THREE.Group();
@@ -3722,6 +3759,58 @@ document.querySelector('.homebtn').addEventListener('click', () => {
     return
 })
 
+
+function exportPatches() {
+
+    renderer_patch.setPixelRatio(pixelRatio * 5);
+
+    renderer_patch.render(scene_patch, camera_patch);
+    renderer_patch.domElement.toBlob(function (blob) {
+        var a = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = 'Patches.png';
+        a.click();
+    }, 'image/png', 1.0);
+
+    renderer_patch.setPixelRatio(pixelRatio);
+
+}
+
+document.querySelector('.exportbtn').addEventListener('click', () => {
+    exportPatches()
+})
+
+document.querySelector('.savebtn').addEventListener('click', () => {
+    let isStress = false;
+    let isWireframe = false;
+    if (gui_options.Wireframe) {
+        isWireframe = true;
+        gui_options.Wireframe = false;
+        Wireframe(false, true);
+    }
+    if (gui_options.Stress) {
+        isStress = true;
+        gui_options.Stress = false;
+        Stress(false, true);
+    }
+    Display(environment["None"], gui_options.Enable_Patch_Background, environment_light["None"]);
+    let garment_patch = new THREE.Object3D();
+    garment_patch.add(garment.clone(), patch.clone());
+    let garment_patch_json = JSON.stringify(garment_patch.toJSON());
+    var blob = new Blob([garment_patch_json], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, "Parafashion.json");
+    if (isWireframe) {
+        gui_options.Wireframe = true;
+        Wireframe(true, true);
+    }
+    if (isStress) {
+        gui_options.Stress = true;
+        Stress(true, true);
+    }
+    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+})
+
 var dragboxObj = document.querySelector('.dragObj');
 dragboxObj.addEventListener('click', () => { $('#objDrag').click(); })
 $('#objDrag').change((event) => {
@@ -3744,16 +3833,31 @@ dragboxObj.addEventListener('drop', function (e) {
 function appendObj(files) {
     for (var file of files) {
         var fileType = file.name.substr(file.name.lastIndexOf(".")).toUpperCase();
-        if (fileType != ".OBJ") {
-            $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>OBJ</b> files are acceptable!&nbsp;&nbsp;</div>');
+        if (fileType != ".OBJ" && fileType != ".JSON") {
+            $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>OBJ</b> or <b>JSON</b> files are acceptable!&nbsp;&nbsp;</div>');
             setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
             setTimeout(function () { $("#alert_img").html("") }, 3500)
             return
         }
-        garments_obj = window.URL.createObjectURL(file);
-        document.getElementById("objDrag").value = "";
-        $(".dragObj").fadeOut();
-        $(".startbtn").fadeOut();
-        start();
+        if (fileType == ".OBJ") {
+            garments_obj = window.URL.createObjectURL(file);
+            document.getElementById("objDrag").value = "";
+            $(".dragObj").fadeOut();
+            $(".startbtn").fadeOut();
+            start();
+        }
+        if (fileType == ".JSON") {
+            try {
+                garments_obj = window.URL.createObjectURL(file);
+                document.getElementById("objDrag").value = "";
+                $(".dragObj").fadeOut();
+                $(".startbtn").fadeOut();
+                continue_start(garments_obj);
+            }
+            catch (e) {
+                alert("Invalid JSON file!" + str(e));
+                window.location.reload();
+            }
+        }
     }
 }
