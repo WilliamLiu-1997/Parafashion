@@ -344,7 +344,7 @@
       background-color: #000;
       z-index: 2;
       height: 21px;
-      width: 100%;
+      width: 33.33%;
       font-size: 12px;
       padding-top: 2px;
       position: absolute;
@@ -353,7 +353,7 @@
       user-select: none;
       text-align: center;
       bottom: 0px;
-      right: 0px;
+      left: 0px;
       box-shadow: 0 0 1px 1px rgba(100, 100, 100, 0.79);
       transition: font-size 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
       -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
@@ -366,7 +366,7 @@
       color: #eeeeeedd;
     }
     .exportbtn:hover {
-      transform: scale(1, 1.025);
+      box-shadow: 0 0 2px 1px rgba(200, 200, 200, 0.79);
     }
     .homebtn:active,
     .savebtn:active {
@@ -375,7 +375,7 @@
       color: #ffffffee;
     }
     .exportbtn:active {
-      transform: scale(1, 0.98);
+      box-shadow: 0 0 2px 1px rgba(200, 200, 200, 0.79);
     }
 
     @media screen and (max-width: 850px) {
@@ -549,7 +549,9 @@
         class="collapse in"
         style="background-color: rgba(0, 0, 0, 0.75)"
       >
-        <div class="exportbtn">Export Patches</div>
+        <div class="exportbtn" id="exportPNG"style="width:30%">Export Patches(PNG)</div>
+        <div class="exportbtn" id="exportOBJ" style="width:30%;left:30%">Export Patches(OBJ)</div>
+        <div class="exportbtn" id="exportPLY" style="width:40%;left:60%">Export Patches Stress(PLY)</div>
         <div id="container_patch"></div>
       </div>
     </div>

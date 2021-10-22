@@ -3,6 +3,8 @@ import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
 import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
+import { OBJExporter } from './three.js/examples/jsm/exporters/OBJExporter.js';
+import { PLYExporter } from './three.js/examples/jsm/exporters/PLYExporter.js';
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
@@ -512,6 +514,17 @@ function continue_start(garments_obj) {
             onWindowResize();
             scene.add(garment);
             scene_patch.add(patch);
+            original = []
+            garment.traverse(function (child) {
+                if (child.type === 'Mesh') {
+                    original.push(child.clone())
+                }
+            })
+            for (var i = 0; i < original.length; i++) {
+                if (original[i].geometry.groups.length > 0) {
+                    original[i].material = original[i].material.slice(0)
+                }
+            }
             animate();
         },
         function (xhr) {
@@ -846,7 +859,7 @@ function animate() {
         }
         $("#texture_container").css({ "width": String(w) + "px" })
         $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.80 - 15 })
-        if (patch_scaled) { $(".panel_box").css({ width: Math.max(window.innerWidth * 0.2, window.innerWidth - 2 - $("#gui_container").width()) }); }
+        if (patch_scaled) { $(".panel_box").css({ width: Math.max(450, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
         render();
         timeStamp = timeStamp % singleFrameTime;
@@ -3760,7 +3773,7 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 })
 
 
-function exportPatches() {
+function exportPatchesPNG() {
 
     renderer_patch.setPixelRatio(pixelRatio * 5);
 
@@ -3777,8 +3790,39 @@ function exportPatches() {
 
 }
 
-document.querySelector('.exportbtn').addEventListener('click', () => {
-    exportPatches()
+function exportPatchesOBJ() {
+    var exporter = new OBJExporter();
+    var patch_obj=exporter.parse(patch);
+    var blob = new Blob([patch_obj], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, "Patches.obj");
+}
+function exportPatchesPLY() {
+    var exporter = new PLYExporter();
+    var patch_ply = exporter.parse(patch);
+    var blob = new Blob([patch_ply], { type: "text/plain;charset=utf-8" });
+    saveAs(blob, "Patches.ply");
+}
+
+document.querySelector('#exportPNG').addEventListener('click', () => {
+    exportPatchesPNG()
+})
+
+document.querySelector('#exportOBJ').addEventListener('click', () => {
+    exportPatchesOBJ()
+})
+
+document.querySelector('#exportPLY').addEventListener('click', () => {
+    let isStress = false;
+    if (!gui_options.Stress) {
+        isStress = true;
+        gui_options.Stress = false;
+        Stress(true, true);
+    }
+    exportPatchesPLY()
+    if (isStress) {
+        gui_options.Stress = false;
+        Stress(false, true);
+    }
 })
 
 document.querySelector('.savebtn').addEventListener('click', () => {
