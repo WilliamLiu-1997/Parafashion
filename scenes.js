@@ -3782,7 +3782,7 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 
 function exportPatchesPNG() {
 
-    renderer_patch.setPixelRatio(pixelRatio * 5);
+    renderer_patch.setPixelRatio(Math.floor((2048 ** 2) / ($("#container_patch").width() * window.innerHeight * 0.78)));
 
     renderer_patch.render(scene_patch, camera_patch);
     renderer_patch.domElement.toBlob(function (blob) {
@@ -3799,7 +3799,7 @@ function exportPatchesPNG() {
 
 function exportPatchesOBJ() {
     var exporter = new OBJExporter();
-    var patch_obj=exporter.parse(patch);
+    var patch_obj = exporter.parse(patch);
     var blob = new Blob([patch_obj], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "Patches.obj");
 }
