@@ -3812,6 +3812,12 @@ document.querySelector('#exportOBJ').addEventListener('click', () => {
 })
 
 document.querySelector('#exportPLY').addEventListener('click', () => {
+    let isWireframe = false;
+    if (gui_options.Wireframe) {
+        isWireframe = true;
+        gui_options.Wireframe = false;
+        Wireframe(false, true);
+    }
     let isStress = false;
     if (!gui_options.Stress) {
         isStress = true;
@@ -3822,6 +3828,10 @@ document.querySelector('#exportPLY').addEventListener('click', () => {
     if (isStress) {
         gui_options.Stress = false;
         Stress(false, true);
+    }
+    if (isWireframe) {
+        gui_options.Wireframe = true;
+        Wireframe(true, true);
     }
 })
 
