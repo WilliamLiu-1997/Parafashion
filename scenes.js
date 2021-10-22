@@ -3759,6 +3759,28 @@ document.querySelector('.homebtn').addEventListener('click', () => {
     return
 })
 
+
+function exportPatches() {
+
+    renderer_patch.setPixelRatio(pixelRatio * 5);
+
+    renderer_patch.render(scene_patch, camera_patch);
+    renderer_patch.domElement.toBlob(function (blob) {
+        var a = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = 'Patches.png';
+        a.click();
+    }, 'image/png', 1.0);
+
+    renderer_patch.setPixelRatio(pixelRatio);
+
+}
+
+document.querySelector('.exportbtn').addEventListener('click', () => {
+    exportPatches()
+})
+
 document.querySelector('.savebtn').addEventListener('click', () => {
     let isStress = false;
     let isWireframe = false;
