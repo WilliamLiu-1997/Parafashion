@@ -525,6 +525,13 @@ function continue_start(garments_obj) {
                     original[i].material = original[i].material.slice(0)
                 }
             }
+            obj_vertices_count = 0;
+            garment.traverse((child) => {
+                if (child.type === "Mesh") {
+                    obj_vertices_count += child.geometry.getAttribute("position").count;
+                    $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
+                }
+            })
             animate();
         },
         function (xhr) {
