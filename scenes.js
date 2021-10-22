@@ -221,8 +221,8 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        Stress(false, true)
-        Wireframe(false, true)
+        Stress(false, true);
+        Wireframe(false, true);
     },
     back: function () {
         if (line.children.length > 0) line.remove(line.children[line.children.length - 1]);
@@ -3760,12 +3760,33 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 })
 
 document.querySelector('.savebtn').addEventListener('click', () => {
+    let isStress = false;
+    let isWireframe = false;
+    if (gui_options.Wireframe) {
+        isStress = true;
+        gui_options.Wireframe = false;
+        Wireframe(false, true);
+    }
+    if (gui_options.Stress) {
+        isWireframe = true;
+        gui_options.Stress = false;
+        Stress(false, true);
+    }
+    Display(environment["None"], gui_options.Enable_Patch_Background, environment_light["None"]);
     let garment_patch = new THREE.Object3D();
     garment_patch.add(garment.clone(), patch.clone());
-    garment_patch.add(patch.clone());
     let garment_patch_json = JSON.stringify(garment_patch.toJSON());
     var blob = new Blob([garment_patch_json], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "Parafashion.json");
+    if (isWireframe) {
+        gui_options.Wireframe = true;
+        Wireframe(true, true);
+    }
+    if (isStress) {
+        gui_options.Stress = true;
+        Stress(true, true);
+    }
+    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
 })
 
 var dragboxObj = document.querySelector('.dragObj');
