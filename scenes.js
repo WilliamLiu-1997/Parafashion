@@ -3763,12 +3763,12 @@ document.querySelector('.savebtn').addEventListener('click', () => {
     let isStress = false;
     let isWireframe = false;
     if (gui_options.Wireframe) {
-        isStress = true;
+        isWireframe = true;
         gui_options.Wireframe = false;
         Wireframe(false, true);
     }
     if (gui_options.Stress) {
-        isWireframe = true;
+        isStress = true;
         gui_options.Stress = false;
         Stress(false, true);
     }
