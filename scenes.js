@@ -3782,7 +3782,7 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 
 function exportPatchesPNG() {
 
-    let scale=Math.sqrt((5000 ** 2) / ($("#container_patch").width() * window.innerHeight * 0.78));
+    let scale=Math.sqrt((4096 ** 2) / ($("#container_patch").width() * window.innerHeight * 0.78));
 
     renderer_patch.setPixelRatio(scale);
 
