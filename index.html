@@ -339,18 +339,20 @@
       -webkit-transition: font-size 0.2s, color 0.2s, -webkit-transform 0.2s,
         box-shadow 0.2s;
     }
-    .homebtn:hover, .savebtn:hover {
+    .homebtn:hover,
+    .savebtn:hover {
       transform: scale(1.025, 1.025);
       box-shadow: 0 0 7px 1px rgb(255, 255, 255);
       color: #eeeeeedd;
     }
-    .homebtn:active, .savebtn:active {
+    .homebtn:active,
+    .savebtn:active {
       transform: scale(0.985, 0.985);
       box-shadow: 0 0 3px 1.5px rgb(255, 255, 255);
       color: #ffffffee;
     }
 
-    @media screen and (max-width: 800px) {
+    @media screen and (max-width: 850px) {
       .dragObj {
         width: 600px;
         left: calc(50% - 300px);
@@ -358,6 +360,9 @@
       .startbtn {
         width: 500px;
         left: calc(50% - 250px);
+      }
+      #dragObjInfo {
+        font-size: 24px;
       }
     }
   </style>
@@ -379,7 +384,7 @@
         oncontextmenu="return false;"
         ondragstart="return false;"
       />
-      <div id="dragObjInfo">Drag or Click to Upload an OBJ File</div>
+      <div id="dragObjInfo">Drag or Click to Upload an OBJ/JSON File</div>
       <input
         type="file"
         style="display: none"
