@@ -840,7 +840,7 @@ function animate() {
                 }
             }
             if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that part of the textures may cannot be set!&nbsp;&nbsp;</div>'); }
-console.log(123)
+
 
             hide_loading();
             GUI_init();
@@ -3790,7 +3790,7 @@ function appendFile(files) {
 
 document.querySelector('.startbtn').addEventListener('click', () => {
     try {
-        garments_obj = "obj/Parafashion.json";
+        garments_obj = "./obj/Parafashion.json";
         document.getElementById("objDrag").value = "";
         $(".dragObj").fadeOut();
         $(".startbtn").fadeOut();
