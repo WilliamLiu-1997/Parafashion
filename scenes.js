@@ -536,6 +536,10 @@ function continue_start(garments_obj) {
                     $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
                 }
             })
+            window.console.error = function (err) {
+                alert(err);
+                window.location.reload();
+            };
             animate();
         },
         function (xhr) {
@@ -836,7 +840,7 @@ function animate() {
                 }
             }
             if (lack || all_empty) { $("#alert_uv").html('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Warning!&nbsp;</b></strong>The imported model lacks of partial UVs. This means that part of the textures may cannot be set!&nbsp;&nbsp;</div>'); }
-
+console.log(123)
 
             hide_loading();
             GUI_init();
