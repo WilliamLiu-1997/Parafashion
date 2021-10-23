@@ -501,7 +501,7 @@ function start() {
 
 function continue_start(garments_obj) {
     window.console.error = function (err) {
-        alert("Invalid JSON file!\n"+err);
+        alert("Invalid JSON file!\n" + err);
         window.location.reload();
     };
     continue_start_flag = true;
@@ -2887,8 +2887,8 @@ function GUI_init() {
     folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     folder_env.add(controls, 'autoRotate').name("Auto Rotate");
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
-    folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe()).name('Show Wireframe');
-    folder_env.add(gui_options, 'Stress').onChange(() => Stress()).name('Show Stress');
+    folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe(true, true, true)).name('Show Wireframe');
+    folder_env.add(gui_options, 'Stress').onChange(() => Stress(true, true, true)).name('Show Stress');
     folder_sen = folder_env.addFolder("Stress Sensitivity")
     folder_sen.add(gui_options, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false, false)).name('Stress Sensitivity');
     folder_sen.open();
@@ -3243,8 +3243,13 @@ function Material_Update(reflectivity_change = false) {
     }
 }
 
-function Wireframe(save = true, reload_edge = true) {
-    if (gui_options.Stress) {
+function Wireframe(save = true, reload_edge = true, onchange = false) {
+    if (gui_options.Wireframe && gui_options.Stress && onchange) {
+        gui_options.Stress = false;
+        Stress(true, true)
+        save = false
+    }
+    else if (gui_options.Stress) {
         gui_options.Wireframe = false;
         return;
     }
@@ -3313,8 +3318,13 @@ function Wireframe(save = true, reload_edge = true) {
     if (save) Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
 }
 
-function Stress(save = true, reload_edge = true) {
-    if (gui_options.Wireframe) {
+function Stress(save = true, reload_edge = true, onchange = false) {
+    if (gui_options.Wireframe && gui_options.Stress && onchange) {
+        gui_options.Wireframe = false;
+        Wireframe(true, true)
+        save = false
+    }
+    else if (gui_options.Wireframe) {
         gui_options.Stress = false;
         folder_sen.hide();
         return;
@@ -3800,7 +3810,7 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 
 function exportPatchesPNG() {
 
-    let scale=Math.sqrt((4096 ** 2) / ($("#container_patch").width() * window.innerHeight * 0.78));
+    let scale = Math.sqrt((4096 ** 2) / ($("#container_patch").width() * window.innerHeight * 0.78));
 
     renderer_patch.setPixelRatio(scale);
 
