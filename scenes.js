@@ -540,6 +540,7 @@ function continue_start(garments_obj) {
                 alert(err);
                 window.location.reload();
             };
+            hide_loading();
             animate();
         },
         function (xhr) {
