@@ -536,11 +536,6 @@ function continue_start(garments_obj) {
                     $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
                 }
             })
-            window.console.error = function (err) {
-                alert(err);
-                window.location.reload();
-            };
-            hide_loading();
             animate();
         },
         function (xhr) {
