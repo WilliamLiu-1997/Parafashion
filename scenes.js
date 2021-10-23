@@ -536,12 +536,10 @@ function continue_start(garments_obj) {
                     $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
                 }
             })
-            console.log(123)
             window.console.error = function (err) {
                 alert(err);
                 window.location.reload();
             };
-            console.log(456)
             animate();
         },
         function (xhr) {
@@ -783,10 +781,8 @@ function animate() {
             patch_panel_width = $("#container_patch").css("width")
             onWindowResize()
         }
-
-        console.log(123123)
+        console.log(progress_obj, progress_mtl)
         if (progress_obj + progress_mtl == 200 && (continue_start_flag === true || ready.length == load_num) && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
-            console.log(789)
             passed_time = 0;
             clearInterval(loading_time);
             camera.position.set(0, obj_size / 2, obj_size * 2);
