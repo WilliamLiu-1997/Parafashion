@@ -500,6 +500,10 @@ function start() {
 }
 
 function continue_start(garments_obj) {
+    window.console.error = function (err) {
+        alert("Invalid JSON file!\n"+err);
+        window.location.reload();
+    };
     continue_start_flag = true;
     let objectloader = new THREE.ObjectLoader();
     objectloader.load(
@@ -532,6 +536,10 @@ function continue_start(garments_obj) {
                     $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
                 }
             })
+            window.console.error = function (err) {
+                alert(err);
+                window.location.reload();
+            };
             animate();
         },
         function (xhr) {
