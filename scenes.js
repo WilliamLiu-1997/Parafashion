@@ -499,7 +499,7 @@ function start() {
     animate();
 }
 
-function continue_start(garments_obj) {
+function continue_start(garments_obj, no_load = false) {
     window.console.error = function (err) {
         alert("Invalid JSON file!\n" + err);
         window.location.reload();
@@ -540,6 +540,10 @@ function continue_start(garments_obj) {
                 alert(err);
                 window.location.reload();
             };
+            if (no_load) {
+                progress_obj = 100;
+                progress_mtl = 100;
+            }
             animate();
         },
         function (xhr) {
@@ -781,7 +785,6 @@ function animate() {
             patch_panel_width = $("#container_patch").css("width")
             onWindowResize()
         }
-        console.log(progress_obj, progress_mtl)
         if (progress_obj + progress_mtl == 200 && (continue_start_flag === true || ready.length == load_num) && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
             passed_time = 0;
             clearInterval(loading_time);
@@ -3795,7 +3798,7 @@ document.querySelector('.startbtn').addEventListener('click', () => {
         document.getElementById("objDrag").value = "";
         $(".dragObj").fadeOut();
         $(".startbtn").fadeOut();
-        continue_start(garments_obj);
+        continue_start(garments_obj, true);
     }
     catch (e) {
         alert("Invalid JSON file!" + str(e));
