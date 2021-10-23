@@ -299,7 +299,7 @@
     }
     .homebtn {
       display: none;
-      background-color: #000;
+      background-color: rgba(0, 0, 0, 0.75);
       z-index: 101;
       height: 21px;
       width: 100px;
@@ -320,7 +320,7 @@
     }
     .savebtn {
       display: none;
-      background-color: #000;
+      background-color: rgba(0, 0, 0, 0.75);
       z-index: 2;
       height: 21px;
       width: 100px;
@@ -340,8 +340,7 @@
         box-shadow 0.2s;
     }
     .exportbtn {
-      display: none;
-      background-color: #000;
+      background-color: rgba(0, 0, 0, 0.75);
       z-index: 2;
       height: 21px;
       width: 33.33%;
@@ -361,8 +360,7 @@
     }
     .homebtn:hover,
     .savebtn:hover {
-      transform: scale(1.025, 1.025);
-      box-shadow: 0 0 7px 1px rgb(255, 255, 255);
+      box-shadow: 0 0 7px 2px rgb(255, 255, 255);
       color: #eeeeeedd;
     }
     .exportbtn:hover {
@@ -370,7 +368,6 @@
     }
     .homebtn:active,
     .savebtn:active {
-      transform: scale(0.985, 0.985);
       box-shadow: 0 0 3px 1.5px rgb(255, 255, 255);
       color: #ffffffee;
     }
@@ -549,9 +546,15 @@
         class="collapse in"
         style="background-color: rgba(0, 0, 0, 0.75)"
       >
-        <div class="exportbtn" id="exportPNG"style="width:30%">Export Patches(PNG)</div>
-        <div class="exportbtn" id="exportOBJ" style="width:30%;left:30%">Export Patches(OBJ)</div>
-        <div class="exportbtn" id="exportPLY" style="width:40%;left:60%">Export Patches Stress(PLY)</div>
+        <div class="exportbtn" id="exportPNG" style="width: 100%; bottom: 42px">
+          Export Patches(PNG)
+        </div>
+        <div class="exportbtn" id="exportOBJ" style="width: 100%; bottom: 21px">
+          Export Patches(OBJ)
+        </div>
+        <div class="exportbtn" id="exportPLY" style="width: 100%">
+          Export Patches Stress(PLY)
+        </div>
         <div id="container_patch"></div>
       </div>
     </div>
@@ -623,6 +626,11 @@
               }, 100);
             }
           );
+
+          $("#exportPNG").css({ width: "100%", bottom: "42px" });
+          $("#exportOBJ").css({ width: "100%", left: "0%", bottom: "21px" });
+          $("#exportPLY").css({ width: "100%", left: "0%" });
+          $(".exportbtn").fadeIn(175);
           $("#scale-patches").text(">");
           render_patch_flag = true;
           patch_scaled = false;
@@ -639,6 +647,7 @@
               }, 100);
             }
           );
+          $(".exportbtn").fadeOut(175);
           $("#scale-patches").text(">");
           render_patch_flag = false;
           patch_scaled = false;
@@ -650,6 +659,16 @@
           $("#scale-patches").text() != "<"
         ) {
           resize_patch = true;
+          $(".exportbtn").fadeOut(175, () => {
+            $("#exportPNG").css({ width: "30%", bottom: "0px" });
+            $("#exportOBJ").css({
+              width: "30%",
+              left: "30%",
+              bottom: "0px",
+            });
+            $("#exportPLY").css({ width: "40%", left: "60%" });
+            $(".exportbtn").fadeIn(175);
+          });
           $(".panel_box").animate(
             {
               width: Math.max(
@@ -661,7 +680,6 @@
             function () {
               setTimeout(function () {
                 resize_patch = false;
-                $(".exportbtn").fadeIn();
               }, 100);
               patch_scaled = true;
             }
@@ -672,8 +690,12 @@
           $("#scale-patches").text() == "<"
         ) {
           resize_patch = true;
-
-          $(".exportbtn").fadeOut();
+          $(".exportbtn").fadeOut(175, () => {
+            $("#exportPNG").css({ width: "100%", bottom: "42px" });
+            $("#exportOBJ").css({ width: "100%", left: "0%", bottom: "21px" });
+            $("#exportPLY").css({ width: "100%", left: "0%" });
+            $(".exportbtn").fadeIn(175);
+          });
           $(".panel_box").animate({ width: "22%" }, 350, function () {
             setTimeout(function () {
               resize_patch = false;

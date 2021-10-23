@@ -3705,6 +3705,8 @@ function Change_Mode() {
     cover_recovery()
     select_recovery()
     if (gui_options.Mode == "Cutting Model") {
+        $("#alert_cut").hide();
+        $("#alert_cut").fadeIn();
         $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After drawing a line for cutting, we will remove its materials!&nbsp;&nbsp;</div>');
         gui_options.cut = true;
         cut_component.show();
@@ -3777,9 +3779,17 @@ function appendFile(files) {
 }
 
 document.querySelector('.startbtn').addEventListener('click', () => {
-    $(".dragObj").fadeOut();
-    $(".startbtn").fadeOut();
-    start();
+    try {
+        garments_obj = "obj/Parafashion.json";
+        document.getElementById("objDrag").value = "";
+        $(".dragObj").fadeOut();
+        $(".startbtn").fadeOut();
+        continue_start(garments_obj);
+    }
+    catch (e) {
+        alert("Invalid JSON file!" + str(e));
+        window.location.reload();
+    }
 })
 
 document.querySelector('.homebtn').addEventListener('click', () => {
