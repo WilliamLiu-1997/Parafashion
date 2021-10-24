@@ -95,7 +95,7 @@ let outlinePass_params_cover = {
     rotate: false,
     usePatternTexture: false,
     visibleEdgeColor: "#cc6666",
-    hiddenEdgeColor: "#cc6666"
+    hiddenEdgeColor: "#442222"
 };
 
 let outlinePass_params_select = {
@@ -106,7 +106,7 @@ let outlinePass_params_select = {
     rotate: false,
     usePatternTexture: false,
     visibleEdgeColor: "#ffffff",
-    hiddenEdgeColor: "#ffffff"
+    hiddenEdgeColor: "#444444"
 };
 
 
@@ -2224,7 +2224,7 @@ function rearrange_geo(geo, position, scale) {
 }
 
 
-function individual(bufGeom, ig, scale = 0.0005) {
+function individual(bufGeom, ig, scale = 0.00035) {
     try {
         var groups = bufGeom.groups;
         var origVerts = bufGeom.getAttribute('position').array;
