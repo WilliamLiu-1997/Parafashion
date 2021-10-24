@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Parafashion</title>
-    <link rel="shortcut icon" href="#" />
+    <link rel="shortcut icon" href="images/parafashion.ico" />
     <link
       rel="stylesheet"
       href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css"
@@ -38,6 +38,27 @@
       overflow: hidden;
       scrollbar-width: none;
       cursor: auto;
+    }
+
+    #logo {
+      display: none;
+      position: absolute;
+      background-color: #000;
+      background: url(images/logo.png) center center;
+      background-size: contain;
+      background-repeat: no-repeat;
+      width: 80vw;
+      height: 80vh;
+      left: 10vw;
+      top: 10vh;
+      z-index: 102;
+    }
+    #logo_back {
+      position: absolute;
+      background-color: #000;
+      width: 100vw;
+      height: 100vh;
+      z-index: 102;
     }
 
     #info {
@@ -391,6 +412,7 @@
   </style>
 
   <body>
+    <div id="logo_back"><div id="logo"></div></div>
     <div class="homebtn">HOME</div>
     <div class="savebtn">SAVE</div>
     <div class="dragObj" ondragstart="return false;">
@@ -564,6 +586,12 @@
     <div id="transform"></div>
     <div id="vertice_num"></div>
     <script>
+      $("#logo").fadeIn(2000, () => {
+        setTimeout(() => {
+          $("#logo").fadeOut(2000,()=>{
+          $("#logo_back").fadeOut(1000);});
+        }, 1000);
+      });
       $("#CustomTexture").text("⏷ Custom Texture (map)");
       var render_patch_flag = true;
       var patch_scaled = false;
