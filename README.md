@@ -5,6 +5,7 @@ A 3D web application that can help simplify the design and customising process o
 ## Live Demo
 
 https://parafashion.vercel.app/
+https://parafashion.github.io/
 
 ## Description
 
