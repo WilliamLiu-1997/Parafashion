@@ -586,23 +586,37 @@
     <div id="transform"></div>
     <div id="vertice_num"></div>
     <script>
-        function getQueryVariable(variable) {
-          var query = window.location.search.substring(1);
-          var vars = query.split("&");
-          for (var i = 0; i < vars.length; i++) {
-            var pair = vars[i].split("=");
-            if (pair[0] == variable) {
-              return pair[1];
-            }
+      function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+          var pair = vars[i].split("=");
+          if (pair[0] == variable) {
+            return pair[1];
           }
-          return false;
         }
+        return false;
+      }
 
-        if(getQueryVariable("go")==="Home"+Math.floor(Date.now() / 1000)){
-          $("#logo").hide();
-          $("#logo_back").hide();
-        }
-        else{
+      if (
+        getQueryVariable("go") &&
+        Math.floor(Date.now() / 1000) -
+          parseInt(getQueryVariable("go").split("e")[1]) <
+          60
+      ) {
+        $("#logo").hide();
+        $("#logo_back").hide();
+        $(".dragObj").hide();
+        $(".startbtn").hide();
+        $("#loading").hide();
+        $("#processing").hide();
+        $("#small_info").hide();
+        $(".dragObj").fadeIn(1000);
+        $(".startbtn").fadeIn(1000, () => {
+          $("#small_info").show();
+          show_loading();
+        });
+      } else {
         $("#logo").fadeIn(2000, () => {
           setTimeout(() => {
             $("#logo").fadeOut(2000, () => {
@@ -611,147 +625,146 @@
           }, 1000);
         });
       }
-        $("#CustomTexture").text("⏷ Custom Texture (map)");
-        var render_patch_flag = true;
-        var patch_scaled = false;
-        var resize_patch = false;
-        show_loading();
-        function show_loading() {
-          render_patch_flag = false;
-          $("#loading").show();
-          $("#processing").hide();
-          $("#loading").css({ display: "flex", opacity: 0 });
-          $("#loading").animate({ opacity: 1 }, 500);
-          $("#loading_background").show();
-          $(".panel_box").fadeOut();
-          $("#gui_container").fadeOut();
-          $(".savebtn").fadeOut();
+      $("#CustomTexture").text("⏷ Custom Texture (map)");
+      var render_patch_flag = true;
+      var patch_scaled = false;
+      var resize_patch = false;
+      function show_loading() {
+        render_patch_flag = false;
+        $("#loading").show();
+        $("#processing").hide();
+        $("#loading").css({ display: "flex", opacity: 0 });
+        $("#loading").animate({ opacity: 1 }, 500);
+        $("#loading_background").show();
+        $(".panel_box").fadeOut();
+        $("#gui_container").fadeOut();
+        $(".savebtn").fadeOut();
+      }
+      function show_processing() {
+        render_patch_flag = false;
+        $("#loading").hide();
+        $("#processing").show();
+        $("#processing").css({ display: "flex", opacity: 0 });
+        $("#processing").animate({ opacity: 1 }, 500);
+        $("#loading_background").show();
+        $(".panel_box").fadeOut();
+        $("#gui_container").fadeOut();
+        $(".savebtn").fadeOut();
+      }
+      function hide_loading() {
+        if ($("#hide-patches").text() != "Show Patches") {
+          render_patch_flag = true;
         }
-        function show_processing() {
-          render_patch_flag = false;
-          $("#loading").hide();
-          $("#processing").show();
-          $("#processing").css({ display: "flex", opacity: 0 });
-          $("#processing").animate({ opacity: 1 }, 500);
-          $("#loading_background").show();
-          $(".panel_box").fadeOut();
-          $("#gui_container").fadeOut();
-          $(".savebtn").fadeOut();
+        $("#loading").fadeOut(800);
+        $("#processing").fadeOut(800);
+        $("#loading_background").fadeOut(800);
+        $(".panel_box").fadeIn();
+        $("#gui_container").fadeIn();
+        $(".savebtn").fadeIn();
+      }
+      function customtextureToggle() {
+        $(".up-area").toggle();
+        if ($("#CustomTexture").text().substr(0, 1) != "⏵") {
+          $("#CustomTexture").text("⏵" + $("#CustomTexture").text().substr(1));
+        } else {
+          $("#CustomTexture").text("⏷" + $("#CustomTexture").text().substr(1));
         }
-        function hide_loading() {
-          if ($("#hide-patches").text() != "Show Patches") {
-            render_patch_flag = true;
-          }
-          $("#loading").fadeOut(800);
-          $("#processing").fadeOut(800);
-          $("#loading_background").fadeOut(800);
-          $(".panel_box").fadeIn();
-          $("#gui_container").fadeIn();
-          $(".savebtn").fadeIn();
-        }
-        function customtextureToggle() {
-          $(".up-area").toggle();
-          if ($("#CustomTexture").text().substr(0, 1) != "⏵") {
-            $("#CustomTexture").text("⏵" + $("#CustomTexture").text().substr(1));
-          } else {
-            $("#CustomTexture").text("⏷" + $("#CustomTexture").text().substr(1));
-          }
-        }
-        function hidePatches() {
-          if (resize_patch) return;
-          resize_patch = true;
-          if ($("#hide-patches").text() == "Show Patches") {
-            $("#panel-patches").collapse("show");
-            $("#hide-patches").text("Hide Patches");
-            $("#scale-patches").css({ color: "#fff" });
-            $(".panel_box").animate(
-              { width: "22%", minWidth: "240px" },
-              350,
-              function () {
-                setTimeout(function () {
-                  resize_patch = false;
-                }, 100);
-              }
-            );
+      }
+      function hidePatches() {
+        if (resize_patch) return;
+        resize_patch = true;
+        if ($("#hide-patches").text() == "Show Patches") {
+          $("#panel-patches").collapse("show");
+          $("#hide-patches").text("Hide Patches");
+          $("#scale-patches").css({ color: "#fff" });
+          $(".panel_box").animate(
+            { width: "22%", minWidth: "240px" },
+            350,
+            function () {
+              setTimeout(function () {
+                resize_patch = false;
+              }, 100);
+            }
+          );
 
+          $("#exportPNG").css({ width: "100%", bottom: "42px" });
+          $("#exportOBJ").css({ width: "100%", left: "0%", bottom: "21px" });
+          $("#exportPLY").css({ width: "100%", left: "0%" });
+          $(".exportbtn").fadeIn(175);
+          $("#scale-patches").text(">");
+          render_patch_flag = true;
+          patch_scaled = false;
+        } else {
+          $("#panel-patches").collapse("hide");
+          $("#hide-patches").text("Show Patches");
+          $("#scale-patches").css({ color: "#aaa" });
+          $(".panel_box").animate(
+            { width: "5%", minWidth: "120px" },
+            350,
+            function () {
+              setTimeout(function () {
+                resize_patch = false;
+              }, 100);
+            }
+          );
+          $(".exportbtn").fadeOut(175);
+          $("#scale-patches").text(">");
+          render_patch_flag = false;
+          patch_scaled = false;
+        }
+      }
+      function scalePatches() {
+        if (
+          $("#hide-patches").text() != "Show Patches" &&
+          $("#scale-patches").text() != "<"
+        ) {
+          resize_patch = true;
+          $(".exportbtn").fadeOut(175, () => {
+            $("#exportPNG").css({ width: "30%", bottom: "0px" });
+            $("#exportOBJ").css({
+              width: "30%",
+              left: "30%",
+              bottom: "0px",
+            });
+            $("#exportPLY").css({ width: "40%", left: "60%" });
+            $(".exportbtn").fadeIn(175);
+          });
+          $(".panel_box").animate(
+            {
+              width: Math.max(
+                window.innerWidth * 0.2,
+                window.innerWidth - 2 - $("#gui_container").width()
+              ),
+            },
+            350,
+            function () {
+              setTimeout(function () {
+                resize_patch = false;
+              }, 100);
+              patch_scaled = true;
+            }
+          );
+          $("#scale-patches").text("<");
+        } else if (
+          $("#hide-patches").text() != "Show Patches" &&
+          $("#scale-patches").text() == "<"
+        ) {
+          resize_patch = true;
+          $(".exportbtn").fadeOut(175, () => {
             $("#exportPNG").css({ width: "100%", bottom: "42px" });
             $("#exportOBJ").css({ width: "100%", left: "0%", bottom: "21px" });
             $("#exportPLY").css({ width: "100%", left: "0%" });
             $(".exportbtn").fadeIn(175);
-            $("#scale-patches").text(">");
-            render_patch_flag = true;
-            patch_scaled = false;
-          } else {
-            $("#panel-patches").collapse("hide");
-            $("#hide-patches").text("Show Patches");
-            $("#scale-patches").css({ color: "#aaa" });
-            $(".panel_box").animate(
-              { width: "5%", minWidth: "120px" },
-              350,
-              function () {
-                setTimeout(function () {
-                  resize_patch = false;
-                }, 100);
-              }
-            );
-            $(".exportbtn").fadeOut(175);
-            $("#scale-patches").text(">");
-            render_patch_flag = false;
-            patch_scaled = false;
-          }
+          });
+          $(".panel_box").animate({ width: "22%" }, 350, function () {
+            setTimeout(function () {
+              resize_patch = false;
+            }, 100);
+          });
+          $("#scale-patches").text(">");
+          patch_scaled = false;
         }
-        function scalePatches() {
-          if (
-            $("#hide-patches").text() != "Show Patches" &&
-            $("#scale-patches").text() != "<"
-          ) {
-            resize_patch = true;
-            $(".exportbtn").fadeOut(175, () => {
-              $("#exportPNG").css({ width: "30%", bottom: "0px" });
-              $("#exportOBJ").css({
-                width: "30%",
-                left: "30%",
-                bottom: "0px",
-              });
-              $("#exportPLY").css({ width: "40%", left: "60%" });
-              $(".exportbtn").fadeIn(175);
-            });
-            $(".panel_box").animate(
-              {
-                width: Math.max(
-                  window.innerWidth * 0.2,
-                  window.innerWidth - 2 - $("#gui_container").width()
-                ),
-              },
-              350,
-              function () {
-                setTimeout(function () {
-                  resize_patch = false;
-                }, 100);
-                patch_scaled = true;
-              }
-            );
-            $("#scale-patches").text("<");
-          } else if (
-            $("#hide-patches").text() != "Show Patches" &&
-            $("#scale-patches").text() == "<"
-          ) {
-            resize_patch = true;
-            $(".exportbtn").fadeOut(175, () => {
-              $("#exportPNG").css({ width: "100%", bottom: "42px" });
-              $("#exportOBJ").css({ width: "100%", left: "0%", bottom: "21px" });
-              $("#exportPLY").css({ width: "100%", left: "0%" });
-              $(".exportbtn").fadeIn(175);
-            });
-            $(".panel_box").animate({ width: "22%" }, 350, function () {
-              setTimeout(function () {
-                resize_patch = false;
-              }, 100);
-            });
-            $("#scale-patches").text(">");
-            patch_scaled = false;
-          }
-        }
+      }
     </script>
     <script src="js/FileSaver.js"></script>
     <script type="module" src="scenes.js"></script>
