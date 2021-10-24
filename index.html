@@ -602,7 +602,7 @@
         getQueryVariable("go") &&
         Math.abs(
           Math.floor(Date.now() / 1000) -
-            parseInt(getQueryVariable("go").split("e")[1])
+            parseInt(getQueryVariable("go"))
         ) < 60
       ) {
         $("#logo").hide();
