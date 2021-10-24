@@ -618,12 +618,12 @@
           show_loading();
         });
       } else {
-        $("#logo").fadeIn(2000, () => {
+        $("#logo").fadeIn(1500, () => {
           setTimeout(() => {
-            $("#logo").fadeOut(2000, () => {
+            $("#logo").fadeOut(1500, () => {
               $("#logo_back").fadeOut(1000);
             });
-          }, 1000);
+          }, 1500);
         });
       }
       $("#CustomTexture").text("⏷ Custom Texture (map)");
