@@ -502,7 +502,7 @@ function start() {
 function continue_start(garments_obj, no_load = false) {
     window.console.error = function (err) {
         alert("Invalid JSON file!\n" + err);
-        window.location.reload();
+        window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
     };
     continue_start_flag = true;
     let objectloader = new THREE.ObjectLoader();
@@ -538,7 +538,7 @@ function continue_start(garments_obj, no_load = false) {
             })
             window.console.error = function (err) {
                 alert(err);
-                window.location.reload();
+                window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
             };
             if (no_load) {
                 progress_obj = 100;
@@ -556,7 +556,7 @@ function continue_start(garments_obj, no_load = false) {
         },
         function (err) {
             alert("Invalid JSON file!" + str(err));
-            window.location.reload();
+            window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
         }
     );
 }
@@ -2429,7 +2429,7 @@ function produce_geo(position, cut_geometry, line = false) {
         if (result_Derive == 0 && !failed) {
             failed = true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
-            window.location.reload();
+            window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
         }
         if (result_Derive == 1) {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
@@ -2536,7 +2536,7 @@ function init_produce_geo(position, child) {
         if (result_Derive == 0 && !failed) {
             failed = true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
-            window.location.reload();
+            window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
         }
         if (result_Derive == 1) {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
@@ -3802,12 +3802,12 @@ document.querySelector('.startbtn').addEventListener('click', () => {
     }
     catch (e) {
         alert("Invalid JSON file!" + str(e));
-        window.location.reload();
+        window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
     }
 })
 
 document.querySelector('.homebtn').addEventListener('click', () => {
-    window.location.reload();
+    window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
     return
 })
 
@@ -3950,7 +3950,7 @@ function appendObj(files) {
             }
             catch (e) {
                 alert("Invalid JSON file!" + str(e));
-                window.location.reload();
+                window.location.replace("./index.html?go=Home"+Math.floor(Date.now() / 1000));
             }
         }
     }
