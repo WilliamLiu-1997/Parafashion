@@ -223,8 +223,12 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        Stress(false, true);
-        Wireframe(false, true);
+        if (gui_options.Stress) {
+            Stress(false, true)
+        }
+        if (gui_options.Wireframe) {
+            Wireframe(false, true)
+        }
     },
     back: function () {
         if (line.children.length > 0) line.remove(line.children[line.children.length - 1]);
@@ -502,7 +506,7 @@ function start() {
 function continue_start(garments_obj, no_load = false) {
     window.console.error = function (err) {
         alert("Invalid JSON file!\n" + err);
-        window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+        window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
     };
     continue_start_flag = true;
     let objectloader = new THREE.ObjectLoader();
@@ -538,7 +542,7 @@ function continue_start(garments_obj, no_load = false) {
             })
             window.console.error = function (err) {
                 alert(err);
-                window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+                window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
             };
             if (no_load) {
                 progress_obj = 100;
@@ -556,7 +560,7 @@ function continue_start(garments_obj, no_load = false) {
         },
         function (err) {
             alert("Invalid JSON file!" + str(err));
-            window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+            window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
         }
     );
 }
@@ -1021,8 +1025,12 @@ function onmouseDown(event) {
             select_cut(pointer, camera, event);
             if (cut_obj.length > 0) {
                 hide_others(garment, cut_obj);
-                Stress(false, true)
-                Wireframe(false, true)
+                if (gui_options.Stress) {
+                    Stress(false, true)
+                }
+                if (gui_options.Wireframe) {
+                    Wireframe(false, true)
+                }
                 set_cursor(4)
                 controls.maxDistance = 2;
             }
@@ -2429,7 +2437,7 @@ function produce_geo(position, cut_geometry, line = false) {
         if (result_Derive == 0 && !failed) {
             failed = true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
-            window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+            window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
         }
         if (result_Derive == 1) {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
@@ -2536,7 +2544,7 @@ function init_produce_geo(position, child) {
         if (result_Derive == 0 && !failed) {
             failed = true
             alert("Failed processing the model and cannot fix the problem. Please upload a new OBJ!")
-            window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+            window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
         }
         if (result_Derive == 1) {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Failed processing the model, model recovered!&nbsp;&nbsp;</div>');
@@ -2868,14 +2876,22 @@ function GUI_init() {
     cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => {
         if (gui_options.focus && cut_obj.length === 1) {
             hide_others(garment, cut_obj);
-            Stress(false, true)
-            Wireframe(false, true)
+            if (gui_options.Stress) {
+                Stress(false, true)
+            }
+            if (gui_options.Wireframe) {
+                Wireframe(false, true)
+            }
         }
         else {
             show_all(garment);
             gui_options.focus = false;
-            Stress(false, true)
-            Wireframe(false, true)
+            if (gui_options.Stress) {
+                Stress(false, true)
+            }
+            if (gui_options.Wireframe) {
+                Wireframe(false, true)
+            }
         }
     });
     cut_component.add(gui_options, 'Straight').name("Straight Line");
@@ -3802,12 +3818,12 @@ document.querySelector('.startbtn').addEventListener('click', () => {
     }
     catch (e) {
         alert("Invalid JSON file!" + str(e));
-        window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+        window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
     }
 })
 
 document.querySelector('.homebtn').addEventListener('click', () => {
-    window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+    window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
     return
 })
 
@@ -3950,7 +3966,7 @@ function appendObj(files) {
             }
             catch (e) {
                 alert("Invalid JSON file!" + str(e));
-                window.location.replace("./index.html?go="+Math.floor(Date.now() / 1000));
+                window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
             }
         }
     }
