@@ -13,6 +13,8 @@ Video
 
 **Youtube:** https://youtu.be/yCF0Wj6pQTI
 
+**Bilibili:** https://www.bilibili.com/video/BV1E3411k7Ag
+
 ## Description
 
 Since clothing has entered assembled line production for decades, standard sized clothing has become the main choice of people. It is more convenient, time and money efficient as it does not require the measure process as the traditional customised clothing does. However, it may also cause massive waste due to the misfit problem. Customised clothing, on the other hand, does not have this problem, however, it takes complex measuring process by a tailor and is not efficient.
