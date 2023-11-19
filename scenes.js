@@ -277,7 +277,7 @@ var gui_options = {
     env: "None",
     Enable_Patch_Background: false,
     cut: false,
-    Mode: "Cutting Model",
+    Mode: "Customizing Material",
     focus: false,
     Straight: false,
     light: "Camera Light",
@@ -2317,10 +2317,10 @@ function individual(bufGeom, ig, scale = 0.00035) {
     }
 }
 
-function individual_garmentToPatch(bufGeom, ig, uv) {
+function individual_garmentToPatch(bufGeom, ig) {
     try {
         var groups = bufGeom.groups;
-        var origUVs = uv;
+        var origUVs = bufGeom.getAttribute('uv').array;
 
         if (groups.length > 0) { var group = groups[ig]; }
         else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
@@ -2683,6 +2683,7 @@ function Display(show_env, patch_env, light) {
 
 
 function obj_loader(url_obj, scale) {
+    let default_material = new THREE.MeshPhongMaterial({ color: 0xcccccc, reflectivity: 0.1, side: THREE.DoubleSide })
     original = []
     let onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
@@ -2699,13 +2700,26 @@ function obj_loader(url_obj, scale) {
         url_obj,
         function (root) {
             let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
+            load_num = 0
             root.traverse(function (child) {
                 if (child.type === 'Mesh') {
                     child.name = randomString();
 
-                    //***************************************************************]
-                    // child.geometry = new THREE.DodecahedronGeometry(2, 3)
-                    //***************************************************************
+                    obj_vertices_count += child.geometry.attributes.position.count;
+                    child.material = []
+                    if (child.geometry.groups.length > 0) {
+                        for (let group_i = 0; group_i < child.geometry.groups.length; group_i++) {
+                            let default_m = default_material.clone()
+                            child.material.push(default_m);
+                        }
+                    }
+                    else {
+                        let default_m = default_material.clone()
+                        child.material = default_m;
+                    }
+
+                    
+                    // child.geometry = smoothNormals(child.geometry)
 
                     child.castShadow = true;
                     child.receiveShadow = true;
@@ -2719,6 +2733,8 @@ function obj_loader(url_obj, scale) {
                     x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
                     y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
                     z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
+                    load_num += 1
+                    ready.push(1);
                 }
             })
             passed_time = 0;
@@ -2728,16 +2744,8 @@ function obj_loader(url_obj, scale) {
             }, 1000)
             let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             obj_size = 1
-            let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
-            let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
-            load_num = 0
-            root.traverse(function (child) {
-                if (child.type === 'Mesh') {
-                    load_num += 1
-                    rearrange_geo(child.geometry, geo_position, geo_scale)
-                    init_produce_geo(child.geometry.attributes.position.array, child)
-                }
-            })
+            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
+            root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
             newobj.add(root);
         },
         onProgress_obj
@@ -2767,7 +2775,6 @@ function patch_loader(garment) {
         let patch_geo = garment.children[0].children[x].geometry.clone();
         let patch_mtl = Array.isArray(garment.children[0].children[x].material) ? array_default_material_clone(garment.children[0].children[x].material, true) : garment.children[0].children[x].material.clone();
 
-        let geo_uv = patch_geo.getAttribute('uv').array
         if (highest.layer < x) {
             highest.layer += 1;
             highest.last_layer_y = highest.y + 0.5
@@ -2775,7 +2782,7 @@ function patch_loader(garment) {
         if (patch_geo.groups && patch_geo.groups.length > 0) {
             let group_3d = new THREE.Group();
             for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
-                let individual_patch = individual_garmentToPatch(patch_geo, individual_i, geo_uv)
+                let individual_patch = individual_garmentToPatch(patch_geo, individual_i)
                 let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
                 individual_patch.computeBoundingBox();
                 let y_max = individual_patch.boundingBox.max.y;
@@ -2791,7 +2798,7 @@ function patch_loader(garment) {
             newobj.add(group_3d)
         }
         else {
-            patch_geo = individual_garmentToPatch(patch_geo, 0, geo_uv);
+            patch_geo = individual_garmentToPatch(patch_geo, 0);
             let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
             patch_map.name = garment.children[0].children[x].name;
             patch_geo.computeBoundingBox();
@@ -2812,11 +2819,10 @@ function reload_patch(new_mesh) {
     let patch_geo = new_mesh.geometry.clone();
     let patch_mtl = Array.isArray(new_mesh.material) ? array_default_material_clone(new_mesh.material, true) : new_mesh.material.clone();
     var max_radius = 0;
-    let geo_uv = patch_geo.getAttribute('uv').array
     if (patch_geo.groups && patch_geo.groups.length > 0) {
         let group_3d = new THREE.Group();
         for (let individual_i = 0; individual_i < patch_geo.groups.length; individual_i++) {
-            let individual_patch = individual_garmentToPatch(patch_geo, individual_i, geo_uv)
+            let individual_patch = individual_garmentToPatch(patch_geo, individual_i)
             let patch_map = new THREE.Mesh(individual_patch, patch_mtl[individual_i]);
             individual_patch.computeBoundingBox();
             patch_map.name = randomString();
@@ -2826,7 +2832,7 @@ function reload_patch(new_mesh) {
         patch.add(group_3d)
     }
     else {
-        patch_geo = individual_garmentToPatch(patch_geo, 0, geo_uv);
+        patch_geo = individual_garmentToPatch(patch_geo, 0);
         let patch_map = new THREE.Mesh(patch_geo, patch_mtl);
         patch_map.name = new_mesh.name;
         patch_geo.computeBoundingBox();
@@ -2868,7 +2874,7 @@ function GUI_init() {
     document.getElementById('gui_container_gui').insertBefore(gui.domElement, document.getElementById('gui_container_gui').childNodes[0]);
 
     folder_basic = gui.addFolder("Basic")
-    folder_basic.add(gui_options, 'Mode', ["Cutting Model", "Customizing Material"]).name("Mode").onChange(() => Change_Mode());
+    folder_basic.add(gui_options, 'Mode', ["Customizing Material"]).name("Mode").onChange(() => Change_Mode());
     folder_basic.add(gui_options, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(gui_options.light));
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     cut_component = folder_basic.addFolder("Cutting Control");
