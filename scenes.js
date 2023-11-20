@@ -9,6 +9,7 @@ import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectCom
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
 import { mergeVertices } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
+import { Water } from './three.js/examples/jsm/objects/Water.js';
 
 var continue_start_flag = false;
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light;
@@ -45,7 +46,7 @@ let last_cover = [];
 let last_cover_patch = [];
 let last_select = [];
 let last_select_patch = [];
-
+var MeshWater
 var textureloader = new THREE.TextureLoader();
 let obj_size = 1;
 let find_new = false;
@@ -645,12 +646,30 @@ function init() {
     scene.add(line_left);
     scene.add(line_back_left);
 
+    const waterGeometry = new THREE.CircleGeometry(5000, 100);
 
-    var helper = new THREE.GridHelper(10, 50, 0x999999, 0x666666);
-    helper.position.y = 0;
-    helper.material.opacity = 0.25;
-    helper.material.transparent = true;
-    scene.add(helper);
+    MeshWater = new Water(
+      waterGeometry,
+      {
+        textureWidth: 1024,
+        textureHeight: 1024,
+        waterNormals: new THREE.TextureLoader().load(
+          "./three.js/examples/textures/waternormals.jpg",
+          function (texture) {
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          }
+        ),
+        sunDirection: new THREE.Vector3(),
+        sunColor: 0xffffff,
+        waterColor: 0x001e1f,
+        distortionScale: 3,
+        fog: scene.fog !== undefined,
+      },
+      2.0
+    );
+    MeshWater.name = "Water";
+    MeshWater.receiveShadow = true;
+    MeshWater.castShadow = false;
 
     directional_light = new THREE.DirectionalLight(0xffffff, 0.8);
     directional_light.castShadow = true;
@@ -884,6 +903,7 @@ function animate() {
         $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.80 - 15 })
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(450, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
+        MeshWater.material.uniforms["time"].value += 1.0 / 180.0;
         render();
         timeStamp = timeStamp % singleFrameTime;
     }
