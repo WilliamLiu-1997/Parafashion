@@ -4,7 +4,7 @@
  * http://code.google.com/p/3-dreams-of-black/source/browse/deploy/js/effects/PaintEffect.js
  */
 
-const FocusShader = {
+var FocusShader = {
 
 	uniforms: {
 
@@ -16,72 +16,76 @@ const FocusShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform float screenWidth;
-		uniform float screenHeight;
-		uniform float sampleDistance;
-		uniform float waveFactor;
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse;
+		'uniform float screenWidth;',
+		'uniform float screenHeight;',
+		'uniform float sampleDistance;',
+		'uniform float waveFactor;',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 color, org, tmp, add;
-			float sample_dist, f;
-			vec2 vin;
-			vec2 uv = vUv;
+		'void main() {',
 
-			add = color = org = texture2D( tDiffuse, uv );
+		'	vec4 color, org, tmp, add;',
+		'	float sample_dist, f;',
+		'	vec2 vin;',
+		'	vec2 uv = vUv;',
 
-			vin = ( uv - vec2( 0.5 ) ) * vec2( 1.4 );
-			sample_dist = dot( vin, vin ) * 2.0;
+		'	add = color = org = texture2D( tDiffuse, uv );',
 
-			f = ( waveFactor * 100.0 + sample_dist ) * sampleDistance * 4.0;
+		'	vin = ( uv - vec2( 0.5 ) ) * vec2( 1.4 );',
+		'	sample_dist = dot( vin, vin ) * 2.0;',
 
-			vec2 sampleSize = vec2(  1.0 / screenWidth, 1.0 / screenHeight ) * vec2( f );
+		'	f = ( waveFactor * 100.0 + sample_dist ) * sampleDistance * 4.0;',
 
-			add += tmp = texture2D( tDiffuse, uv + vec2( 0.111964, 0.993712 ) * sampleSize );
-			if( tmp.b < color.b ) color = tmp;
+		'	vec2 sampleSize = vec2(  1.0 / screenWidth, 1.0 / screenHeight ) * vec2( f );',
 
-			add += tmp = texture2D( tDiffuse, uv + vec2( 0.846724, 0.532032 ) * sampleSize );
-			if( tmp.b < color.b ) color = tmp;
+		'	add += tmp = texture2D( tDiffuse, uv + vec2( 0.111964, 0.993712 ) * sampleSize );',
+		'	if( tmp.b < color.b ) color = tmp;',
 
-			add += tmp = texture2D( tDiffuse, uv + vec2( 0.943883, -0.330279 ) * sampleSize );
-			if( tmp.b < color.b ) color = tmp;
+		'	add += tmp = texture2D( tDiffuse, uv + vec2( 0.846724, 0.532032 ) * sampleSize );',
+		'	if( tmp.b < color.b ) color = tmp;',
 
-			add += tmp = texture2D( tDiffuse, uv + vec2( 0.330279, -0.943883 ) * sampleSize );
-			if( tmp.b < color.b ) color = tmp;
+		'	add += tmp = texture2D( tDiffuse, uv + vec2( 0.943883, -0.330279 ) * sampleSize );',
+		'	if( tmp.b < color.b ) color = tmp;',
 
-			add += tmp = texture2D( tDiffuse, uv + vec2( -0.532032, -0.846724 ) * sampleSize );
-			if( tmp.b < color.b ) color = tmp;
+		'	add += tmp = texture2D( tDiffuse, uv + vec2( 0.330279, -0.943883 ) * sampleSize );',
+		'	if( tmp.b < color.b ) color = tmp;',
 
-			add += tmp = texture2D( tDiffuse, uv + vec2( -0.993712, -0.111964 ) * sampleSize );
-			if( tmp.b < color.b ) color = tmp;
+		'	add += tmp = texture2D( tDiffuse, uv + vec2( -0.532032, -0.846724 ) * sampleSize );',
+		'	if( tmp.b < color.b ) color = tmp;',
 
-			add += tmp = texture2D( tDiffuse, uv + vec2( -0.707107, 0.707107 ) * sampleSize );
-			if( tmp.b < color.b ) color = tmp;
+		'	add += tmp = texture2D( tDiffuse, uv + vec2( -0.993712, -0.111964 ) * sampleSize );',
+		'	if( tmp.b < color.b ) color = tmp;',
 
-			color = color * vec4( 2.0 ) - ( add / vec4( 8.0 ) );
-			color = color + ( add / vec4( 8.0 ) - color ) * ( vec4( 1.0 ) - vec4( sample_dist * 0.5 ) );
+		'	add += tmp = texture2D( tDiffuse, uv + vec2( -0.707107, 0.707107 ) * sampleSize );',
+		'	if( tmp.b < color.b ) color = tmp;',
 
-			gl_FragColor = vec4( color.rgb * color.rgb * vec3( 0.95 ) + color.rgb, 1.0 );
+		'	color = color * vec4( 2.0 ) - ( add / vec4( 8.0 ) );',
+		'	color = color + ( add / vec4( 8.0 ) - color ) * ( vec4( 1.0 ) - vec4( sample_dist * 0.5 ) );',
 
-		}`
+		'	gl_FragColor = vec4( color.rgb * color.rgb * vec3( 0.95 ) + color.rgb, 1.0 );',
 
+		'}'
+
+
+	].join( '\n' )
 };
 
 export { FocusShader };

@@ -1,15 +1,20 @@
 import { LineSegmentsGeometry } from '../lines/LineSegmentsGeometry.js';
 
-class LineGeometry extends LineSegmentsGeometry {
+var LineGeometry = function () {
 
-	constructor() {
+	LineSegmentsGeometry.call( this );
 
-		super();
-		this.type = 'LineGeometry';
+	this.type = 'LineGeometry';
 
-	}
+};
 
-	setPositions( array ) {
+LineGeometry.prototype = Object.assign( Object.create( LineSegmentsGeometry.prototype ), {
+
+	constructor: LineGeometry,
+
+	isLineGeometry: true,
+
+	setPositions: function ( array ) {
 
 		// converts [ x1, y1, z1,  x2, y2, z2, ... ] to pairs format
 
@@ -28,13 +33,13 @@ class LineGeometry extends LineSegmentsGeometry {
 
 		}
 
-		super.setPositions( points );
+		LineSegmentsGeometry.prototype.setPositions.call( this, points );
 
 		return this;
 
-	}
+	},
 
-	setColors( array ) {
+	setColors: function ( array ) {
 
 		// converts [ r1, g1, b1,  r2, g2, b2, ... ] to pairs format
 
@@ -53,13 +58,13 @@ class LineGeometry extends LineSegmentsGeometry {
 
 		}
 
-		super.setColors( colors );
+		LineSegmentsGeometry.prototype.setColors.call( this, colors );
 
 		return this;
 
-	}
+	},
 
-	fromLine( line ) {
+	fromLine: function ( line ) {
 
 		var geometry = line.geometry;
 
@@ -78,10 +83,16 @@ class LineGeometry extends LineSegmentsGeometry {
 
 		return this;
 
+	},
+
+	copy: function ( /* source */ ) {
+
+		// todo
+
+		return this;
+
 	}
 
-}
-
-LineGeometry.prototype.isLineGeometry = true;
+} );
 
 export { LineGeometry };

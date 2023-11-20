@@ -1,77 +1,75 @@
 import { TempNode } from '../core/TempNode.js';
 
-class SubSlotNode extends TempNode {
+function SubSlotNode( slots ) {
 
-	constructor( slots ) {
+	TempNode.call( this );
 
-		super();
+	this.slots = slots || {};
 
-		this.slots = slots || {};
+}
 
-	}
+SubSlotNode.prototype = Object.create( TempNode.prototype );
+SubSlotNode.prototype.constructor = SubSlotNode;
+SubSlotNode.prototype.nodeType = 'SubSlot';
 
-	getType( builder, output ) {
+SubSlotNode.prototype.getType = function ( builder, output ) {
 
-		return output;
+	return output;
 
-	}
+};
 
-	generate( builder, output ) {
+SubSlotNode.prototype.generate = function ( builder, output ) {
 
-		if ( this.slots[ builder.slot ] ) {
+	if ( this.slots[ builder.slot ] ) {
 
-			return this.slots[ builder.slot ].build( builder, output );
-
-		}
-
-		return builder.format( '0.0', 'f', output );
+		return this.slots[ builder.slot ].build( builder, output );
 
 	}
 
-	copy( source ) {
+	return builder.format( '0.0', 'f', output );
 
-		super.copy( source );
+};
 
-		for ( const prop in source.slots ) {
+SubSlotNode.prototype.copy = function ( source ) {
 
-			this.slots[ prop ] = source.slots[ prop ];
+	TempNode.prototype.copy.call( this, source );
 
-		}
+	for ( var prop in source.slots ) {
 
-		return this;
+		this.slots[ prop ] = source.slots[ prop ];
 
 	}
 
-	toJSON( meta ) {
+	return this;
 
-		let data = this.getJSONNode( meta );
+};
 
-		if ( ! data ) {
+SubSlotNode.prototype.toJSON = function ( meta ) {
 
-			data = this.createJSONNode( meta );
+	var data = this.getJSONNode( meta );
 
-			data.slots = {};
+	if ( ! data ) {
 
-			for ( const prop in this.slots ) {
+		data = this.createJSONNode( meta );
 
-				const slot = this.slots[ prop ];
+		data.slots = {};
 
-				if ( slot ) {
+		for ( var prop in this.slots ) {
 
-					data.slots[ prop ] = slot.toJSON( meta ).uuid;
+			var slot = this.slots[ prop ];
 
-				}
+			if ( slot ) {
+
+				data.slots[ prop ] = slot.toJSON( meta ).uuid;
 
 			}
 
 		}
 
-		return data;
-
 	}
 
-}
+	return data;
 
-SubSlotNode.prototype.nodeType = 'SubSlot';
+};
 
 export { SubSlotNode };

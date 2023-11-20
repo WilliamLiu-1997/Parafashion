@@ -1,27 +1,37 @@
-import Object3DNode from './Object3DNode.js';
+import Node from '../core/Node.js';
+import Vector3Node from '../inputs/Vector3Node.js';
 import Matrix4Node from '../inputs/Matrix4Node.js';
+import { NodeUpdateType } from '../core/constants.js';
 
-class CameraNode extends Object3DNode {
+class CameraNode extends Node {
 
-	static PROJECTION_MATRIX = 'projectionMatrix';
+	static POSITION = 'position';
+	static PROJECTION = 'projection';
+	static VIEW = 'view';
 
 	constructor( scope = CameraNode.POSITION ) {
 
-		super( scope );
+		super();
+
+		this.updateType = NodeUpdateType.Frame;
+
+		this.scope = scope;
+
+		this._inputNode = null;
 
 	}
 
-	getType( builder ) {
+	getType() {
 
 		const scope = this.scope;
 
-		if ( scope === CameraNode.PROJECTION_MATRIX ) {
+		if ( scope === CameraNode.PROJECTION || scope === CameraNode.VIEW ) {
 
 			return 'mat4';
 
 		}
 
-		return super.getType( builder );
+		return 'vec3';
 
 	}
 
@@ -31,17 +41,17 @@ class CameraNode extends Object3DNode {
 		const inputNode = this._inputNode;
 		const scope = this.scope;
 
-		if ( scope === CameraNode.PROJECTION_MATRIX ) {
+		if ( scope === CameraNode.PROJECTION ) {
 
 			inputNode.value = camera.projectionMatrix;
 
-		} else if ( scope === CameraNode.VIEW_MATRIX ) {
+		} else if ( scope === CameraNode.VIEW ) {
 
 			inputNode.value = camera.matrixWorldInverse;
 
-		} else {
+		} else if ( scope === CameraNode.POSITION ) {
 
-			super.update( frame );
+			camera.getWorldPosition( inputNode.value );
 
 		}
 
@@ -57,7 +67,7 @@ class CameraNode extends Object3DNode {
 
 			const scope = this.scope;
 
-			if ( scope === CameraNode.PROJECTION_MATRIX ) {
+			if ( scope === CameraNode.PROJECTION || scope === CameraNode.VIEW ) {
 
 				if ( inputNode === null || inputNode.isMatrix4Node !== true ) {
 
@@ -65,9 +75,13 @@ class CameraNode extends Object3DNode {
 
 				}
 
-			} else {
+			} else if ( scope === CameraNode.POSITION ) {
 
-				return super.generate( builder, output );
+				if ( inputNode === null || inputNode.isVector3Node !== true ) {
+
+					inputNode = new Vector3Node();
+
+				}
 
 			}
 

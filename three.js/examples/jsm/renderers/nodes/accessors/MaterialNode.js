@@ -4,12 +4,10 @@ import MaterialReferenceNode from './MaterialReferenceNode.js';
 
 class MaterialNode extends Node {
 
-	static ALPHA_TEST = 'alphaTest';
 	static COLOR = 'color';
 	static OPACITY = 'opacity';
 	static SPECULAR = 'specular';
-	static ROUGHNESS = 'roughness';
-	static METALNESS = 'metalness';
+	static SHININESS = 'shininess';
 
 	constructor( scope = MaterialNode.COLOR ) {
 
@@ -22,7 +20,7 @@ class MaterialNode extends Node {
 	getType( builder ) {
 
 		const scope = this.scope;
-		const material = builder.getContextValue( 'material' );
+		const material = builder.getContextParameter( 'material' );
 
 		if ( scope === MaterialNode.COLOR ) {
 
@@ -36,7 +34,7 @@ class MaterialNode extends Node {
 
 			return 'vec3';
 
-		} else if ( scope === MaterialNode.ROUGHNESS || scope === MaterialNode.METALNESS ) {
+		} else if ( scope === MaterialNode.SHININESS ) {
 
 			return 'float';
 
@@ -46,16 +44,12 @@ class MaterialNode extends Node {
 
 	generate( builder, output ) {
 
-		const material = builder.getContextValue( 'material' );
+		const material = builder.getContextParameter( 'material' );
 		const scope = this.scope;
 
 		let node = null;
 
-		if ( scope === MaterialNode.ALPHA_TEST ) {
-
-			node = new MaterialReferenceNode( 'alphaTest', 'float' );
-
-		} else if ( scope === MaterialNode.COLOR ) {
+		if ( scope === MaterialNode.COLOR ) {
 
 			const colorNode = new MaterialReferenceNode( 'color', 'color' );
 
@@ -85,23 +79,21 @@ class MaterialNode extends Node {
 
 		} else if ( scope === MaterialNode.SPECULAR ) {
 
-			const specularTintNode = new MaterialReferenceNode( 'specularTint', 'color' );
+			const specularColorNode = new MaterialReferenceNode( 'specular', 'color' );
 
-			if ( material.specularTintMap !== null && material.specularTintMap !== undefined && material.specularTintMap.isTexture === true ) {
+			if ( material.specularMap !== null && material.specularMap !== undefined && material.specularMap.isTexture === true ) {
 
-				node = new OperatorNode( '*', specularTintNode, new MaterialReferenceNode( 'specularTintMap', 'texture' ) );
+				node = new OperatorNode( '*', specularColorNode, new MaterialReferenceNode( 'specularMap', 'texture' ) );
 
 			} else {
 
-				node = specularTintNode;
+				node = specularColorNode;
 
 			}
 
-		} else {
+		} else if ( scope === MaterialNode.SHININESS ) {
 
-			const type = this.getType( builder );
-
-			node = new MaterialReferenceNode( scope, type );
+			node = new MaterialReferenceNode( 'shininess', 'float' );
 
 		}
 

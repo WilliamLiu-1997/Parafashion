@@ -1,17 +1,17 @@
 import ContextNode from '../core/ContextNode.js';
-import StructNode from '../core/StructNode.js';
-import { PhysicalLightingModel } from '../functions/BSDFs.js';
-
-const reflectedLightStruct = new StructNode( {
-	directDiffuse: 'vec3',
-	directSpecular: 'vec3'
-}, 'ReflectedLight' );
+import { RE_Direct_BlinnPhong, RE_IndirectDiffuse_BlinnPhong } from '../functions/BSDFs.js';
 
 class LightContextNode extends ContextNode {
 
 	constructor( node ) {
 
-		super( node, 'vec3' );
+		super( node );
+
+	}
+
+	getType( /*builder*/ ) {
+
+		return 'vec3';
 
 	}
 
@@ -21,32 +21,37 @@ class LightContextNode extends ContextNode {
 
 		const material = builder.material;
 
-		let lightingModel = null;
+		let RE_Direct = null;
+		let RE_IndirectDiffuse = null;
 
-		if ( material.isMeshStandardMaterial === true ) {
+		if ( material.isMeshPhongMaterial === true ) {
 
-			lightingModel = PhysicalLightingModel;
-
-		}
-
-		const reflectedLightNode = reflectedLightStruct.create();
-		const reflectedLight = reflectedLightNode.build( builder, 'var' );
-
-		this.setContextValue( 'reflectedLight', reflectedLightNode );
-
-		if ( lightingModel !== null ) {
-
-			this.setContextValue( 'lightingModel', lightingModel );
+			RE_Direct = RE_Direct_BlinnPhong;
+			RE_IndirectDiffuse = RE_IndirectDiffuse_BlinnPhong;
 
 		}
 
-		const totalLightSnippet = `( ${reflectedLight}.directDiffuse + ${reflectedLight}.directSpecular )`;
+		if ( RE_Direct !== null ) {
+
+			this.setParameter( 'RE_Direct', RE_Direct );
+			this.setParameter( 'RE_IndirectDiffuse', RE_IndirectDiffuse );
+
+		}
+
+		const resetTotalLight = 'Irradiance = vec3( 0.0 ); ReflectedLightDirectDiffuse = vec3( 0.0 ); ReflectedLightDirectSpecular = vec3( 0.0 );';
+		const resultTotalLight = 'ReflectedLightDirectDiffuse + ReflectedLightDirectSpecular';
+
+		// include keywords
+
+		builder.getContextParameter( 'keywords' ).include( builder, resetTotalLight );
 
 		// add code
 
+		builder.addFlowCode( resetTotalLight );
+
 		super.generate( builder, output );
 
-		return builder.format( totalLightSnippet, type, output );
+		return builder.format( resultTotalLight, type, output );
 
 	}
 

@@ -6,88 +6,93 @@ import {
 	Vector3
 } from '../../../build/three.module.js';
 
-const _v1 = new Vector3();
-const _v2 = new Vector3();
+var _v1 = new Vector3();
+var _v2 = new Vector3();
 
-class VertexTangentsHelper extends LineSegments {
+function VertexTangentsHelper( object, size, hex ) {
 
-	constructor( object, size = 1, color = 0x00ffff ) {
+	this.object = object;
 
-		const objGeometry = object.geometry;
+	this.size = ( size !== undefined ) ? size : 1;
 
-		if ( ! ( objGeometry && objGeometry.isBufferGeometry ) ) {
+	var color = ( hex !== undefined ) ? hex : 0x00ffff;
 
-			console.error( 'THREE.VertexTangentsHelper: geometry not an instance of THREE.BufferGeometry.', objGeometry );
-			return;
+	//
 
-		}
+	var objGeometry = this.object.geometry;
 
-		const nTangents = objGeometry.attributes.tangent.count;
+	if ( ! ( objGeometry && objGeometry.isBufferGeometry ) ) {
 
-		//
-
-		const geometry = new BufferGeometry();
-
-		const positions = new Float32BufferAttribute( nTangents * 2 * 3, 3 );
-
-		geometry.setAttribute( 'position', positions );
-
-		super( geometry, new LineBasicMaterial( { color, toneMapped: false } ) );
-
-		this.object = object;
-		this.size = size;
-		this.type = 'VertexTangentsHelper';
-
-		//
-
-		this.matrixAutoUpdate = false;
-
-		this.update();
+		console.error( 'THREE.VertexTangentsHelper: geometry not an instance of THREE.BufferGeometry.', objGeometry );
+		return;
 
 	}
 
-	update() {
+	var nTangents = objGeometry.attributes.tangent.count;
 
-		this.object.updateMatrixWorld( true );
+	//
 
-		const matrixWorld = this.object.matrixWorld;
+	var geometry = new BufferGeometry();
 
-		const position = this.geometry.attributes.position;
+	var positions = new Float32BufferAttribute( nTangents * 2 * 3, 3 );
 
-		//
+	geometry.setAttribute( 'position', positions );
 
-		const objGeometry = this.object.geometry;
+	LineSegments.call( this, geometry, new LineBasicMaterial( { color: color, toneMapped: false } ) );
 
-		const objPos = objGeometry.attributes.position;
+	this.type = 'VertexTangentsHelper';
 
-		const objTan = objGeometry.attributes.tangent;
+	//
 
-		let idx = 0;
+	this.matrixAutoUpdate = false;
 
-		// for simplicity, ignore index and drawcalls, and render every tangent
-
-		for ( let j = 0, jl = objPos.count; j < jl; j ++ ) {
-
-			_v1.set( objPos.getX( j ), objPos.getY( j ), objPos.getZ( j ) ).applyMatrix4( matrixWorld );
-
-			_v2.set( objTan.getX( j ), objTan.getY( j ), objTan.getZ( j ) );
-
-			_v2.transformDirection( matrixWorld ).multiplyScalar( this.size ).add( _v1 );
-
-			position.setXYZ( idx, _v1.x, _v1.y, _v1.z );
-
-			idx = idx + 1;
-
-			position.setXYZ( idx, _v2.x, _v2.y, _v2.z );
-
-			idx = idx + 1;
-
-		}
-
-		position.needsUpdate = true;
-
-	}
+	this.update();
 
 }
+
+VertexTangentsHelper.prototype = Object.create( LineSegments.prototype );
+VertexTangentsHelper.prototype.constructor = VertexTangentsHelper;
+
+VertexTangentsHelper.prototype.update = function () {
+
+	this.object.updateMatrixWorld( true );
+
+	var matrixWorld = this.object.matrixWorld;
+
+	var position = this.geometry.attributes.position;
+
+	//
+
+	var objGeometry = this.object.geometry;
+
+	var objPos = objGeometry.attributes.position;
+
+	var objTan = objGeometry.attributes.tangent;
+
+	var idx = 0;
+
+	// for simplicity, ignore index and drawcalls, and render every tangent
+
+	for ( var j = 0, jl = objPos.count; j < jl; j ++ ) {
+
+		_v1.set( objPos.getX( j ), objPos.getY( j ), objPos.getZ( j ) ).applyMatrix4( matrixWorld );
+
+		_v2.set( objTan.getX( j ), objTan.getY( j ), objTan.getZ( j ) );
+
+		_v2.transformDirection( matrixWorld ).multiplyScalar( this.size ).add( _v1 );
+
+		position.setXYZ( idx, _v1.x, _v1.y, _v1.z );
+
+		idx = idx + 1;
+
+		position.setXYZ( idx, _v2.x, _v2.y, _v2.z );
+
+		idx = idx + 1;
+
+	}
+
+	position.needsUpdate = true;
+
+};
 
 export { VertexTangentsHelper };

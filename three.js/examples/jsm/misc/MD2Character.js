@@ -10,89 +10,37 @@ import {
 } from '../../../build/three.module.js';
 import { MD2Loader } from '../loaders/MD2Loader.js';
 
-class MD2Character {
+var MD2Character = function () {
 
-	constructor() {
+	var scope = this;
 
-		this.scale = 1;
-		this.animationFPS = 6;
+	this.scale = 1;
+	this.animationFPS = 6;
 
-		this.root = new Object3D();
+	this.root = new Object3D();
 
-		this.meshBody = null;
-		this.meshWeapon = null;
+	this.meshBody = null;
+	this.meshWeapon = null;
 
-		this.skinsBody = [];
-		this.skinsWeapon = [];
+	this.skinsBody = [];
+	this.skinsWeapon = [];
 
-		this.weapons = [];
+	this.weapons = [];
 
-		this.activeAnimation = null;
+	this.activeAnimation = null;
 
-		this.mixer = null;
+	this.mixer = null;
 
-		this.onLoadComplete = function () {};
+	this.onLoadComplete = function () {};
 
-		this.loadCounter = 0;
+	this.loadCounter = 0;
 
-	}
-
-	loadParts( config ) {
-
-		const scope = this;
-
-		function createPart( geometry, skinMap ) {
-
-			const materialWireframe = new MeshLambertMaterial( { color: 0xffaa00, wireframe: true } );
-			const materialTexture = new MeshLambertMaterial( { color: 0xffffff, wireframe: false, map: skinMap } );
-
-			//
-
-			const mesh = new Mesh( geometry, materialTexture );
-			mesh.rotation.y = - Math.PI / 2;
-
-			mesh.castShadow = true;
-			mesh.receiveShadow = true;
-
-			//
-
-			mesh.materialTexture = materialTexture;
-			mesh.materialWireframe = materialWireframe;
-
-			return mesh;
-
-		}
-
-		function loadTextures( baseUrl, textureUrls ) {
-
-			const textureLoader = new TextureLoader();
-			const textures = [];
-
-			for ( let i = 0; i < textureUrls.length; i ++ ) {
-
-				textures[ i ] = textureLoader.load( baseUrl + textureUrls[ i ], checkLoadingComplete );
-				textures[ i ].mapping = UVMapping;
-				textures[ i ].name = textureUrls[ i ];
-				textures[ i ].encoding = sRGBEncoding;
-
-			}
-
-			return textures;
-
-		}
-
-		function checkLoadingComplete() {
-
-			scope.loadCounter -= 1;
-
-			if ( scope.loadCounter === 0 ) scope.onLoadComplete();
-
-		}
+	this.loadParts = function ( config ) {
 
 		this.loadCounter = config.weapons.length * 2 + config.skins.length + 1;
 
-		const weaponsTextures = [];
-		for ( let i = 0; i < config.weapons.length; i ++ ) weaponsTextures[ i ] = config.weapons[ i ][ 1 ];
+		var weaponsTextures = [];
+		for ( var i = 0; i < config.weapons.length; i ++ ) weaponsTextures[ i ] = config.weapons[ i ][ 1 ];
 		// SKINS
 
 		this.skinsBody = loadTextures( config.baseUrl + 'skins/', config.skins );
@@ -100,16 +48,16 @@ class MD2Character {
 
 		// BODY
 
-		const loader = new MD2Loader();
+		var loader = new MD2Loader();
 
 		loader.load( config.baseUrl + config.body, function ( geo ) {
 
-			const boundingBox = new Box3();
+			var boundingBox = new Box3();
 			boundingBox.setFromBufferAttribute( geo.attributes.position );
 
 			scope.root.position.y = - scope.scale * boundingBox.min.y;
 
-			const mesh = createPart( geo, scope.skinsBody[ 0 ] );
+			var mesh = createPart( geo, scope.skinsBody[ 0 ] );
 			mesh.scale.set( scope.scale, scope.scale, scope.scale );
 
 			scope.root.add( mesh );
@@ -127,11 +75,11 @@ class MD2Character {
 
 		// WEAPONS
 
-		const generateCallback = function ( index, name ) {
+		var generateCallback = function ( index, name ) {
 
 			return function ( geo ) {
 
-				const mesh = createPart( geo, scope.skinsWeapon[ index ] );
+				var mesh = createPart( geo, scope.skinsWeapon[ index ] );
 				mesh.scale.set( scope.scale, scope.scale, scope.scale );
 				mesh.visible = false;
 
@@ -148,15 +96,15 @@ class MD2Character {
 
 		};
 
-		for ( let i = 0; i < config.weapons.length; i ++ ) {
+		for ( var i = 0; i < config.weapons.length; i ++ ) {
 
 			loader.load( config.baseUrl + config.weapons[ i ][ 0 ], generateCallback( i, config.weapons[ i ][ 0 ] ) );
 
 		}
 
-	}
+	};
 
-	setPlaybackRate( rate ) {
+	this.setPlaybackRate = function ( rate ) {
 
 		if ( rate !== 0 ) {
 
@@ -168,9 +116,9 @@ class MD2Character {
 
 		}
 
-	}
+	};
 
-	setWireframe( wireframeEnabled ) {
+	this.setWireframe = function ( wireframeEnabled ) {
 
 		if ( wireframeEnabled ) {
 
@@ -184,9 +132,9 @@ class MD2Character {
 
 		}
 
-	}
+	};
 
-	setSkin( index ) {
+	this.setSkin = function ( index ) {
 
 		if ( this.meshBody && this.meshBody.material.wireframe === false ) {
 
@@ -194,26 +142,26 @@ class MD2Character {
 
 		}
 
-	}
+	};
 
-	setWeapon( index ) {
+	this.setWeapon = function ( index ) {
 
-		for ( let i = 0; i < this.weapons.length; i ++ ) this.weapons[ i ].visible = false;
+		for ( var i = 0; i < this.weapons.length; i ++ ) this.weapons[ i ].visible = false;
 
-		const activeWeapon = this.weapons[ index ];
+		var activeWeapon = this.weapons[ index ];
 
 		if ( activeWeapon ) {
 
 			activeWeapon.visible = true;
 			this.meshWeapon = activeWeapon;
 
-			this.syncWeaponAnimation();
+			scope.syncWeaponAnimation();
 
 		}
 
-	}
+	};
 
-	setAnimation( clipName ) {
+	this.setAnimation = function ( clipName ) {
 
 		if ( this.meshBody ) {
 
@@ -224,7 +172,7 @@ class MD2Character {
 
 			}
 
-			const action = this.mixer.clipAction( clipName, this.meshBody );
+			var action = this.mixer.clipAction( clipName, this.meshBody );
 
 			if ( action ) {
 
@@ -234,17 +182,17 @@ class MD2Character {
 
 		}
 
-		this.activeClipName = clipName;
+		scope.activeClipName = clipName;
 
-		this.syncWeaponAnimation();
+		scope.syncWeaponAnimation();
 
-	}
+	};
 
-	syncWeaponAnimation() {
+	this.syncWeaponAnimation = function () {
 
-		const clipName = this.activeClipName;
+		var clipName = scope.activeClipName;
 
-		if ( this.meshWeapon ) {
+		if ( scope.meshWeapon ) {
 
 			if ( this.meshWeapon.activeAction ) {
 
@@ -253,7 +201,7 @@ class MD2Character {
 
 			}
 
-			const action = this.mixer.clipAction( clipName, this.meshWeapon );
+			var action = this.mixer.clipAction( clipName, this.meshWeapon );
 
 			if ( action ) {
 
@@ -263,14 +211,62 @@ class MD2Character {
 
 		}
 
-	}
+	};
 
-	update( delta ) {
+	this.update = function ( delta ) {
 
 		if ( this.mixer ) this.mixer.update( delta );
 
+	};
+
+	function loadTextures( baseUrl, textureUrls ) {
+
+		var textureLoader = new TextureLoader();
+		var textures = [];
+
+		for ( var i = 0; i < textureUrls.length; i ++ ) {
+
+			textures[ i ] = textureLoader.load( baseUrl + textureUrls[ i ], checkLoadingComplete );
+			textures[ i ].mapping = UVMapping;
+			textures[ i ].name = textureUrls[ i ];
+			textures[ i ].encoding = sRGBEncoding;
+
+		}
+
+		return textures;
+
 	}
 
-}
+	function createPart( geometry, skinMap ) {
+
+		var materialWireframe = new MeshLambertMaterial( { color: 0xffaa00, wireframe: true, morphTargets: true, morphNormals: true } );
+		var materialTexture = new MeshLambertMaterial( { color: 0xffffff, wireframe: false, map: skinMap, morphTargets: true, morphNormals: true } );
+
+		//
+
+		var mesh = new Mesh( geometry, materialTexture );
+		mesh.rotation.y = - Math.PI / 2;
+
+		mesh.castShadow = true;
+		mesh.receiveShadow = true;
+
+		//
+
+		mesh.materialTexture = materialTexture;
+		mesh.materialWireframe = materialWireframe;
+
+		return mesh;
+
+	}
+
+	function checkLoadingComplete() {
+
+		scope.loadCounter -= 1;
+
+		if ( scope.loadCounter === 0 ) scope.onLoadComplete();
+
+	}
+
+};
 
 export { MD2Character };

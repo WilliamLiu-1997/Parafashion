@@ -3,14 +3,13 @@ import PropertyNode from './PropertyNode.js';
 import PositionNode from '../accessors/PositionNode.js';
 import NormalNode from '../accessors/NormalNode.js';
 
-import { PI, RECIPROCAL_PI, EPSILON } from '../consts/MathConsts.js';
+import { PI, RECIPROCAL_PI } from '../consts/MathConsts.js';
 import { saturateMacro, whiteComplementMacro } from '../functions/MathFunctions.js';
 
 class NodeKeywords {
 
 	static PI = 'PI';
 	static RECIPROCAL_PI = 'RECIPROCAL_PI';
-	static EPSILON = 'EPSILON';
 
 	static Saturate = 'saturate';
 	static WhiteComplement = 'whiteComplement';
@@ -32,10 +31,8 @@ class NodeKeywords {
 
 	static MaterialDiffuseColor = 'MaterialDiffuseColor';
 
-	// STANDARD
-	static MaterialRoughness = 'MaterialRoughness';
-	static MaterialMetalness = 'MaterialMetalness';
-	static MaterialSpecularTint = 'MaterialSpecularTint';
+	static MaterialSpecularShininess = 'MaterialSpecularShininess';
+	static MaterialSpecularColor = 'MaterialSpecularColor';
 
 	constructor() {
 
@@ -43,7 +40,6 @@ class NodeKeywords {
 			// consts
 			NodeKeywords.PI,
 			NodeKeywords.RECIPROCAL_PI,
-			NodeKeywords.EPSILON,
 			// variadic macros
 			NodeKeywords.Saturate,
 			NodeKeywords.WhiteComplement,
@@ -56,15 +52,14 @@ class NodeKeywords {
 			NodeKeywords.NormalWorld,
 			NodeKeywords.NormalView,
 			// vars -> float
-			NodeKeywords.MaterialRoughness,
-			NodeKeywords.MaterialMetalness,
+			NodeKeywords.MaterialSpecularShininess,
 			// vars -> vec3
 			NodeKeywords.Irradiance,
 			NodeKeywords.ReflectedLightIndirectDiffuse,
 			NodeKeywords.ReflectedLightIndirectSpecular,
 			NodeKeywords.ReflectedLightDirectDiffuse,
 			NodeKeywords.ReflectedLightDirectSpecular,
-			NodeKeywords.MaterialSpecularTint,
+			NodeKeywords.MaterialSpecularColor,
 			// vars -> vec4
 			NodeKeywords.MaterialDiffuseColor
 		];
@@ -90,12 +85,6 @@ class NodeKeywords {
 				case NodeKeywords.RECIPROCAL_PI:
 
 					node = RECIPROCAL_PI;
-
-					break;
-
-				case NodeKeywords.EPSILON:
-
-					node = EPSILON;
 
 					break;
 
@@ -154,8 +143,7 @@ class NodeKeywords {
 					break;
 
 				// floats properties
-				case NodeKeywords.MaterialRoughness:
-				case NodeKeywords.MaterialMetalness:
+				case NodeKeywords.MaterialSpecularShininess:
 
 					node = new PropertyNode( name, 'float' );
 
@@ -167,7 +155,7 @@ class NodeKeywords {
 				case NodeKeywords.ReflectedLightIndirectSpecular:
 				case NodeKeywords.ReflectedLightDirectDiffuse:
 				case NodeKeywords.ReflectedLightDirectSpecular:
-				case NodeKeywords.MaterialSpecularTint:
+				case NodeKeywords.MaterialSpecularColor:
 
 					node = new PropertyNode( name, 'vec3' );
 

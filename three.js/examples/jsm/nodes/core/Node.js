@@ -1,20 +1,28 @@
 import { MathUtils } from '../../../../build/three.module.js';
 
-class Node {
+function Node( type ) {
 
-	constructor( type ) {
+	this.uuid = MathUtils.generateUUID();
 
-		this.uuid = MathUtils.generateUUID();
+	this.name = '';
 
-		this.name = '';
+	this.type = type;
 
-		this.type = type;
+	this.userData = {};
 
-		this.userData = {};
+}
 
-	}
+Node.prototype = {
 
-	analyze( builder, settings = {} ) {
+	constructor: Node,
+
+	isNode: true,
+
+	hashProperties: undefined,
+
+	analyze: function ( builder, settings ) {
+
+		settings = settings || {};
 
 		builder.analyzing = true;
 
@@ -27,21 +35,25 @@ class Node {
 
 		builder.analyzing = false;
 
-	}
+	},
 
-	analyzeAndFlow( builder, output, settings = {} ) {
+	analyzeAndFlow: function ( builder, output, settings ) {
+
+		settings = settings || {};
 
 		this.analyze( builder, settings );
 
 		return this.flow( builder, output, settings );
 
-	}
+	},
 
-	flow( builder, output, settings = {} ) {
+	flow: function ( builder, output, settings ) {
+
+		settings = settings || {};
 
 		builder.addFlow( settings.slot, settings.cache, settings.context );
 
-		const flow = {};
+		var flow = {};
 		flow.result = this.build( builder, output );
 		flow.code = builder.clearNodeCode();
 		flow.extra = builder.context.extra;
@@ -50,13 +62,13 @@ class Node {
 
 		return flow;
 
-	}
+	},
 
-	build( builder, output, uuid ) {
+	build: function ( builder, output, uuid ) {
 
 		output = output || this.getType( builder, output );
 
-		const data = builder.getNodeData( uuid || this );
+		var data = builder.getNodeData( uuid || this );
 
 		if ( builder.analyzing ) {
 
@@ -78,18 +90,18 @@ class Node {
 
 		return this.generate( builder, output, uuid );
 
-	}
+	},
 
-	generate( /* builder, output, uuid, type, ns */ ) {
+	generate: function ( /* builder, output, uuid, type, ns */ ) {
 
 		// This method needs to be implemented in subclasses
 
-	}
+	},
 
-	getHash() {
+	getHash: function () {
 
-		let hash = '{';
-		let prop, obj;
+		var hash = '{';
+		var prop, obj;
 
 		for ( prop in this ) {
 
@@ -105,7 +117,7 @@ class Node {
 
 		if ( this.hashProperties ) {
 
-			for ( let i = 0; i < this.hashProperties.length; i ++ ) {
+			for ( var i = 0; i < this.hashProperties.length; i ++ ) {
 
 				prop = this.hashProperties[ i ];
 				obj = this[ prop ];
@@ -120,13 +132,13 @@ class Node {
 
 		return hash;
 
-	}
+	},
 
-	appendDepsNode( builder, data, output ) {
+	appendDepsNode: function ( builder, data, output ) {
 
 		data.deps = ( data.deps || 0 ) + 1;
 
-		const outputLen = builder.getTypeLength( output );
+		var outputLen = builder.getTypeLength( output );
 
 		if ( outputLen > ( data.outputMax || 0 ) || this.getType( builder, output ) ) {
 
@@ -135,31 +147,31 @@ class Node {
 
 		}
 
-	}
+	},
 
-	setName( name ) {
+	setName: function ( name ) {
 
 		this.name = name;
 
 		return this;
 
-	}
+	},
 
-	getName( /* builder */ ) {
+	getName: function ( /* builder */ ) {
 
 		return this.name;
 
-	}
+	},
 
-	getType( builder, output ) {
+	getType: function ( builder, output ) {
 
 		return output === 'sampler2D' || output === 'samplerCube' ? output : this.type;
 
-	}
+	},
 
-	getJSONNode( meta ) {
+	getJSONNode: function ( meta ) {
 
-		const isRootObject = ( meta === undefined || typeof meta === 'string' );
+		var isRootObject = ( meta === undefined || typeof meta === 'string' );
 
 		if ( ! isRootObject && meta.nodes[ this.uuid ] !== undefined ) {
 
@@ -167,9 +179,9 @@ class Node {
 
 		}
 
-	}
+	},
 
-	copy( source ) {
+	copy: function ( source ) {
 
 		if ( source.name !== undefined ) this.name = source.name;
 
@@ -177,13 +189,13 @@ class Node {
 
 		return this;
 
-	}
+	},
 
-	createJSONNode( meta ) {
+	createJSONNode: function ( meta ) {
 
-		const isRootObject = ( meta === undefined || typeof meta === 'string' );
+		var isRootObject = ( meta === undefined || typeof meta === 'string' );
 
-		const data = {};
+		var data = {};
 
 		if ( typeof this.nodeType !== 'string' ) throw new Error( 'Node does not allow serialization.' );
 
@@ -202,17 +214,14 @@ class Node {
 
 		return data;
 
-	}
+	},
 
-	toJSON( meta ) {
+	toJSON: function ( meta ) {
 
 		return this.getJSONNode( meta ) || this.createJSONNode( meta );
 
 	}
 
-}
-
-Node.prototype.isNode = true;
-Node.prototype.hashProperties = undefined;
+};
 
 export { Node };

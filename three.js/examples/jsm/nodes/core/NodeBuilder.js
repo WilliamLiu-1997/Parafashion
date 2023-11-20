@@ -21,7 +21,7 @@ import { CubeTextureNode } from '../inputs/CubeTextureNode.js';
 import { TextureCubeNode } from '../misc/TextureCubeNode.js';
 
 
-const elements = NodeUtils.elements,
+var elements = NodeUtils.elements,
 	constructors = [ 'float', 'vec2', 'vec3', 'vec4' ],
 	convertFormatToType = {
 		float: 'f',
@@ -46,123 +46,127 @@ const elements = NodeUtils.elements,
 		m4: 'mat4'
 	};
 
-class NodeBuilder {
+function NodeBuilder() {
 
-	constructor() {
+	this.slots = [];
+	this.caches = [];
+	this.contexts = [];
 
-		this.slots = [];
-		this.caches = [];
-		this.contexts = [];
+	this.keywords = {};
 
-		this.keywords = {};
+	this.nodeData = {};
 
-		this.nodeData = {};
+	this.requires = {
+		uv: [],
+		color: [],
+		lights: false,
+		fog: false,
+		transparent: false,
+		irradiance: false
+	};
 
-		this.requires = {
-			uv: [],
-			color: [],
-			lights: false,
-			fog: false,
-			transparent: false,
-			irradiance: false
-		};
+	this.includes = {
+		consts: [],
+		functions: [],
+		structs: []
+	};
 
-		this.includes = {
-			consts: [],
-			functions: [],
-			structs: []
-		};
+	this.attributes = {};
 
-		this.attributes = {};
+	this.prefixCode = [
+		'#ifdef TEXTURE_LOD_EXT',
 
-		this.prefixCode = /* glsl */`
-			#ifdef TEXTURE_LOD_EXT
+		'	#define texCube(a, b) textureCube(a, b)',
+		'	#define texCubeBias(a, b, c) textureCubeLodEXT(a, b, c)',
 
-				#define texCube(a, b) textureCube(a, b)
-				#define texCubeBias(a, b, c) textureCubeLodEXT(a, b, c)
+		'	#define tex2D(a, b) texture2D(a, b)',
+		'	#define tex2DBias(a, b, c) texture2DLodEXT(a, b, c)',
 
-				#define tex2D(a, b) texture2D(a, b)
-				#define tex2DBias(a, b, c) texture2DLodEXT(a, b, c)
+		'#else',
 
-			#else
+		'	#define texCube(a, b) textureCube(a, b)',
+		'	#define texCubeBias(a, b, c) textureCube(a, b, c)',
 
-				#define texCube(a, b) textureCube(a, b)
-				#define texCubeBias(a, b, c) textureCube(a, b, c)
+		'	#define tex2D(a, b) texture2D(a, b)',
+		'	#define tex2DBias(a, b, c) texture2D(a, b, c)',
 
-				#define tex2D(a, b) texture2D(a, b)
-				#define tex2DBias(a, b, c) texture2D(a, b, c)
+		'#endif',
 
-			#endif
+		'#include <packing>',
+		'#include <common>'
 
-			#include <packing>
-			#include <common>`;
+	].join( '\n' );
 
-		this.parsCode = {
-			vertex: '',
-			fragment: ''
-		};
+	this.parsCode = {
+		vertex: '',
+		fragment: ''
+	};
 
-		this.code = {
-			vertex: '',
-			fragment: ''
-		};
+	this.code = {
+		vertex: '',
+		fragment: ''
+	};
 
-		this.nodeCode = {
-			vertex: '',
-			fragment: ''
-		};
+	this.nodeCode = {
+		vertex: '',
+		fragment: ''
+	};
 
-		this.resultCode = {
-			vertex: '',
-			fragment: ''
-		};
+	this.resultCode = {
+		vertex: '',
+		fragment: ''
+	};
 
-		this.finalCode = {
-			vertex: '',
-			fragment: ''
-		};
+	this.finalCode = {
+		vertex: '',
+		fragment: ''
+	};
 
-		this.inputs = {
-			uniforms: {
-				list: [],
-				vertex: [],
-				fragment: []
-			},
-			vars: {
-				varying: [],
-				vertex: [],
-				fragment: []
-			}
-		};
+	this.inputs = {
+		uniforms: {
+			list: [],
+			vertex: [],
+			fragment: []
+		},
+		vars: {
+			varying: [],
+			vertex: [],
+			fragment: []
+		}
+	};
 
-		// send to material
+	// send to material
 
-		this.defines = {};
+	this.defines = {};
 
-		this.uniforms = {};
+	this.uniforms = {};
 
-		this.extensions = {};
+	this.extensions = {};
 
-		this.updaters = [];
+	this.updaters = [];
 
-		this.nodes = [];
+	this.nodes = [];
 
-		// --
+	// --
 
-		this.analyzing = false;
+	this.analyzing = false;
 
-	}
+}
 
-	build( vertex, fragment ) {
+NodeBuilder.prototype = {
+
+	constructor: NodeBuilder,
+
+	build: function ( vertex, fragment ) {
 
 		this.buildShader( 'vertex', vertex );
 		this.buildShader( 'fragment', fragment );
 
-		for ( let i = 0; i < this.requires.uv.length; i ++ ) {
+		for ( var i = 0; i < this.requires.uv.length; i ++ ) {
 
 			if ( this.requires.uv[ i ] ) {
 
-				const uvIndex = i > 0 ? i + 1 : '';
+				var uvIndex = i > 0 ? i + 1 : '';
 
 				this.addVaryCode( 'varying vec2 vUv' + uvIndex + ';' );
 
@@ -230,15 +234,15 @@ class NodeBuilder {
 
 		return this;
 
-	}
+	},
 
-	buildShader( shader, node ) {
+	buildShader: function ( shader, node ) {
 
 		this.resultCode[ shader ] = node.build( this.setShader( shader ), 'v4' );
 
-	}
+	},
 
-	setMaterial( material, renderer ) {
+	setMaterial: function ( material, renderer ) {
 
 		this.material = material;
 		this.renderer = renderer;
@@ -250,39 +254,39 @@ class NodeBuilder {
 
 		return this;
 
-	}
+	},
 
-	addFlow( slot, cache, context ) {
+	addFlow: function ( slot, cache, context ) {
 
 		return this.addSlot( slot ).addCache( cache ).addContext( context );
 
-	}
+	},
 
-	removeFlow() {
+	removeFlow: function () {
 
 		return this.removeSlot().removeCache().removeContext();
 
-	}
+	},
 
-	addCache( name ) {
+	addCache: function ( name ) {
 
 		this.cache = name || '';
 		this.caches.push( this.cache );
 
 		return this;
 
-	}
+	},
 
-	removeCache() {
+	removeCache: function () {
 
 		this.caches.pop();
 		this.cache = this.caches[ this.caches.length - 1 ] || '';
 
 		return this;
 
-	}
+	},
 
-	addContext( context ) {
+	addContext: function ( context ) {
 
 		this.context = Object.assign( {}, this.context, context );
 		this.context.extra = this.context.extra || {};
@@ -291,176 +295,181 @@ class NodeBuilder {
 
 		return this;
 
-	}
+	},
 
-	removeContext() {
+	removeContext: function () {
 
 		this.contexts.pop();
 		this.context = this.contexts[ this.contexts.length - 1 ] || {};
 
 		return this;
 
-	}
+	},
 
-	addSlot( name = '' ) {
+	addSlot: function ( name ) {
 
-		this.slot = name;
+		this.slot = name || '';
 		this.slots.push( this.slot );
 
 		return this;
 
-	}
+	},
 
-	removeSlot() {
+	removeSlot: function () {
 
 		this.slots.pop();
 		this.slot = this.slots[ this.slots.length - 1 ] || '';
 
 		return this;
 
-	}
+	},
 
-	addVertexCode( code ) {
+
+	addVertexCode: function ( code ) {
 
 		this.addCode( code, 'vertex' );
 
-	}
+	},
 
-	addFragmentCode( code ) {
+	addFragmentCode: function ( code ) {
 
 		this.addCode( code, 'fragment' );
 
-	}
+	},
 
-	addCode( code, shader ) {
+	addCode: function ( code, shader ) {
 
 		this.code[ shader || this.shader ] += code + '\n';
 
-	}
+	},
 
-	addVertexNodeCode( code ) {
+
+	addVertexNodeCode: function ( code ) {
 
 		this.addNodeCode( code, 'vertex' );
 
-	}
+	},
 
-	addFragmentNodeCode( code ) {
+	addFragmentNodeCode: function ( code ) {
 
 		this.addNodeCode( code, 'fragment' );
 
-	}
+	},
 
-	addNodeCode( code, shader ) {
+	addNodeCode: function ( code, shader ) {
 
 		this.nodeCode[ shader || this.shader ] += code + '\n';
 
-	}
+	},
 
-	clearNodeCode( shader ) {
+	clearNodeCode: function ( shader ) {
 
 		shader = shader || this.shader;
 
-		const code = this.nodeCode[ shader ];
+		var code = this.nodeCode[ shader ];
 
 		this.nodeCode[ shader ] = '';
 
 		return code;
 
-	}
+	},
 
-	clearVertexNodeCode( ) {
+	clearVertexNodeCode: function ( ) {
 
 		return this.clearNodeCode( 'vertex' );
 
-	}
+	},
 
-	clearFragmentNodeCode( ) {
+	clearFragmentNodeCode: function ( ) {
 
 		return this.clearNodeCode( 'fragment' );
 
-	}
+	},
 
-	addVertexFinalCode( code ) {
+	addVertexFinalCode: function ( code ) {
 
 		this.addFinalCode( code, 'vertex' );
 
-	}
+	},
 
-	addFragmentFinalCode( code ) {
+	addFragmentFinalCode: function ( code ) {
 
 		this.addFinalCode( code, 'fragment' );
 
-	}
+	},
 
-	addFinalCode( code, shader ) {
+	addFinalCode: function ( code, shader ) {
 
 		this.finalCode[ shader || this.shader ] += code + '\n';
 
-	}
+	},
 
-	addVertexParsCode( code ) {
+
+	addVertexParsCode: function ( code ) {
 
 		this.addParsCode( code, 'vertex' );
 
-	}
+	},
 
-	addFragmentParsCode( code ) {
+	addFragmentParsCode: function ( code ) {
 
 		this.addParsCode( code, 'fragment' );
 
-	}
+	},
 
-	addParsCode( code, shader ) {
+	addParsCode: function ( code, shader ) {
 
 		this.parsCode[ shader || this.shader ] += code + '\n';
 
-	}
+	},
 
-	addVaryCode( code ) {
+
+	addVaryCode: function ( code ) {
 
 		this.addVertexParsCode( code );
 		this.addFragmentParsCode( code );
 
-	}
+	},
 
-	isCache( name ) {
+
+	isCache: function ( name ) {
 
 		return this.caches.indexOf( name ) !== - 1;
 
-	}
+	},
 
-	isSlot( name ) {
+	isSlot: function ( name ) {
 
 		return this.slots.indexOf( name ) !== - 1;
 
-	}
+	},
 
-	define( name, value ) {
+	define: function ( name, value ) {
 
 		this.defines[ name ] = value === undefined ? 1 : value;
 
-	}
+	},
 
-	require( name ) {
+	require: function ( name ) {
 
 		this.requires[ name ] = true;
 
-	}
+	},
 
-	isDefined( name ) {
+	isDefined: function ( name ) {
 
 		return this.defines[ name ] !== undefined;
 
-	}
+	},
 
-	getVar( uuid, type, ns, shader = 'varying', prefix = 'V', label = '' ) {
+	getVar: function ( uuid, type, ns, shader = 'varying', prefix = 'V', label = '' ) {
 
-		const vars = this.getVars( shader );
-		let data = vars[ uuid ];
+		var vars = this.getVars( shader ),
+			data = vars[ uuid ];
 
 		if ( ! data ) {
 
-			const index = vars.length,
+			var index = vars.length,
 				name = ns ? ns : 'node' + prefix + index + ( label ? '_' + label : '' );
 
 			data = { name: name, type: type };
@@ -472,19 +481,19 @@ class NodeBuilder {
 
 		return data;
 
-	}
+	},
 
-	getTempVar( uuid, type, ns, label ) {
+	getTempVar: function ( uuid, type, ns, label ) {
 
 		return this.getVar( uuid, type, ns, this.shader, 'T', label );
 
-	}
+	},
 
-	getAttribute( name, type ) {
+	getAttribute: function ( name, type ) {
 
 		if ( ! this.attributes[ name ] ) {
 
-			const varying = this.getVar( name, type );
+			var varying = this.getVar( name, type );
 
 			this.addVertexParsCode( 'attribute ' + type + ' ' + name + ';' );
 			this.addVertexFinalCode( varying.name + ' = ' + name + ';' );
@@ -495,9 +504,9 @@ class NodeBuilder {
 
 		return this.attributes[ name ];
 
-	}
+	},
 
-	getCode( shader ) {
+	getCode: function ( shader ) {
 
 		return [
 			this.prefixCode,
@@ -515,19 +524,21 @@ class NodeBuilder {
 			'}'
 		].join( '\n' );
 
-	}
+	},
 
-	getVarListCode( vars, prefix = '' ) {
+	getVarListCode: function ( vars, prefix ) {
 
-		let code = '';
+		prefix = prefix || '';
 
-		for ( let i = 0, l = vars.length; i < l; ++ i ) {
+		var code = '';
 
-			const nVar = vars[ i ],
+		for ( var i = 0, l = vars.length; i < l; ++ i ) {
+
+			var nVar = vars[ i ],
 				type = nVar.type,
 				name = nVar.name;
 
-			const formatType = this.getFormatByType( type );
+			var formatType = this.getFormatByType( type );
 
 			if ( formatType === undefined ) {
 
@@ -541,28 +552,28 @@ class NodeBuilder {
 
 		return code;
 
-	}
+	},
 
-	getVars( shader ) {
+	getVars: function ( shader ) {
 
 		return this.inputs.vars[ shader || this.shader ];
 
-	}
+	},
 
-	getNodeData( node ) {
+	getNodeData: function ( node ) {
 
-		const uuid = node.isNode ? node.uuid : node;
+		var uuid = node.isNode ? node.uuid : node;
 
 		return this.nodeData[ uuid ] = this.nodeData[ uuid ] || {};
 
-	}
+	},
 
-	createUniform( shader, type, node, ns, needsUpdate, label ) {
+	createUniform: function ( shader, type, node, ns, needsUpdate, label ) {
 
-		const uniforms = this.inputs.uniforms,
+		var uniforms = this.inputs.uniforms,
 			index = uniforms.list.length;
 
-		const uniform = new NodeUniform( {
+		var uniform = new NodeUniform( {
 			type: type,
 			name: ns ? ns : 'nodeU' + index + ( label ? '_' + label : '' ),
 			node: node,
@@ -578,23 +589,23 @@ class NodeBuilder {
 
 		return uniform;
 
-	}
+	},
 
-	createVertexUniform( type, node, ns, needsUpdate, label ) {
+	createVertexUniform: function ( type, node, ns, needsUpdate, label ) {
 
 		return this.createUniform( 'vertex', type, node, ns, needsUpdate, label );
 
-	}
+	},
 
-	createFragmentUniform( type, node, ns, needsUpdate, label ) {
+	createFragmentUniform: function ( type, node, ns, needsUpdate, label ) {
 
 		return this.createUniform( 'fragment', type, node, ns, needsUpdate, label );
 
-	}
+	},
 
-	include( node, parent, source ) {
+	include: function ( node, parent, source ) {
 
-		let includesStruct;
+		var includesStruct;
 
 		node = typeof node === 'string' ? NodeLib.get( node ) : node;
 
@@ -619,11 +630,11 @@ class NodeBuilder {
 
 		}
 
-		const includes = includesStruct[ this.shader ] = includesStruct[ this.shader ] || [];
+		var includes = includesStruct[ this.shader ] = includesStruct[ this.shader ] || [];
 
 		if ( node ) {
 
-			let included = includes[ node.name ];
+			var included = includes[ node.name ];
 
 			if ( ! included ) {
 
@@ -644,7 +655,7 @@ class NodeBuilder {
 
 				if ( node.includes && node.includes.length ) {
 
-					let i = 0;
+					var i = 0;
 
 					do {
 
@@ -670,79 +681,88 @@ class NodeBuilder {
 
 		}
 
-	}
+	},
 
-	colorToVectorProperties( color ) {
+	colorToVectorProperties: function ( color ) {
 
 		return color.replace( 'r', 'x' ).replace( 'g', 'y' ).replace( 'b', 'z' ).replace( 'a', 'w' );
 
-	}
+	},
 
-	colorToVector( color ) {
+	colorToVector: function ( color ) {
 
 		return color.replace( /c/g, 'v3' );
 
-	}
+	},
 
-	getIncludes( type, shader ) {
+	getIncludes: function ( type, shader ) {
 
 		return this.includes[ type ][ shader || this.shader ];
 
-	}
+	},
 
-	getIncludesCode( type, shader ) {
+	getIncludesCode: function () {
 
-		let includes = this.getIncludes( type, shader );
+		function sortByPosition( a, b ) {
 
-		if ( ! includes ) return '';
-
-		let code = '';
-
-		includes = includes.sort( sortByPosition );
-
-		for ( let i = 0; i < includes.length; i ++ ) {
-
-			if ( includes[ i ].src ) code += includes[ i ].src + '\n';
+			return a.deps.length - b.deps.length;
 
 		}
 
-		return code;
+		return function getIncludesCode( type, shader ) {
 
-	}
+			var includes = this.getIncludes( type, shader );
 
-	getConstructorFromLength( len ) {
+			if ( ! includes ) return '';
+
+			var code = '',
+				includes = includes.sort( sortByPosition );
+
+			for ( var i = 0; i < includes.length; i ++ ) {
+
+				if ( includes[ i ].src ) code += includes[ i ].src + '\n';
+
+			}
+
+			return code;
+
+		};
+
+	}(),
+
+	getConstructorFromLength: function ( len ) {
 
 		return constructors[ len - 1 ];
 
-	}
+	},
 
-	isTypeMatrix( format ) {
+	isTypeMatrix: function ( format ) {
 
 		return /^m/.test( format );
 
-	}
+	},
 
-	getTypeLength( type ) {
+	getTypeLength: function ( type ) {
 
 		if ( type === 'f' ) return 1;
 
 		return parseInt( this.colorToVector( type ).substr( 1 ) );
 
-	}
+	},
 
-	getTypeFromLength( len ) {
+	getTypeFromLength: function ( len ) {
 
 		if ( len === 1 ) return 'f';
 
 		return 'v' + len;
 
-	}
+	},
 
-	findNode() {
+	findNode: function () {
 
-		for ( let i = 0; i < arguments.length; i ++ ) {
+		for ( var i = 0; i < arguments.length; i ++ ) {
 
-			const nodeCandidate = arguments[ i ];
+			var nodeCandidate = arguments[ i ];
 
 			if ( nodeCandidate !== undefined && nodeCandidate.isNode ) {
 
@@ -752,13 +772,13 @@ class NodeBuilder {
 
 		}
 
-	}
+	},
 
-	resolve() {
+	resolve: function () {
 
-		for ( let i = 0; i < arguments.length; i ++ ) {
+		for ( var i = 0; i < arguments.length; i ++ ) {
 
-			const nodeCandidate = arguments[ i ];
+			var nodeCandidate = arguments[ i ];
 
 			if ( nodeCandidate !== undefined ) {
 
@@ -808,11 +828,11 @@ class NodeBuilder {
 
 		}
 
-	}
+	},
 
-	format( code, from, to ) {
+	format: function ( code, from, to ) {
 
-		const typeToType = this.colorToVector( to + ' <- ' + from );
+		var typeToType = this.colorToVector( to + ' <- ' + from );
 
 		switch ( typeToType ) {
 
@@ -856,21 +876,21 @@ class NodeBuilder {
 
 		return code;
 
-	}
+	},
 
-	getTypeByFormat( format ) {
+	getTypeByFormat: function ( format ) {
 
 		return convertFormatToType[ format ] || format;
 
-	}
+	},
 
-	getFormatByType( type ) {
+	getFormatByType: function ( type ) {
 
 		return convertTypeToFormat[ type ] || type;
 
-	}
+	},
 
-	getUuid( uuid, useCache ) {
+	getUuid: function ( uuid, useCache ) {
 
 		useCache = useCache !== undefined ? useCache : true;
 
@@ -878,37 +898,37 @@ class NodeBuilder {
 
 		return uuid;
 
-	}
+	},
 
-	getElementByIndex( index ) {
+	getElementByIndex: function ( index ) {
 
 		return elements[ index ];
 
-	}
+	},
 
-	getIndexByElement( elm ) {
+	getIndexByElement: function ( elm ) {
 
 		return elements.indexOf( elm );
 
-	}
+	},
 
-	isShader( shader ) {
+	isShader: function ( shader ) {
 
 		return this.shader === shader;
 
-	}
+	},
 
-	setShader( shader ) {
+	setShader: function ( shader ) {
 
 		this.shader = shader;
 
 		return this;
 
-	}
+	},
 
-	mergeDefines( defines ) {
+	mergeDefines: function ( defines ) {
 
-		for ( const name in defines ) {
+		for ( var name in defines ) {
 
 			this.defines[ name ] = defines[ name ];
 
@@ -916,11 +936,11 @@ class NodeBuilder {
 
 		return this.defines;
 
-	}
+	},
 
-	mergeUniform( uniforms ) {
+	mergeUniform: function ( uniforms ) {
 
-		for ( const name in uniforms ) {
+		for ( var name in uniforms ) {
 
 			this.uniforms[ name ] = uniforms[ name ];
 
@@ -928,11 +948,11 @@ class NodeBuilder {
 
 		return this.uniforms;
 
-	}
+	},
 
-	getTextureEncodingFromMap( map ) {
+	getTextureEncodingFromMap: function ( map ) {
 
-		let encoding;
+		var encoding;
 
 		if ( ! map ) {
 
@@ -959,12 +979,6 @@ class NodeBuilder {
 
 	}
 
-}
-
-function sortByPosition( a, b ) {
-
-	return a.deps.length - b.deps.length;
-
-}
+};
 
 export { NodeBuilder };

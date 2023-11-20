@@ -1,19 +1,18 @@
 import Node from './Node.js';
-import VaryNode from './VaryNode.js';
 
 class AttributeNode extends Node {
 
-	constructor( attributeName, type ) {
+	constructor( name, type ) {
 
 		super( type );
 
-		this._attributeName = attributeName;
+		this.name = name;
 
 	}
 
-	setAttributeName( attributeName ) {
+	setAttributeName( name ) {
 
-		this._attributeName = attributeName;
+		this.name = name;
 
 		return this;
 
@@ -21,7 +20,7 @@ class AttributeNode extends Node {
 
 	getAttributeName( /*builder*/ ) {
 
-		return this._attributeName;
+		return this.name;
 
 	}
 
@@ -44,13 +43,16 @@ class AttributeNode extends Node {
 
 			if ( nodeVary === undefined ) {
 
-				nodeVary = new VaryNode( this );
+				nodeVary = builder.getVaryFromNode( this, attribute.type );
+				nodeVary.snippet = attributeName;
 
 				nodeData.nodeVary = nodeVary;
 
 			}
 
-			return nodeVary.build( builder, output );
+			const varyName = builder.getPropertyName( nodeVary );
+
+			return builder.format( varyName, attribute.type, output );
 
 		}
 

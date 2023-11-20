@@ -7,49 +7,49 @@ import {
 	sRGBEncoding
 } from '../../../build/three.module.js';
 
-class LightProbeGenerator {
+var LightProbeGenerator = {
 
 	// https://www.ppsloan.org/publications/StupidSH36.pdf
-	static fromCubeTexture( cubeTexture ) {
+	fromCubeTexture: function ( cubeTexture ) {
 
-		let totalWeight = 0;
+		var norm, lengthSq, weight, totalWeight = 0;
 
-		const coord = new Vector3();
+		var coord = new Vector3();
 
-		const dir = new Vector3();
+		var dir = new Vector3();
 
-		const color = new Color();
+		var color = new Color();
 
-		const shBasis = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+		var shBasis = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
-		const sh = new SphericalHarmonics3();
-		const shCoefficients = sh.coefficients;
+		var sh = new SphericalHarmonics3();
+		var shCoefficients = sh.coefficients;
 
-		for ( let faceIndex = 0; faceIndex < 6; faceIndex ++ ) {
+		for ( var faceIndex = 0; faceIndex < 6; faceIndex ++ ) {
 
-			const image = cubeTexture.image[ faceIndex ];
+			var image = cubeTexture.image[ faceIndex ];
 
-			const width = image.width;
-			const height = image.height;
+			var width = image.width;
+			var height = image.height;
 
-			const canvas = document.createElement( 'canvas' );
+			var canvas = document.createElement( 'canvas' );
 
 			canvas.width = width;
 			canvas.height = height;
 
-			const context = canvas.getContext( '2d' );
+			var context = canvas.getContext( '2d' );
 
 			context.drawImage( image, 0, 0, width, height );
 
-			const imageData = context.getImageData( 0, 0, width, height );
+			var imageData = context.getImageData( 0, 0, width, height );
 
-			const data = imageData.data;
+			var data = imageData.data;
 
-			const imageWidth = imageData.width; // assumed to be square
+			var imageWidth = imageData.width; // assumed to be square
 
-			const pixelSize = 2 / imageWidth;
+			var pixelSize = 2 / imageWidth;
 
-			for ( let i = 0, il = data.length; i < il; i += 4 ) { // RGBA assumed
+			for ( var i = 0, il = data.length; i < il; i += 4 ) { // RGBA assumed
 
 				// pixel color
 				color.setRGB( data[ i ] / 255, data[ i + 1 ] / 255, data[ i + 2 ] / 255 );
@@ -59,11 +59,11 @@ class LightProbeGenerator {
 
 				// pixel coordinate on unit cube
 
-				const pixelIndex = i / 4;
+				var pixelIndex = i / 4;
 
-				const col = - 1 + ( pixelIndex % imageWidth + 0.5 ) * pixelSize;
+				var col = - 1 + ( pixelIndex % imageWidth + 0.5 ) * pixelSize;
 
-				const row = 1 - ( Math.floor( pixelIndex / imageWidth ) + 0.5 ) * pixelSize;
+				var row = 1 - ( Math.floor( pixelIndex / imageWidth ) + 0.5 ) * pixelSize;
 
 				switch ( faceIndex ) {
 
@@ -83,9 +83,9 @@ class LightProbeGenerator {
 
 				// weight assigned to this pixel
 
-				const lengthSq = coord.lengthSq();
+				lengthSq = coord.lengthSq();
 
-				const weight = 4 / ( Math.sqrt( lengthSq ) * lengthSq );
+				weight = 4 / ( Math.sqrt( lengthSq ) * lengthSq );
 
 				totalWeight += weight;
 
@@ -96,7 +96,7 @@ class LightProbeGenerator {
 				SphericalHarmonics3.getBasisAt( dir, shBasis );
 
 				// accummuulate
-				for ( let j = 0; j < 9; j ++ ) {
+				for ( var j = 0; j < 9; j ++ ) {
 
 					shCoefficients[ j ].x += shBasis[ j ] * color.r * weight;
 					shCoefficients[ j ].y += shBasis[ j ] * color.g * weight;
@@ -109,9 +109,9 @@ class LightProbeGenerator {
 		}
 
 		// normalize
-		const norm = ( 4 * Math.PI ) / totalWeight;
+		norm = ( 4 * Math.PI ) / totalWeight;
 
-		for ( let j = 0; j < 9; j ++ ) {
+		for ( var j = 0; j < 9; j ++ ) {
 
 			shCoefficients[ j ].x *= norm;
 			shCoefficients[ j ].y *= norm;
@@ -121,33 +121,33 @@ class LightProbeGenerator {
 
 		return new LightProbe( sh );
 
-	}
+	},
 
-	static fromCubeRenderTarget( renderer, cubeRenderTarget ) {
+	fromCubeRenderTarget: function ( renderer, cubeRenderTarget ) {
 
 		// The renderTarget must be set to RGBA in order to make readRenderTargetPixels works
-		let totalWeight = 0;
+		var norm, lengthSq, weight, totalWeight = 0;
 
-		const coord = new Vector3();
+		var coord = new Vector3();
 
-		const dir = new Vector3();
+		var dir = new Vector3();
 
-		const color = new Color();
+		var color = new Color();
 
-		const shBasis = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+		var shBasis = [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
 
-		const sh = new SphericalHarmonics3();
-		const shCoefficients = sh.coefficients;
+		var sh = new SphericalHarmonics3();
+		var shCoefficients = sh.coefficients;
 
-		for ( let faceIndex = 0; faceIndex < 6; faceIndex ++ ) {
+		for ( var faceIndex = 0; faceIndex < 6; faceIndex ++ ) {
 
-			const imageWidth = cubeRenderTarget.width; // assumed to be square
-			const data = new Uint8Array( imageWidth * imageWidth * 4 );
+			var imageWidth = cubeRenderTarget.width; // assumed to be square
+			var data = new Uint8Array( imageWidth * imageWidth * 4 );
 			renderer.readRenderTargetPixels( cubeRenderTarget, 0, 0, imageWidth, imageWidth, data, faceIndex );
 
-			const pixelSize = 2 / imageWidth;
+			var pixelSize = 2 / imageWidth;
 
-			for ( let i = 0, il = data.length; i < il; i += 4 ) { // RGBA assumed
+			for ( var i = 0, il = data.length; i < il; i += 4 ) { // RGBA assumed
 
 				// pixel color
 				color.setRGB( data[ i ] / 255, data[ i + 1 ] / 255, data[ i + 2 ] / 255 );
@@ -157,11 +157,11 @@ class LightProbeGenerator {
 
 				// pixel coordinate on unit cube
 
-				const pixelIndex = i / 4;
+				var pixelIndex = i / 4;
 
-				const col = - 1 + ( pixelIndex % imageWidth + 0.5 ) * pixelSize;
+				var col = - 1 + ( pixelIndex % imageWidth + 0.5 ) * pixelSize;
 
-				const row = 1 - ( Math.floor( pixelIndex / imageWidth ) + 0.5 ) * pixelSize;
+				var row = 1 - ( Math.floor( pixelIndex / imageWidth ) + 0.5 ) * pixelSize;
 
 				switch ( faceIndex ) {
 
@@ -181,9 +181,9 @@ class LightProbeGenerator {
 
 				// weight assigned to this pixel
 
-				const lengthSq = coord.lengthSq();
+				lengthSq = coord.lengthSq();
 
-				const weight = 4 / ( Math.sqrt( lengthSq ) * lengthSq );
+				weight = 4 / ( Math.sqrt( lengthSq ) * lengthSq );
 
 				totalWeight += weight;
 
@@ -194,7 +194,7 @@ class LightProbeGenerator {
 				SphericalHarmonics3.getBasisAt( dir, shBasis );
 
 				// accummuulate
-				for ( let j = 0; j < 9; j ++ ) {
+				for ( var j = 0; j < 9; j ++ ) {
 
 					shCoefficients[ j ].x += shBasis[ j ] * color.r * weight;
 					shCoefficients[ j ].y += shBasis[ j ] * color.g * weight;
@@ -207,9 +207,9 @@ class LightProbeGenerator {
 		}
 
 		// normalize
-		const norm = ( 4 * Math.PI ) / totalWeight;
+		norm = ( 4 * Math.PI ) / totalWeight;
 
-		for ( let j = 0; j < 9; j ++ ) {
+		for ( var j = 0; j < 9; j ++ ) {
 
 			shCoefficients[ j ].x *= norm;
 			shCoefficients[ j ].y *= norm;
@@ -221,9 +221,9 @@ class LightProbeGenerator {
 
 	}
 
-}
+};
 
-function convertColorToLinear( color, encoding ) {
+var convertColorToLinear = function ( color, encoding ) {
 
 	switch ( encoding ) {
 
@@ -245,6 +245,6 @@ function convertColorToLinear( color, encoding ) {
 
 	return color;
 
-}
+};
 
 export { LightProbeGenerator };

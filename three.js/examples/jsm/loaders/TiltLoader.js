@@ -12,7 +12,7 @@ import {
 	Quaternion,
 	Vector3
 } from '../../../build/three.module.js';
-import * as fflate from '../libs/fflate.module.js';
+import { unzipSync, strFromU8 } from '../libs/fflate.module.min.js';
 
 class TiltLoader extends Loader {
 
@@ -56,7 +56,7 @@ class TiltLoader extends Loader {
 		const group = new Group();
 		// https://docs.google.com/document/d/11ZsHozYn9FnWG7y3s3WAyKIACfbfwb4PbaS8cZ_xjvo/edit#
 
-		const zip = fflate.unzipSync( new Uint8Array( buffer.slice( 16 ) ) );
+		const zip = unzipSync( new Uint8Array( buffer.slice( 16 ) ) );
 
 		/*
 		const thumbnail = zip[ 'thumbnail.png' ].buffer;
@@ -65,7 +65,7 @@ class TiltLoader extends Loader {
 		document.body.appendChild( img );
 		*/
 
-		const metadata = JSON.parse( fflate.strFromU8( zip[ 'metadata.json' ] ) );
+		const metadata = JSON.parse( strFromU8( zip[ 'metadata.json' ] ) );
 
 		/*
 		const blob = new Blob( [ zip[ 'data.sketch' ].buffer ], { type: 'application/octet-stream' } );
@@ -399,101 +399,89 @@ const common = {
 
 };
 
-let shaders = null;
+const loader = new TextureLoader().setPath( './textures/tiltbrush/' );
 
-function getShaders() {
+const shaders = {
+	'Light': {
+		uniforms: {
+			mainTex: { value: loader.load( 'Light.webp' ) },
+			alphaTest: { value: 0.067 },
+			emission_gain: { value: 0.45 },
+			alpha: { value: 1 },
+		},
+		vertexShader: `
+			precision highp float;
+			precision highp int;
 
-	if ( shaders === null ) {
+			attribute vec2 uv;
+			attribute vec4 color;
+			attribute vec3 position;
 
-		const loader = new TextureLoader().setPath( './textures/tiltbrush/' );
+			uniform mat4 modelMatrix;
+			uniform mat4 modelViewMatrix;
+			uniform mat4 projectionMatrix;
+			uniform mat4 viewMatrix;
+			uniform mat3 normalMatrix;
+			uniform vec3 cameraPosition;
 
-		shaders = {
-			'Light': {
-				uniforms: {
-					mainTex: { value: loader.load( 'Light.webp' ) },
-					alphaTest: { value: 0.067 },
-					emission_gain: { value: 0.45 },
-					alpha: { value: 1 },
-				},
-				vertexShader: `
-					precision highp float;
-					precision highp int;
+			varying vec2 vUv;
+			varying vec3 vColor;
 
-					attribute vec2 uv;
-					attribute vec4 color;
-					attribute vec3 position;
+			${ common.colors.LinearToSrgb }
+			${ common.colors.hsv }
 
-					uniform mat4 modelMatrix;
-					uniform mat4 modelViewMatrix;
-					uniform mat4 projectionMatrix;
-					uniform mat4 viewMatrix;
-					uniform mat3 normalMatrix;
-					uniform vec3 cameraPosition;
+			void main() {
 
-					varying vec2 vUv;
-					varying vec3 vColor;
+				vUv = uv;
 
-					${ common.colors.LinearToSrgb }
-					${ common.colors.hsv }
+				vColor = lookup(color.rgb);
 
-					void main() {
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
 
-						vUv = uv;
+				gl_Position = projectionMatrix * mvPosition;
 
-						vColor = lookup(color.rgb);
-
-						vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-
-						gl_Position = projectionMatrix * mvPosition;
-
-					}
-				`,
-				fragmentShader: `
-					precision highp float;
-					precision highp int;
-
-					uniform float emission_gain;
-
-					uniform sampler2D mainTex;
-					uniform float alphaTest;
-
-					varying vec2 vUv;
-					varying vec3 vColor;
-
-					${ common.colors.BloomColor }
-					${ common.colors.SrgbToLinear }
-
-					void main(){
-						vec4 col = texture2D(mainTex, vUv);
-						vec3 color = vColor;
-						color = BloomColor(color, emission_gain);
-						color = color * col.rgb;
-						color = color * col.a;
-						color = SrgbToLinear(color);
-						gl_FragColor = vec4(color, 1.0);
-					}
-				`,
-				side: 2,
-				transparent: true,
-				depthFunc: 2,
-				depthWrite: true,
-				depthTest: false,
-				blending: 5,
-				blendDst: 201,
-				blendDstAlpha: 201,
-				blendEquation: 100,
-				blendEquationAlpha: 100,
-				blendSrc: 201,
-				blendSrcAlpha: 201,
 			}
+		`,
+		fragmentShader: `
+			precision highp float;
+			precision highp int;
 
-		};
+			uniform float emission_gain;
 
+			uniform sampler2D mainTex;
+			uniform float alphaTest;
+
+			varying vec2 vUv;
+			varying vec3 vColor;
+
+			${ common.colors.BloomColor }
+			${ common.colors.SrgbToLinear }
+
+			void main(){
+				vec4 col = texture2D(mainTex, vUv);
+				vec3 color = vColor;
+				color = BloomColor(color, emission_gain);
+				color = color * col.rgb;
+				color = color * col.a;
+				color = SrgbToLinear(color);
+				gl_FragColor = vec4(color, 1.0);
+			}
+		`,
+		side: 2,
+		transparent: true,
+		depthFunc: 2,
+		depthWrite: true,
+		depthTest: false,
+		blending: 5,
+		blendDst: 201,
+		blendDstAlpha: 201,
+		blendEquation: 100,
+		blendEquationAlpha: 100,
+		blendSrc: 201,
+		blendSrcAlpha: 201,
 	}
 
-	return shaders;
-
-}
+};
 
 function getMaterial( GUID ) {
 
@@ -502,7 +490,7 @@ function getMaterial( GUID ) {
 	switch ( name ) {
 
 		case 'Light':
-			return new RawShaderMaterial( getShaders().Light );
+			return new RawShaderMaterial( shaders.Light );
 
 		default:
 			return new MeshBasicMaterial( { vertexColors: true, side: DoubleSide } );

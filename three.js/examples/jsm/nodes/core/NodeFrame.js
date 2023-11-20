@@ -1,14 +1,16 @@
-class NodeFrame {
+function NodeFrame( time ) {
 
-	constructor( time ) {
+	this.time = time !== undefined ? time : 0;
 
-		this.time = time !== undefined ? time : 0;
+	this.id = 0;
 
-		this.id = 0;
+}
 
-	}
+NodeFrame.prototype = {
 
-	update( delta ) {
+	constructor: NodeFrame,
+
+	update: function ( delta ) {
 
 		++ this.id;
 
@@ -17,25 +19,25 @@ class NodeFrame {
 
 		return this;
 
-	}
+	},
 
-	setRenderer( renderer ) {
+	setRenderer: function ( renderer ) {
 
 		this.renderer = renderer;
 
 		return this;
 
-	}
+	},
 
-	setRenderTexture( renderTexture ) {
+	setRenderTexture: function ( renderTexture ) {
 
 		this.renderTexture = renderTexture;
 
 		return this;
 
-	}
+	},
 
-	updateNode( node ) {
+	updateNode: function ( node ) {
 
 		if ( node.frameId === this.id ) return this;
 
@@ -47,6 +49,6 @@ class NodeFrame {
 
 	}
 
-}
+};
 
 export { NodeFrame };

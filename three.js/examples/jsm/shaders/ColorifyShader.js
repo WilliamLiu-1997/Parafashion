@@ -6,7 +6,7 @@ import {
  * Colorify shader
  */
 
-const ColorifyShader = {
+var ColorifyShader = {
 
 	uniforms: {
 
@@ -15,34 +15,38 @@ const ColorifyShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform vec3 color;
-		uniform sampler2D tDiffuse;
+	fragmentShader: [
 
-		varying vec2 vUv;
+		'uniform vec3 color;',
+		'uniform sampler2D tDiffuse;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 texel = texture2D( tDiffuse, vUv );
+		'void main() {',
 
-			vec3 luma = vec3( 0.299, 0.587, 0.114 );
-			float v = dot( texel.xyz, luma );
+		'	vec4 texel = texture2D( tDiffuse, vUv );',
 
-			gl_FragColor = vec4( v * color, texel.w );
+		'	vec3 luma = vec3( 0.299, 0.587, 0.114 );',
+		'	float v = dot( texel.xyz, luma );',
 
-		}`
+		'	gl_FragColor = vec4( v * color, texel.w );',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

@@ -3,22 +3,24 @@ import {
 } from '../../../build/three.module.js';
 import { LineSegmentsGeometry } from '../lines/LineSegmentsGeometry.js';
 
-class WireframeGeometry2 extends LineSegmentsGeometry {
+var WireframeGeometry2 = function ( geometry ) {
 
-	constructor( geometry ) {
+	LineSegmentsGeometry.call( this );
 
-		super();
+	this.type = 'WireframeGeometry2';
 
-		this.type = 'WireframeGeometry2';
+	this.fromWireframeGeometry( new WireframeGeometry( geometry ) );
 
-		this.fromWireframeGeometry( new WireframeGeometry( geometry ) );
+	// set colors, maybe
 
-		// set colors, maybe
+};
 
-	}
+WireframeGeometry2.prototype = Object.assign( Object.create( LineSegmentsGeometry.prototype ), {
 
-}
+	constructor: WireframeGeometry2,
 
-WireframeGeometry2.prototype.isWireframeGeometry2 = true;
+	isWireframeGeometry2: true
+
+} );
 
 export { WireframeGeometry2 };

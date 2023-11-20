@@ -3,23 +3,25 @@ import {
 } from '../../../build/three.module.js';
 import { Pass } from '../postprocessing/Pass.js';
 
-class ClearPass extends Pass {
+var ClearPass = function ( clearColor, clearAlpha ) {
 
-	constructor( clearColor, clearAlpha ) {
+	Pass.call( this );
 
-		super();
+	this.needsSwap = false;
 
-		this.needsSwap = false;
+	this.clearColor = ( clearColor !== undefined ) ? clearColor : 0x000000;
+	this.clearAlpha = ( clearAlpha !== undefined ) ? clearAlpha : 0;
+	this._oldClearColor = new Color();
 
-		this.clearColor = ( clearColor !== undefined ) ? clearColor : 0x000000;
-		this.clearAlpha = ( clearAlpha !== undefined ) ? clearAlpha : 0;
-		this._oldClearColor = new Color();
+};
 
-	}
+ClearPass.prototype = Object.assign( Object.create( Pass.prototype ), {
 
-	render( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
+	constructor: ClearPass,
 
-		let oldClearAlpha;
+	render: function ( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
+
+		var oldClearAlpha;
 
 		if ( this.clearColor ) {
 
@@ -41,6 +43,6 @@ class ClearPass extends Pass {
 
 	}
 
-}
+} );
 
 export { ClearPass };

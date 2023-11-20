@@ -21,7 +21,7 @@ import {
  *  ASCII decoding assumes file is UTF-8.
  *
  * Usage:
- *  const loader = new STLLoader();
+ *  var loader = new STLLoader();
  *  loader.load( './models/stl/slotted_disk.stl', function ( geometry ) {
  *    scene.add( new THREE.Mesh( geometry ) );
  *  });
@@ -31,24 +31,24 @@ import {
  *  if (geometry.hasColors) {
  *    material = new THREE.MeshPhongMaterial({ opacity: geometry.alpha, vertexColors: true });
  *  } else { .... }
- *  const mesh = new THREE.Mesh( geometry, material );
+ *  var mesh = new THREE.Mesh( geometry, material );
  *
  * For ASCII STLs containing multiple solids, each solid is assigned to a different group.
  * Groups can be used to assign a different color by defining an array of materials with the same length of
  * geometry.groups and passing it to the Mesh constructor:
  *
- * const mesh = new THREE.Mesh( geometry, material );
+ * var mesh = new THREE.Mesh( geometry, material );
  *
  * For example:
  *
- *  const materials = [];
- *  const nGeometryGroups = geometry.groups.length;
+ *  var materials = [];
+ *  var nGeometryGroups = geometry.groups.length;
  *
- *  const colorMap = ...; // Some logic to index colors.
+ *  var colorMap = ...; // Some logic to index colors.
  *
- *  for (let i = 0; i < nGeometryGroups; i++) {
+ *  for (var i = 0; i < nGeometryGroups; i++) {
  *
- *		const material = new THREE.MeshPhongMaterial({
+ *		var material = new THREE.MeshPhongMaterial({
  *			color: colorMap[i],
  *			wireframe: false
  *		});
@@ -56,23 +56,25 @@ import {
  *  }
  *
  *  materials.push(material);
- *  const mesh = new THREE.Mesh(geometry, materials);
+ *  var mesh = new THREE.Mesh(geometry, materials);
  */
 
 
-class STLLoader extends Loader {
+var STLLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+};
 
-	}
+STLLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: STLLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( this.manager );
+		var scope = this;
+
+		var loader = new FileLoader( this.manager );
 		loader.setPath( this.path );
 		loader.setResponseType( 'arraybuffer' );
 		loader.setRequestHeader( this.requestHeader );
@@ -102,16 +104,17 @@ class STLLoader extends Loader {
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( data ) {
+	parse: function ( data ) {
 
 		function isBinary( data ) {
 
-			const reader = new DataView( data );
-			const face_size = ( 32 / 8 * 3 ) + ( ( 32 / 8 * 3 ) * 3 ) + ( 16 / 8 );
-			const n_faces = reader.getUint32( 80, true );
-			const expect = 80 + ( 32 / 8 ) + ( n_faces * face_size );
+			var expect, face_size, n_faces, reader;
+			reader = new DataView( data );
+			face_size = ( 32 / 8 * 3 ) + ( ( 32 / 8 * 3 ) * 3 ) + ( 16 / 8 );
+			n_faces = reader.getUint32( 80, true );
+			expect = 80 + ( 32 / 8 ) + ( n_faces * face_size );
 
 			if ( expect === reader.byteLength ) {
 
@@ -129,9 +132,9 @@ class STLLoader extends Loader {
 
 			// US-ASCII ordinal values for 's', 'o', 'l', 'i', 'd'
 
-			const solid = [ 115, 111, 108, 105, 100 ];
+			var solid = [ 115, 111, 108, 105, 100 ];
 
-			for ( let off = 0; off < 5; off ++ ) {
+			for ( var off = 0; off < 5; off ++ ) {
 
 				// If "solid" text is matched to the current offset, declare it to be an ASCII STL.
 
@@ -149,7 +152,7 @@ class STLLoader extends Loader {
 
 			// Check if each byte in query matches the corresponding byte from the current offset
 
-			for ( let i = 0, il = query.length; i < il; i ++ ) {
+			for ( var i = 0, il = query.length; i < il; i ++ ) {
 
 				if ( query[ i ] !== reader.getUint8( offset + i, false ) ) return false;
 
@@ -161,16 +164,16 @@ class STLLoader extends Loader {
 
 		function parseBinary( data ) {
 
-			const reader = new DataView( data );
-			const faces = reader.getUint32( 80, true );
+			var reader = new DataView( data );
+			var faces = reader.getUint32( 80, true );
 
-			let r, g, b, hasColors = false, colors;
-			let defaultR, defaultG, defaultB, alpha;
+			var r, g, b, hasColors = false, colors;
+			var defaultR, defaultG, defaultB, alpha;
 
 			// process STL header
 			// check for default color in header ("COLOR=rgba" sequence).
 
-			for ( let index = 0; index < 80 - 10; index ++ ) {
+			for ( var index = 0; index < 80 - 10; index ++ ) {
 
 				if ( ( reader.getUint32( index, false ) == 0x434F4C4F /*COLO*/ ) &&
 					( reader.getUint8( index + 4 ) == 0x52 /*'R'*/ ) &&
@@ -188,24 +191,24 @@ class STLLoader extends Loader {
 
 			}
 
-			const dataOffset = 84;
-			const faceLength = 12 * 4 + 2;
+			var dataOffset = 84;
+			var faceLength = 12 * 4 + 2;
 
-			const geometry = new BufferGeometry();
+			var geometry = new BufferGeometry();
 
-			const vertices = new Float32Array( faces * 3 * 3 );
-			const normals = new Float32Array( faces * 3 * 3 );
+			var vertices = new Float32Array( faces * 3 * 3 );
+			var normals = new Float32Array( faces * 3 * 3 );
 
-			for ( let face = 0; face < faces; face ++ ) {
+			for ( var face = 0; face < faces; face ++ ) {
 
-				const start = dataOffset + face * faceLength;
-				const normalX = reader.getFloat32( start, true );
-				const normalY = reader.getFloat32( start + 4, true );
-				const normalZ = reader.getFloat32( start + 8, true );
+				var start = dataOffset + face * faceLength;
+				var normalX = reader.getFloat32( start, true );
+				var normalY = reader.getFloat32( start + 4, true );
+				var normalZ = reader.getFloat32( start + 8, true );
 
 				if ( hasColors ) {
 
-					const packedColor = reader.getUint16( start + 48, true );
+					var packedColor = reader.getUint16( start + 48, true );
 
 					if ( ( packedColor & 0x8000 ) === 0 ) {
 
@@ -225,10 +228,10 @@ class STLLoader extends Loader {
 
 				}
 
-				for ( let i = 1; i <= 3; i ++ ) {
+				for ( var i = 1; i <= 3; i ++ ) {
 
-					const vertexstart = start + i * 12;
-					const componentIdx = ( face * 3 * 3 ) + ( ( i - 1 ) * 3 );
+					var vertexstart = start + i * 12;
+					var componentIdx = ( face * 3 * 3 ) + ( ( i - 1 ) * 3 );
 
 					vertices[ componentIdx ] = reader.getFloat32( vertexstart, true );
 					vertices[ componentIdx + 1 ] = reader.getFloat32( vertexstart + 4, true );
@@ -267,38 +270,38 @@ class STLLoader extends Loader {
 
 		function parseASCII( data ) {
 
-			const geometry = new BufferGeometry();
-			const patternSolid = /solid([\s\S]*?)endsolid/g;
-			const patternFace = /facet([\s\S]*?)endfacet/g;
-			let faceCounter = 0;
+			var geometry = new BufferGeometry();
+			var patternSolid = /solid([\s\S]*?)endsolid/g;
+			var patternFace = /facet([\s\S]*?)endfacet/g;
+			var faceCounter = 0;
 
-			const patternFloat = /[\s]+([+-]?(?:\d*)(?:\.\d*)?(?:[eE][+-]?\d+)?)/.source;
-			const patternVertex = new RegExp( 'vertex' + patternFloat + patternFloat + patternFloat, 'g' );
-			const patternNormal = new RegExp( 'normal' + patternFloat + patternFloat + patternFloat, 'g' );
+			var patternFloat = /[\s]+([+-]?(?:\d*)(?:\.\d*)?(?:[eE][+-]?\d+)?)/.source;
+			var patternVertex = new RegExp( 'vertex' + patternFloat + patternFloat + patternFloat, 'g' );
+			var patternNormal = new RegExp( 'normal' + patternFloat + patternFloat + patternFloat, 'g' );
 
-			const vertices = [];
-			const normals = [];
+			var vertices = [];
+			var normals = [];
 
-			const normal = new Vector3();
+			var normal = new Vector3();
 
-			let result;
+			var result;
 
-			let groupCount = 0;
-			let startVertex = 0;
-			let endVertex = 0;
+			var groupCount = 0;
+			var startVertex = 0;
+			var endVertex = 0;
 
 			while ( ( result = patternSolid.exec( data ) ) !== null ) {
 
 				startVertex = endVertex;
 
-				const solid = result[ 0 ];
+				var solid = result[ 0 ];
 
 				while ( ( result = patternFace.exec( solid ) ) !== null ) {
 
-					let vertexCountPerFace = 0;
-					let normalCountPerFace = 0;
+					var vertexCountPerFace = 0;
+					var normalCountPerFace = 0;
 
-					const text = result[ 0 ];
+					var text = result[ 0 ];
 
 					while ( ( result = patternNormal.exec( text ) ) !== null ) {
 
@@ -338,8 +341,8 @@ class STLLoader extends Loader {
 
 				}
 
-				const start = startVertex;
-				const count = endVertex - startVertex;
+				var start = startVertex;
+				var count = endVertex - startVertex;
 
 				geometry.addGroup( start, count, groupCount );
 				groupCount ++;
@@ -369,8 +372,8 @@ class STLLoader extends Loader {
 
 			if ( typeof buffer === 'string' ) {
 
-				const array_buffer = new Uint8Array( buffer.length );
-				for ( let i = 0; i < buffer.length; i ++ ) {
+				var array_buffer = new Uint8Array( buffer.length );
+				for ( var i = 0; i < buffer.length; i ++ ) {
 
 					array_buffer[ i ] = buffer.charCodeAt( i ) & 0xff; // implicitly assumes little-endian
 
@@ -388,12 +391,12 @@ class STLLoader extends Loader {
 
 		// start
 
-		const binData = ensureBinary( data );
+		var binData = ensureBinary( data );
 
 		return isBinary( binData ) ? parseBinary( binData ) : parseASCII( ensureString( data ) );
 
 	}
 
-}
+} );
 
 export { STLLoader };

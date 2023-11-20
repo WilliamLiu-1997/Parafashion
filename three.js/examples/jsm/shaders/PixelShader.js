@@ -2,43 +2,46 @@
  * Pixelation shader
  */
 
-const PixelShader = {
+var PixelShader = {
 
 	uniforms: {
 
 		'tDiffuse': { value: null },
 		'resolution': { value: null },
-		'pixelSize': { value: 1 },
+		'pixelSize': { value: 1. },
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying highp vec2 vUv;
+		'varying highp vec2 vUv;',
 
-			void main() {
+		'void main() {',
 
-				vUv = uv;
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'vUv = uv;',
+		'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform sampler2D tDiffuse;
-		uniform float pixelSize;
-		uniform vec2 resolution;
+	fragmentShader: [
 
-		varying highp vec2 vUv;
+		'uniform sampler2D tDiffuse;',
+		'uniform float pixelSize;',
+		'uniform vec2 resolution;',
 
-		void main(){
+		'varying highp vec2 vUv;',
 
-			vec2 dxy = pixelSize / resolution;
-			vec2 coord = dxy * floor( vUv / dxy );
-			gl_FragColor = texture2D(tDiffuse, coord);
+		'void main(){',
 
-		}`
+		'vec2 dxy = pixelSize / resolution;',
+		'vec2 coord = dxy * floor( vUv / dxy );',
+		'gl_FragColor = texture2D(tDiffuse, coord);',
 
+		'}'
+
+	].join( '\n' )
 };
 
 export { PixelShader };

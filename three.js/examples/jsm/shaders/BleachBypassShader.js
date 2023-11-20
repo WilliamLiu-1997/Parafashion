@@ -4,7 +4,7 @@
  * http://developer.download.nvidia.com/shaderlibrary/webpages/shader_library.html#post_bleach_bypass
  */
 
-const BleachBypassShader = {
+var BleachBypassShader = {
 
 	uniforms: {
 
@@ -13,47 +13,51 @@ const BleachBypassShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform float opacity;
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse;
+		'uniform float opacity;',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 base = texture2D( tDiffuse, vUv );
+		'void main() {',
 
-			vec3 lumCoeff = vec3( 0.25, 0.65, 0.1 );
-			float lum = dot( lumCoeff, base.rgb );
-			vec3 blend = vec3( lum );
+		'	vec4 base = texture2D( tDiffuse, vUv );',
 
-			float L = min( 1.0, max( 0.0, 10.0 * ( lum - 0.45 ) ) );
+		'	vec3 lumCoeff = vec3( 0.25, 0.65, 0.1 );',
+		'	float lum = dot( lumCoeff, base.rgb );',
+		'	vec3 blend = vec3( lum );',
 
-			vec3 result1 = 2.0 * base.rgb * blend;
-			vec3 result2 = 1.0 - 2.0 * ( 1.0 - blend ) * ( 1.0 - base.rgb );
+		'	float L = min( 1.0, max( 0.0, 10.0 * ( lum - 0.45 ) ) );',
 
-			vec3 newColor = mix( result1, result2, L );
+		'	vec3 result1 = 2.0 * base.rgb * blend;',
+		'	vec3 result2 = 1.0 - 2.0 * ( 1.0 - blend ) * ( 1.0 - base.rgb );',
 
-			float A2 = opacity * base.a;
-			vec3 mixRGB = A2 * newColor.rgb;
-			mixRGB += ( ( 1.0 - A2 ) * base.rgb );
+		'	vec3 newColor = mix( result1, result2, L );',
 
-			gl_FragColor = vec4( mixRGB, base.a );
+		'	float A2 = opacity * base.a;',
+		'	vec3 mixRGB = A2 * newColor.rgb;',
+		'	mixRGB += ( ( 1.0 - A2 ) * base.rgb );',
 
-		}`
+		'	gl_FragColor = vec4( mixRGB, base.a );',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

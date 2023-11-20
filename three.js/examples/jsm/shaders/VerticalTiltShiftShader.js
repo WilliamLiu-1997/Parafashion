@@ -7,7 +7,7 @@
  * - "r" parameter control where "focused" horizontal line lies
  */
 
-const VerticalTiltShiftShader = {
+var VerticalTiltShiftShader = {
 
 	uniforms: {
 
@@ -17,44 +17,48 @@ const VerticalTiltShiftShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform sampler2D tDiffuse;
-		uniform float v;
-		uniform float r;
+	fragmentShader: [
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
+		'uniform float v;',
+		'uniform float r;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 sum = vec4( 0.0 );
+		'void main() {',
 
-			float vv = v * abs( r - vUv.y );
+		'	vec4 sum = vec4( 0.0 );',
 
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 4.0 * vv ) ) * 0.051;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 3.0 * vv ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 2.0 * vv ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 1.0 * vv ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 1.0 * vv ) ) * 0.1531;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 2.0 * vv ) ) * 0.12245;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 3.0 * vv ) ) * 0.0918;
-			sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 4.0 * vv ) ) * 0.051;
+		'	float vv = v * abs( r - vUv.y );',
 
-			gl_FragColor = sum;
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 4.0 * vv ) ) * 0.051;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 3.0 * vv ) ) * 0.0918;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 2.0 * vv ) ) * 0.12245;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y - 1.0 * vv ) ) * 0.1531;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y ) ) * 0.1633;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 1.0 * vv ) ) * 0.1531;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 2.0 * vv ) ) * 0.12245;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 3.0 * vv ) ) * 0.0918;',
+		'	sum += texture2D( tDiffuse, vec2( vUv.x, vUv.y + 4.0 * vv ) ) * 0.051;',
 
-		}`
+		'	gl_FragColor = sum;',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

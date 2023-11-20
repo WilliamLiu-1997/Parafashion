@@ -1,12 +1,12 @@
 class WebGPUBindings {
 
-	constructor( device, info, properties, textures, renderPipelines, computePipelines, attributes, nodes ) {
+	constructor( device, info, properties, textures, pipelines, computePipelines, attributes, nodes ) {
 
 		this.device = device;
 		this.info = info;
 		this.properties = properties;
 		this.textures = textures;
-		this.renderPipelines = renderPipelines;
+		this.pipelines = pipelines;
 		this.computePipelines = computePipelines;
 		this.attributes = attributes;
 		this.nodes = nodes;
@@ -23,16 +23,17 @@ class WebGPUBindings {
 
 		if ( data === undefined ) {
 
-			// each object defines an array of bindings (ubos, textures, samplers etc.)
+			const pipeline = this.pipelines.get( object );
+
+			// each material defines an array of bindings (ubos, textures, samplers etc.)
 
 			const nodeBuilder = this.nodes.get( object );
+
 			const bindings = nodeBuilder.getBindings();
 
 			// setup (static) binding layout and (dynamic) binding group
 
-			const renderPipeline = this.renderPipelines.get( object );
-
-			const bindLayout = renderPipeline.pipeline.getBindGroupLayout( 0 );
+			const bindLayout = pipeline.getBindGroupLayout( 0 );
 			const bindGroup = this._createBindGroup( bindings, bindLayout );
 
 			data = {
@@ -55,13 +56,9 @@ class WebGPUBindings {
 
 		if ( data === undefined ) {
 
-			// bindings are not yet retrieved via node material
-
+			const pipeline = this.computePipelines.get( param );
 			const bindings = param.bindings !== undefined ? param.bindings.slice() : [];
-
-			const computePipeline = this.computePipelines.get( param );
-
-			const bindLayout = computePipeline.getBindGroupLayout( 0 );
+			const bindLayout = pipeline.getBindGroupLayout( 0 );
 			const bindGroup = this._createBindGroup( bindings, bindLayout );
 
 			data = {
@@ -126,7 +123,7 @@ class WebGPUBindings {
 
 			} else if ( binding.isSampler ) {
 
-				const texture = binding.getTexture();
+				const texture = binding.texture;
 
 				textures.updateSampler( texture );
 
@@ -141,7 +138,7 @@ class WebGPUBindings {
 
 			} else if ( binding.isSampledTexture ) {
 
-				const texture = binding.getTexture();
+				const texture = binding.texture;
 
 				const forceUpdate = textures.updateTexture( texture );
 				const textureGPU = textures.getTextureGPU( texture );

@@ -2,7 +2,7 @@ import { Vector3, Matrix4 } from '../../../build/three.module.js';
 
 const inverseProjectionMatrix = new Matrix4();
 
-class Frustum {
+export default class Frustum {
 
 	constructor( data ) {
 
@@ -148,5 +148,3 @@ class Frustum {
 	}
 
 }
-
-export { Frustum };

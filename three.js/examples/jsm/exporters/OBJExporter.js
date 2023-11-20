@@ -5,32 +5,36 @@ import {
 	Vector3
 } from '../../../build/three.module.js';
 
-class OBJExporter {
+var OBJExporter = function () {};
 
-	parse( object ) {
+OBJExporter.prototype = {
 
-		let output = '';
+	constructor: OBJExporter,
 
-		let indexVertex = 0;
-		let indexVertexUvs = 0;
-		let indexNormals = 0;
+	parse: function ( object ) {
 
-		const vertex = new Vector3();
-		const color = new Color();
-		const normal = new Vector3();
-		const uv = new Vector2();
+		var output = '';
 
-		const face = [];
+		var indexVertex = 0;
+		var indexVertexUvs = 0;
+		var indexNormals = 0;
 
-		function parseMesh( mesh ) {
+		var vertex = new Vector3();
+		var color = new Color();
+		var normal = new Vector3();
+		var uv = new Vector2();
 
-			let nbVertex = 0;
-			let nbNormals = 0;
-			let nbVertexUvs = 0;
+		var i, j, k, l, m, face = [];
 
-			const geometry = mesh.geometry;
+		var parseMesh = function ( mesh ) {
 
-			const normalMatrixWorld = new Matrix3();
+			var nbVertex = 0;
+			var nbNormals = 0;
+			var nbVertexUvs = 0;
+
+			var geometry = mesh.geometry;
+
+			var normalMatrixWorld = new Matrix3();
 
 			if ( geometry.isBufferGeometry !== true ) {
 
@@ -39,10 +43,10 @@ class OBJExporter {
 			}
 
 			// shortcuts
-			const vertices = geometry.getAttribute( 'position' );
-			const normals = geometry.getAttribute( 'normal' );
-			const uvs = geometry.getAttribute( 'uv' );
-			const indices = geometry.getIndex();
+			var vertices = geometry.getAttribute( 'position' );
+			var normals = geometry.getAttribute( 'normal' );
+			var uvs = geometry.getAttribute( 'uv' );
+			var indices = geometry.getIndex();
 
 			// name of the mesh object
 			output += 'o ' + mesh.name + '\n';
@@ -58,7 +62,7 @@ class OBJExporter {
 
 			if ( vertices !== undefined ) {
 
-				for ( let i = 0, l = vertices.count; i < l; i ++, nbVertex ++ ) {
+				for ( i = 0, l = vertices.count; i < l; i ++, nbVertex ++ ) {
 
 					vertex.x = vertices.getX( i );
 					vertex.y = vertices.getY( i );
@@ -78,7 +82,7 @@ class OBJExporter {
 
 			if ( uvs !== undefined ) {
 
-				for ( let i = 0, l = uvs.count; i < l; i ++, nbVertexUvs ++ ) {
+				for ( i = 0, l = uvs.count; i < l; i ++, nbVertexUvs ++ ) {
 
 					uv.x = uvs.getX( i );
 					uv.y = uvs.getY( i );
@@ -96,7 +100,7 @@ class OBJExporter {
 
 				normalMatrixWorld.getNormalMatrix( mesh.matrixWorld );
 
-				for ( let i = 0, l = normals.count; i < l; i ++, nbNormals ++ ) {
+				for ( i = 0, l = normals.count; i < l; i ++, nbNormals ++ ) {
 
 					normal.x = normals.getX( i );
 					normal.y = normals.getY( i );
@@ -116,11 +120,11 @@ class OBJExporter {
 
 			if ( indices !== null ) {
 
-				for ( let i = 0, l = indices.count; i < l; i += 3 ) {
+				for ( i = 0, l = indices.count; i < l; i += 3 ) {
 
-					for ( let m = 0; m < 3; m ++ ) {
+					for ( m = 0; m < 3; m ++ ) {
 
-						const j = indices.getX( i + m ) + 1;
+						j = indices.getX( i + m ) + 1;
 
 						face[ m ] = ( indexVertex + j ) + ( normals || uvs ? '/' + ( uvs ? ( indexVertexUvs + j ) : '' ) + ( normals ? '/' + ( indexNormals + j ) : '' ) : '' );
 
@@ -133,11 +137,11 @@ class OBJExporter {
 
 			} else {
 
-				for ( let i = 0, l = vertices.count; i < l; i += 3 ) {
+				for ( i = 0, l = vertices.count; i < l; i += 3 ) {
 
-					for ( let m = 0; m < 3; m ++ ) {
+					for ( m = 0; m < 3; m ++ ) {
 
-						const j = i + m + 1;
+						j = i + m + 1;
 
 						face[ m ] = ( indexVertex + j ) + ( normals || uvs ? '/' + ( uvs ? ( indexVertexUvs + j ) : '' ) + ( normals ? '/' + ( indexNormals + j ) : '' ) : '' );
 
@@ -155,14 +159,14 @@ class OBJExporter {
 			indexVertexUvs += nbVertexUvs;
 			indexNormals += nbNormals;
 
-		}
+		};
 
-		function parseLine( line ) {
+		var parseLine = function ( line ) {
 
-			let nbVertex = 0;
+			var nbVertex = 0;
 
-			const geometry = line.geometry;
-			const type = line.type;
+			var geometry = line.geometry;
+			var type = line.type;
 
 			if ( geometry.isBufferGeometry !== true ) {
 
@@ -171,14 +175,14 @@ class OBJExporter {
 			}
 
 			// shortcuts
-			const vertices = geometry.getAttribute( 'position' );
+			var vertices = geometry.getAttribute( 'position' );
 
 			// name of the line object
 			output += 'o ' + line.name + '\n';
 
 			if ( vertices !== undefined ) {
 
-				for ( let i = 0, l = vertices.count; i < l; i ++, nbVertex ++ ) {
+				for ( i = 0, l = vertices.count; i < l; i ++, nbVertex ++ ) {
 
 					vertex.x = vertices.getX( i );
 					vertex.y = vertices.getY( i );
@@ -198,7 +202,7 @@ class OBJExporter {
 
 				output += 'l ';
 
-				for ( let j = 1, l = vertices.count; j <= l; j ++ ) {
+				for ( j = 1, l = vertices.count; j <= l; j ++ ) {
 
 					output += ( indexVertex + j ) + ' ';
 
@@ -210,7 +214,7 @@ class OBJExporter {
 
 			if ( type === 'LineSegments' ) {
 
-				for ( let j = 1, k = j + 1, l = vertices.count; j < l; j += 2, k = j + 1 ) {
+				for ( j = 1, k = j + 1, l = vertices.count; j < l; j += 2, k = j + 1 ) {
 
 					output += 'l ' + ( indexVertex + j ) + ' ' + ( indexVertex + k ) + '\n';
 
@@ -221,13 +225,13 @@ class OBJExporter {
 			// update index
 			indexVertex += nbVertex;
 
-		}
+		};
 
-		function parsePoints( points ) {
+		var parsePoints = function ( points ) {
 
-			let nbVertex = 0;
+			var nbVertex = 0;
 
-			const geometry = points.geometry;
+			var geometry = points.geometry;
 
 			if ( geometry.isBufferGeometry !== true ) {
 
@@ -235,14 +239,14 @@ class OBJExporter {
 
 			}
 
-			const vertices = geometry.getAttribute( 'position' );
-			const colors = geometry.getAttribute( 'color' );
+			var vertices = geometry.getAttribute( 'position' );
+			var colors = geometry.getAttribute( 'color' );
 
 			output += 'o ' + points.name + '\n';
 
 			if ( vertices !== undefined ) {
 
-				for ( let i = 0, l = vertices.count; i < l; i ++, nbVertex ++ ) {
+				for ( i = 0, l = vertices.count; i < l; i ++, nbVertex ++ ) {
 
 					vertex.fromBufferAttribute( vertices, i );
 					vertex.applyMatrix4( points.matrixWorld );
@@ -265,7 +269,7 @@ class OBJExporter {
 
 			output += 'p ';
 
-			for ( let j = 1, l = vertices.count; j <= l; j ++ ) {
+			for ( j = 1, l = vertices.count; j <= l; j ++ ) {
 
 				output += ( indexVertex + j ) + ' ';
 
@@ -276,7 +280,7 @@ class OBJExporter {
 			// update index
 			indexVertex += nbVertex;
 
-		}
+		};
 
 		object.traverse( function ( child ) {
 
@@ -304,6 +308,6 @@ class OBJExporter {
 
 	}
 
-}
+};
 
 export { OBJExporter };

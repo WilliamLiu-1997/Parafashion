@@ -15,18 +15,20 @@ import {
 } from '../../../build/three.module.js';
 import { RGBELoader } from '../loaders/RGBELoader.js';
 
-class HDRCubeTextureLoader extends Loader {
+var HDRCubeTextureLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+	this.hdrLoader = new RGBELoader();
+	this.type = UnsignedByteType;
 
-		this.hdrLoader = new RGBELoader();
-		this.type = HalfFloatType;
+};
 
-	}
+HDRCubeTextureLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-	load( urls, onLoad, onProgress, onError ) {
+	constructor: HDRCubeTextureLoader,
+
+	load: function ( urls, onLoad, onProgress, onError ) {
 
 		if ( ! Array.isArray( urls ) ) {
 
@@ -41,7 +43,7 @@ class HDRCubeTextureLoader extends Loader {
 
 		}
 
-		const texture = new CubeTexture();
+		var texture = new CubeTexture();
 
 		texture.type = this.type;
 
@@ -76,9 +78,9 @@ class HDRCubeTextureLoader extends Loader {
 
 		}
 
-		const scope = this;
+		var scope = this;
 
-		let loaded = 0;
+		var loaded = 0;
 
 		function loadHDRData( i, onLoad, onProgress, onError ) {
 
@@ -90,13 +92,13 @@ class HDRCubeTextureLoader extends Loader {
 
 					loaded ++;
 
-					const texData = scope.hdrLoader.parse( buffer );
+					var texData = scope.hdrLoader.parse( buffer );
 
 					if ( ! texData ) return;
 
 					if ( texData.data !== undefined ) {
 
-						const dataTexture = new DataTexture( texData.data, texData.width, texData.height );
+						var dataTexture = new DataTexture( texData.data, texData.width, texData.height );
 
 						dataTexture.type = texture.type;
 						dataTexture.encoding = texture.encoding;
@@ -120,7 +122,7 @@ class HDRCubeTextureLoader extends Loader {
 
 		}
 
-		for ( let i = 0; i < urls.length; i ++ ) {
+		for ( var i = 0; i < urls.length; i ++ ) {
 
 			loadHDRData( i, onLoad, onProgress, onError );
 
@@ -128,9 +130,9 @@ class HDRCubeTextureLoader extends Loader {
 
 		return texture;
 
-	}
+	},
 
-	setDataType( value ) {
+	setDataType: function ( value ) {
 
 		this.type = value;
 		this.hdrLoader.setDataType( value );
@@ -139,6 +141,6 @@ class HDRCubeTextureLoader extends Loader {
 
 	}
 
-}
+} );
 
 export { HDRCubeTextureLoader };

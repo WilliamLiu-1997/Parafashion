@@ -2,136 +2,142 @@ import {
 	Vector3
 } from '../../../build/three.module.js';
 
-const _v1 = new Vector3();
-const _v2 = new Vector3();
-const _v3 = new Vector3();
 
-const EPS = 1e-10;
+var Capsule = ( function () {
 
-class Capsule {
+	var _v1 = new Vector3();
+	var _v2 = new Vector3();
+	var _v3 = new Vector3();
 
-	constructor( start = new Vector3( 0, 0, 0 ), end = new Vector3( 0, 1, 0 ), radius = 1 ) {
+	var EPS = 1e-10;
 
-		this.start = start;
-		this.end = end;
-		this.radius = radius;
+	function Capsule( start, end, radius ) {
 
-	}
-
-	clone() {
-
-		return new Capsule( this.start.clone(), this.end.clone(), this.radius );
+		this.start = start == undefined ? new Vector3( 0, 0, 0 ) : start;
+		this.end = end == undefined ? new Vector3( 0, 1, 0 ) : end;
+		this.radius = radius == undefined ? 1 : radius;
 
 	}
 
-	set( start, end, radius ) {
+	Object.assign( Capsule.prototype, {
 
-		this.start.copy( start );
-		this.end.copy( end );
-		this.radius = radius;
+		clone: function () {
 
-	}
+			return new Capsule( this.start.clone(), this.end.clone(), this.radius );
 
-	copy( capsule ) {
+		},
 
-		this.start.copy( capsule.start );
-		this.end.copy( capsule.end );
-		this.radius = capsule.radius;
+		set: function ( start, end, radius ) {
 
-	}
+			this.start.copy( start );
+			this.end.copy( end );
+			this.radius = radius;
 
-	getCenter( target ) {
+		},
 
-		return target.copy( this.end ).add( this.start ).multiplyScalar( 0.5 );
+		copy: function ( capsule ) {
 
-	}
+			this.start.copy( capsule.start );
+			this.end.copy( capsule.end );
+			this.radius = capsule.radius;
 
-	translate( v ) {
+		},
 
-		this.start.add( v );
-		this.end.add( v );
+		getCenter: function ( target ) {
 
-	}
+			return target.copy( this.end ).add( this.start ).multiplyScalar( 0.5 );
 
-	checkAABBAxis( p1x, p1y, p2x, p2y, minx, maxx, miny, maxy, radius ) {
+		},
 
-		return (
-			( minx - p1x < radius || minx - p2x < radius ) &&
-			( p1x - maxx < radius || p2x - maxx < radius ) &&
-			( miny - p1y < radius || miny - p2y < radius ) &&
-			( p1y - maxy < radius || p2y - maxy < radius )
-		);
+		translate: function ( v ) {
 
-	}
+			this.start.add( v );
+			this.end.add( v );
 
-	intersectsBox( box ) {
+		},
 
-		return (
-			this.checkAABBAxis(
-				this.start.x, this.start.y, this.end.x, this.end.y,
-				box.min.x, box.max.x, box.min.y, box.max.y,
-				this.radius ) &&
-			this.checkAABBAxis(
-				this.start.x, this.start.z, this.end.x, this.end.z,
-				box.min.x, box.max.x, box.min.z, box.max.z,
-				this.radius ) &&
-			this.checkAABBAxis(
-				this.start.y, this.start.z, this.end.y, this.end.z,
-				box.min.y, box.max.y, box.min.z, box.max.z,
-				this.radius )
-		);
+		checkAABBAxis: function ( p1x, p1y, p2x, p2y, minx, maxx, miny, maxy, radius ) {
 
-	}
+			return (
+				( minx - p1x < radius || minx - p2x < radius ) &&
+				( p1x - maxx < radius || p2x - maxx < radius ) &&
+				( miny - p1y < radius || miny - p2y < radius ) &&
+				( p1y - maxy < radius || p2y - maxy < radius )
+			);
 
-	lineLineMinimumPoints( line1, line2 ) {
+		},
 
-		const r = _v1.copy( line1.end ).sub( line1.start );
-		const s = _v2.copy( line2.end ).sub( line2.start );
-		const w = _v3.copy( line2.start ).sub( line1.start );
+		intersectsBox: function ( box ) {
 
-		const a = r.dot( s ),
-			b = r.dot( r ),
-			c = s.dot( s ),
-			d = s.dot( w ),
-			e = r.dot( w );
+			return (
+				this.checkAABBAxis(
+					this.start.x, this.start.y, this.end.x, this.end.y,
+					box.min.x, box.max.x, box.min.y, box.max.y,
+					this.radius ) &&
+				this.checkAABBAxis(
+					this.start.x, this.start.z, this.end.x, this.end.z,
+					box.min.x, box.max.x, box.min.z, box.max.z,
+					this.radius ) &&
+				this.checkAABBAxis(
+					this.start.y, this.start.z, this.end.y, this.end.z,
+					box.min.y, box.max.y, box.min.z, box.max.z,
+					this.radius )
+			);
 
-		let t1, t2;
-		const divisor = b * c - a * a;
+		},
 
-		if ( Math.abs( divisor ) < EPS ) {
+		lineLineMinimumPoints: function ( line1, line2 ) {
 
-			const d1 = - d / c;
-			const d2 = ( a - d ) / c;
+			var r = _v1.copy( line1.end ).sub( line1.start );
+			var s = _v2.copy( line2.end ).sub( line2.start );
+			var w = _v3.copy( line2.start ).sub( line1.start );
 
-			if ( Math.abs( d1 - 0.5 ) < Math.abs( d2 - 0.5 ) ) {
+			var a = r.dot( s ),
+				b = r.dot( r ),
+				c = s.dot( s ),
+				d = s.dot( w ),
+				e = r.dot( w );
 
-				t1 = 0;
-				t2 = d1;
+			var t1, t2, divisor = b * c - a * a;
+
+			if ( Math.abs( divisor ) < EPS ) {
+
+				var d1 = - d / c;
+				var d2 = ( a - d ) / c;
+
+				if ( Math.abs( d1 - 0.5 ) < Math.abs( d2 - 0.5 ) ) {
+
+					t1 = 0;
+					t2 = d1;
+
+				} else {
+
+					t1 = 1;
+					t2 = d2;
+
+				}
 
 			} else {
 
-				t1 = 1;
-				t2 = d2;
+				t1 = ( d * a + e * c ) / divisor;
+				t2 = ( t1 * a - d ) / c;
 
 			}
 
-		} else {
+			t2 = Math.max( 0, Math.min( 1, t2 ) );
+			t1 = Math.max( 0, Math.min( 1, t1 ) );
 
-			t1 = ( d * a + e * c ) / divisor;
-			t2 = ( t1 * a - d ) / c;
+			var point1 = r.multiplyScalar( t1 ).add( line1.start );
+			var point2 = s.multiplyScalar( t2 ).add( line2.start );
+
+			return [ point1, point2 ];
 
 		}
 
-		t2 = Math.max( 0, Math.min( 1, t2 ) );
-		t1 = Math.max( 0, Math.min( 1, t1 ) );
+	} );
 
-		const point1 = r.multiplyScalar( t1 ).add( line1.start );
-		const point2 = s.multiplyScalar( t2 ).add( line2.start );
+	return Capsule;
 
-		return [ point1, point2 ];
-
-	}
-
-}
+} )();
 
 export { Capsule };

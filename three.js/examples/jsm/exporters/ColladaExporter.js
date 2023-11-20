@@ -9,47 +9,29 @@ import {
  * https://github.com/gkjohnson/collada-exporter-js
  *
  * Usage:
- *  const exporter = new ColladaExporter();
+ *  var exporter = new ColladaExporter();
  *
- *  const data = exporter.parse(mesh);
+ *  var data = exporter.parse(mesh);
  *
  * Format Definition:
  *  https://www.khronos.org/collada/
  */
 
-class ColladaExporter {
+var ColladaExporter = function () {};
 
-	parse( object, onDone, options = {} ) {
+ColladaExporter.prototype = {
+
+	constructor: ColladaExporter,
+
+	parse: function ( object, onDone, options ) {
+
+		options = options || {};
 
 		options = Object.assign( {
 			version: '1.4.1',
 			author: null,
 			textureDirectory: '',
-			upAxis: 'Y_UP',
-			unitName: null,
-			unitMeter: null,
 		}, options );
-
-		if ( options.upAxis.match( /^[XYZ]_UP$/ ) === null ) {
-
-			console.error( 'ColladaExporter: Invalid upAxis: valid values are X_UP, Y_UP or Z_UP.' );
-			return null;
-
-		}
-
-		if ( options.unitName !== null && options.unitMeter === null ) {
-
-			console.error( 'ColladaExporter: unitMeter needs to be specified if unitName is specified.' );
-			return null;
-
-		}
-
-		if ( options.unitMeter !== null && options.unitName === null ) {
-
-			console.error( 'ColladaExporter: unitName needs to be specified if unitMeter is specified.' );
-			return null;
-
-		}
 
 		if ( options.textureDirectory !== '' ) {
 
@@ -59,8 +41,7 @@ class ColladaExporter {
 
 		}
 
-		const version = options.version;
-
+		var version = options.version;
 		if ( version !== '1.4.1' && version !== '1.5.0' ) {
 
 			console.warn( `ColladaExporter : Version ${ version } not supported for export. Only 1.4.1 and 1.5.0.` );
@@ -71,14 +52,13 @@ class ColladaExporter {
 		// Convert the urdf xml into a well-formatted, indented format
 		function format( urdf ) {
 
-			const IS_END_TAG = /^<\//;
-			const IS_SELF_CLOSING = /(\?>$)|(\/>$)/;
-			const HAS_TEXT = /<[^>]+>[^<]*<\/[^<]+>/;
+			var IS_END_TAG = /^<\//;
+			var IS_SELF_CLOSING = /(\?>$)|(\/>$)/;
+			var HAS_TEXT = /<[^>]+>[^<]*<\/[^<]+>/;
 
-			const pad = ( ch, num ) => ( num > 0 ? ch + pad( ch, num - 1 ) : '' );
+			var pad = ( ch, num ) => ( num > 0 ? ch + pad( ch, num - 1 ) : '' );
 
-			let tagnum = 0;
-
+			var tagnum = 0;
 			return urdf
 				.match( /(<[^>]+>[^<]+<\/[^<]+>)|(<[^>]+>)/g )
 				.map( tag => {
@@ -89,7 +69,7 @@ class ColladaExporter {
 
 					}
 
-					const res = `${ pad( '  ', tagnum ) }${ tag }`;
+					var res = `${ pad( '  ', tagnum ) }${ tag }`;
 
 					if ( ! HAS_TEXT.test( tag ) && ! IS_SELF_CLOSING.test( tag ) && ! IS_END_TAG.test( tag ) ) {
 
@@ -107,10 +87,10 @@ class ColladaExporter {
 		// Convert an image into a png format for saving
 		function base64ToBuffer( str ) {
 
-			const b = atob( str );
-			const buf = new Uint8Array( b.length );
+			var b = atob( str );
+			var buf = new Uint8Array( b.length );
 
-			for ( let i = 0, l = buf.length; i < l; i ++ ) {
+			for ( var i = 0, l = buf.length; i < l; i ++ ) {
 
 				buf[ i ] = b.charCodeAt( i );
 
@@ -120,8 +100,7 @@ class ColladaExporter {
 
 		}
 
-		let canvas, ctx;
-
+		var canvas, ctx;
 		function imageToData( image, ext ) {
 
 			canvas = canvas || document.createElement( 'canvas' );
@@ -133,7 +112,7 @@ class ColladaExporter {
 			ctx.drawImage( image, 0, 0 );
 
 			// Get the base64 encoded data
-			const base64data = canvas
+			var base64data = canvas
 				.toDataURL( `image/${ ext }`, 1 )
 				.replace( /^data:image\/(png|jpg);base64,/, '' );
 
@@ -143,19 +122,17 @@ class ColladaExporter {
 		}
 
 		// gets the attribute array. Generate a new array if the attribute is interleaved
-		const getFuncs = [ 'getX', 'getY', 'getZ', 'getW' ];
-
+		var getFuncs = [ 'getX', 'getY', 'getZ', 'getW' ];
 		function attrBufferToArray( attr ) {
 
 			if ( attr.isInterleavedBufferAttribute ) {
 
 				// use the typed array constructor to save on memory
-				const arr = new attr.array.constructor( attr.count * attr.itemSize );
-				const size = attr.itemSize;
+				var arr = new attr.array.constructor( attr.count * attr.itemSize );
+				var size = attr.itemSize;
+				for ( var i = 0, l = attr.count; i < l; i ++ ) {
 
-				for ( let i = 0, l = attr.count; i < l; i ++ ) {
-
-					for ( let j = 0; j < size; j ++ ) {
+					for ( var j = 0; j < size; j ++ ) {
 
 						arr[ i * size + j ] = attr[ getFuncs[ j ] ]( i );
 
@@ -185,8 +162,8 @@ class ColladaExporter {
 		// Returns the string for a geometry's attribute
 		function getAttribute( attr, name, params, type ) {
 
-			const array = attrBufferToArray( attr );
-			const res =
+			var array = attrBufferToArray( attr );
+			var res =
 					`<source id="${ name }">` +
 
 					`<float_array id="${ name }-array" count="${ array.length }">` +
@@ -207,7 +184,7 @@ class ColladaExporter {
 		}
 
 		// Returns the string for a node's transform information
-		let transMat;
+		var transMat;
 		function getTransform( o ) {
 
 			// ensure the object's matrix is up to date
@@ -225,12 +202,12 @@ class ColladaExporter {
 		// Returns the mesh id
 		function processGeometry( g ) {
 
-			let info = geometryInfo.get( g );
+			var info = geometryInfo.get( g );
 
 			if ( ! info ) {
 
 				// convert the geometry to bufferGeometry if it isn't already
-				const bufferGeometry = g;
+				var bufferGeometry = g;
 
 				if ( bufferGeometry.isBufferGeometry !== true ) {
 
@@ -238,25 +215,25 @@ class ColladaExporter {
 
 				}
 
-				const meshid = `Mesh${ libraryGeometries.length + 1 }`;
+				var meshid = `Mesh${ libraryGeometries.length + 1 }`;
 
-				const indexCount =
+				var indexCount =
 					bufferGeometry.index ?
 						bufferGeometry.index.count * bufferGeometry.index.itemSize :
 						bufferGeometry.attributes.position.count;
 
-				const groups =
+				var groups =
 					bufferGeometry.groups != null && bufferGeometry.groups.length !== 0 ?
 						bufferGeometry.groups :
 						[ { start: 0, count: indexCount, materialIndex: 0 } ];
 
 
-				const gname = g.name ? ` name="${ g.name }"` : '';
-				let gnode = `<geometry id="${ meshid }"${ gname }><mesh>`;
+				var gname = g.name ? ` name="${ g.name }"` : '';
+				var gnode = `<geometry id="${ meshid }"${ gname }><mesh>`;
 
 				// define the geometry node and the vertices for the geometry
-				const posName = `${ meshid }-position`;
-				const vertName = `${ meshid }-vertices`;
+				var posName = `${ meshid }-position`;
+				var vertName = `${ meshid }-vertices`;
 				gnode += getAttribute( bufferGeometry.attributes.position, posName, [ 'X', 'Y', 'Z' ], 'float' );
 				gnode += `<vertices id="${ vertName }"><input semantic="POSITION" source="#${ posName }" /></vertices>`;
 
@@ -266,10 +243,10 @@ class ColladaExporter {
 				// MeshLab Bug#424: https://sourceforge.net/p/meshlab/bugs/424/
 
 				// serialize normals
-				let triangleInputs = `<input semantic="VERTEX" source="#${ vertName }" offset="0" />`;
+				var triangleInputs = `<input semantic="VERTEX" source="#${ vertName }" offset="0" />`;
 				if ( 'normal' in bufferGeometry.attributes ) {
 
-					const normName = `${ meshid }-normal`;
+					var normName = `${ meshid }-normal`;
 					gnode += getAttribute( bufferGeometry.attributes.normal, normName, [ 'X', 'Y', 'Z' ], 'float' );
 					triangleInputs += `<input semantic="NORMAL" source="#${ normName }" offset="0" />`;
 
@@ -278,7 +255,7 @@ class ColladaExporter {
 				// serialize uvs
 				if ( 'uv' in bufferGeometry.attributes ) {
 
-					const uvName = `${ meshid }-texcoord`;
+					var uvName = `${ meshid }-texcoord`;
 					gnode += getAttribute( bufferGeometry.attributes.uv, uvName, [ 'S', 'T' ], 'float' );
 					triangleInputs += `<input semantic="TEXCOORD" source="#${ uvName }" offset="0" set="0" />`;
 
@@ -287,7 +264,7 @@ class ColladaExporter {
 				// serialize lightmap uvs
 				if ( 'uv2' in bufferGeometry.attributes ) {
 
-					const uvName = `${ meshid }-texcoord2`;
+					var uvName = `${ meshid }-texcoord2`;
 					gnode += getAttribute( bufferGeometry.attributes.uv2, uvName, [ 'S', 'T' ], 'float' );
 					triangleInputs += `<input semantic="TEXCOORD" source="#${ uvName }" offset="0" set="1" />`;
 
@@ -296,13 +273,13 @@ class ColladaExporter {
 				// serialize colors
 				if ( 'color' in bufferGeometry.attributes ) {
 
-					const colName = `${ meshid }-color`;
+					var colName = `${ meshid }-color`;
 					gnode += getAttribute( bufferGeometry.attributes.color, colName, [ 'X', 'Y', 'Z' ], 'uint8' );
 					triangleInputs += `<input semantic="COLOR" source="#${ colName }" offset="0" />`;
 
 				}
 
-				let indexArray = null;
+				var indexArray = null;
 				if ( bufferGeometry.index ) {
 
 					indexArray = attrBufferToArray( bufferGeometry.index );
@@ -310,15 +287,15 @@ class ColladaExporter {
 				} else {
 
 					indexArray = new Array( indexCount );
-					for ( let i = 0, l = indexArray.length; i < l; i ++ ) indexArray[ i ] = i;
+					for ( var i = 0, l = indexArray.length; i < l; i ++ ) indexArray[ i ] = i;
 
 				}
 
-				for ( let i = 0, l = groups.length; i < l; i ++ ) {
+				for ( var i = 0, l = groups.length; i < l; i ++ ) {
 
-					const group = groups[ i ];
-					const subarr = subArray( indexArray, group.start, group.count );
-					const polycount = subarr.length / 3;
+					var group = groups[ i ];
+					var subarr = subArray( indexArray, group.start, group.count );
+					var polycount = subarr.length / 3;
 					gnode += `<triangles material="MESH_MATERIAL_${ group.materialIndex }" count="${ polycount }">`;
 					gnode += triangleInputs;
 
@@ -344,14 +321,14 @@ class ColladaExporter {
 		// Returns the image library
 		function processTexture( tex ) {
 
-			let texid = imageMap.get( tex );
+			var texid = imageMap.get( tex );
 			if ( texid == null ) {
 
 				texid = `image-${ libraryImages.length + 1 }`;
 
-				const ext = 'png';
-				const name = tex.name || texid;
-				let imageNode = `<image id="${ texid }" name="${ name }">`;
+				var ext = 'png';
+				var name = tex.name || texid;
+				var imageNode = `<image id="${ texid }" name="${ name }">`;
 
 				if ( version === '1.5.0' ) {
 
@@ -386,13 +363,13 @@ class ColladaExporter {
 		// Returns the material id
 		function processMaterial( m ) {
 
-			let matid = materialMap.get( m );
+			var matid = materialMap.get( m );
 
 			if ( matid == null ) {
 
 				matid = `Mat${ libraryEffects.length + 1 }`;
 
-				let type = 'phong';
+				var type = 'phong';
 
 				if ( m.isMeshLambertMaterial === true ) {
 
@@ -413,16 +390,16 @@ class ColladaExporter {
 
 				}
 
-				const emissive = m.emissive ? m.emissive : new Color( 0, 0, 0 );
-				const diffuse = m.color ? m.color : new Color( 0, 0, 0 );
-				const specular = m.specular ? m.specular : new Color( 1, 1, 1 );
-				const shininess = m.shininess || 0;
-				const reflectivity = m.reflectivity || 0;
+				var emissive = m.emissive ? m.emissive : new Color( 0, 0, 0 );
+				var diffuse = m.color ? m.color : new Color( 0, 0, 0 );
+				var specular = m.specular ? m.specular : new Color( 1, 1, 1 );
+				var shininess = m.shininess || 0;
+				var reflectivity = m.reflectivity || 0;
 
 				// Do not export and alpha map for the reasons mentioned in issue (#13792)
 				// in three.js alpha maps are black and white, but collada expects the alpha
 				// channel to specify the transparency
-				let transparencyNode = '';
+				var transparencyNode = '';
 				if ( m.transparent === true ) {
 
 					transparencyNode +=
@@ -442,7 +419,7 @@ class ColladaExporter {
 
 				}
 
-				const techniqueNode = `<technique sid="common"><${ type }>` +
+				var techniqueNode = `<technique sid="common"><${ type }>` +
 
 					'<emission>' +
 
@@ -502,7 +479,7 @@ class ColladaExporter {
 
 					`</${ type }></technique>`;
 
-				const effectnode =
+				var effectnode =
 					`<effect id="${ matid }-effect">` +
 					'<profile_COMMON>' +
 
@@ -554,8 +531,8 @@ class ColladaExporter {
 
 					'</effect>';
 
-				const materialName = m.name ? ` name="${ m.name }"` : '';
-				const materialNode = `<material id="${ matid }"${ materialName }><instance_effect url="#${ matid }-effect" /></material>`;
+				var materialName = m.name ? ` name="${ m.name }"` : '';
+				var materialNode = `<material id="${ matid }"${ materialName }><instance_effect url="#${ matid }-effect" /></material>`;
 
 				libraryMaterials.push( materialNode );
 				libraryEffects.push( effectnode );
@@ -570,7 +547,7 @@ class ColladaExporter {
 		// Recursively process the object into a scene
 		function processObject( o ) {
 
-			let node = `<node name="${ o.name }">`;
+			var node = `<node name="${ o.name }">`;
 
 			node += getTransform( o );
 
@@ -578,19 +555,19 @@ class ColladaExporter {
 
 				// function returns the id associated with the mesh and a "BufferGeometry" version
 				// of the geometry in case it's not a geometry.
-				const geomInfo = processGeometry( o.geometry );
-				const meshid = geomInfo.meshid;
-				const geometry = geomInfo.bufferGeometry;
+				var geomInfo = processGeometry( o.geometry );
+				var meshid = geomInfo.meshid;
+				var geometry = geomInfo.bufferGeometry;
 
 				// ids of the materials to bind to the geometry
-				let matids = null;
-				let matidsArray;
+				var matids = null;
+				var matidsArray = [];
 
 				// get a list of materials to bind to the sub groups of the geometry.
 				// If the amount of subgroups is greater than the materials, than reuse
 				// the materials.
-				const mat = o.material || new MeshBasicMaterial();
-				const materials = Array.isArray( mat ) ? mat : [ mat ];
+				var mat = o.material || new MeshBasicMaterial();
+				var materials = Array.isArray( mat ) ? mat : [ mat ];
 
 				if ( geometry.groups.length > materials.length ) {
 
@@ -634,19 +611,19 @@ class ColladaExporter {
 
 		}
 
-		const geometryInfo = new WeakMap();
-		const materialMap = new WeakMap();
-		const imageMap = new WeakMap();
-		const textures = [];
+		var geometryInfo = new WeakMap();
+		var materialMap = new WeakMap();
+		var imageMap = new WeakMap();
+		var textures = [];
 
-		const libraryImages = [];
-		const libraryGeometries = [];
-		const libraryEffects = [];
-		const libraryMaterials = [];
-		const libraryVisualScenes = processObject( object );
+		var libraryImages = [];
+		var libraryGeometries = [];
+		var libraryEffects = [];
+		var libraryMaterials = [];
+		var libraryVisualScenes = processObject( object );
 
-		const specLink = version === '1.4.1' ? 'http://www.collada.org/2005/11/COLLADASchema' : 'https://www.khronos.org/collada/';
-		let dae =
+		var specLink = version === '1.4.1' ? 'http://www.collada.org/2005/11/COLLADASchema' : 'https://www.khronos.org/collada/';
+		var dae =
 			'<?xml version="1.0" encoding="UTF-8" standalone="no" ?>' +
 			`<COLLADA xmlns="${ specLink }" version="${ version }">` +
 			'<asset>' +
@@ -657,8 +634,7 @@ class ColladaExporter {
 				'</contributor>' +
 				`<created>${ ( new Date() ).toISOString() }</created>` +
 				`<modified>${ ( new Date() ).toISOString() }</modified>` +
-				( options.unitName !== null ? `<unit name="${ options.unitName }" meter="${ options.unitMeter }" />` : '' ) +
-				`<up_axis>${ options.upAxis }</up_axis>`
+				'<up_axis>Y_UP</up_axis>'
 			) +
 			'</asset>';
 
@@ -676,7 +652,7 @@ class ColladaExporter {
 
 		dae += '</COLLADA>';
 
-		const res = {
+		var res = {
 			data: format( dae ),
 			textures
 		};
@@ -691,7 +667,6 @@ class ColladaExporter {
 
 	}
 
-}
-
+};
 
 export { ColladaExporter };

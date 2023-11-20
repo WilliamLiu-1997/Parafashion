@@ -4,7 +4,7 @@
  * https://github.com/evanw/glfx.js
  */
 
-const SepiaShader = {
+var SepiaShader = {
 
 	uniforms: {
 
@@ -13,37 +13,41 @@ const SepiaShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform float amount;
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse;
+		'uniform float amount;',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 color = texture2D( tDiffuse, vUv );
-			vec3 c = color.rgb;
+		'void main() {',
 
-			color.r = dot( c, vec3( 1.0 - 0.607 * amount, 0.769 * amount, 0.189 * amount ) );
-			color.g = dot( c, vec3( 0.349 * amount, 1.0 - 0.314 * amount, 0.168 * amount ) );
-			color.b = dot( c, vec3( 0.272 * amount, 0.534 * amount, 1.0 - 0.869 * amount ) );
+		'	vec4 color = texture2D( tDiffuse, vUv );',
+		'	vec3 c = color.rgb;',
 
-			gl_FragColor = vec4( min( vec3( 1.0 ), color.rgb ), color.a );
+		'	color.r = dot( c, vec3( 1.0 - 0.607 * amount, 0.769 * amount, 0.189 * amount ) );',
+		'	color.g = dot( c, vec3( 0.349 * amount, 1.0 - 0.314 * amount, 0.168 * amount ) );',
+		'	color.b = dot( c, vec3( 0.272 * amount, 0.534 * amount, 1.0 - 0.869 * amount ) );',
 
-		}`
+		'	gl_FragColor = vec4( min( vec3( 1.0 ), color.rgb ), color.a );',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

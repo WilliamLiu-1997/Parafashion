@@ -7,6 +7,8 @@ class NodeUniform {
 		this.node = node;
 		this.needsUpdate = needsUpdate;
 
+		Object.defineProperty( this, 'isNodeUniform', { value: true } );
+
 	}
 
 	get value() {
@@ -22,7 +24,5 @@ class NodeUniform {
 	}
 
 }
-
-NodeUniform.prototype.isNodeUniform = true;
 
 export default NodeUniform;

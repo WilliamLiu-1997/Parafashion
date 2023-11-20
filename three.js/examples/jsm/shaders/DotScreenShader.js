@@ -8,7 +8,7 @@ import {
  * https://github.com/evanw/glfx.js
  */
 
-const DotScreenShader = {
+var DotScreenShader = {
 
 	uniforms: {
 
@@ -20,48 +20,52 @@ const DotScreenShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform vec2 center;
-		uniform float angle;
-		uniform float scale;
-		uniform vec2 tSize;
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse;
+		'uniform vec2 center;',
+		'uniform float angle;',
+		'uniform float scale;',
+		'uniform vec2 tSize;',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
 
-		float pattern() {
+		'varying vec2 vUv;',
 
-			float s = sin( angle ), c = cos( angle );
+		'float pattern() {',
 
-			vec2 tex = vUv * tSize - center;
-			vec2 point = vec2( c * tex.x - s * tex.y, s * tex.x + c * tex.y ) * scale;
+		'	float s = sin( angle ), c = cos( angle );',
 
-			return ( sin( point.x ) * sin( point.y ) ) * 4.0;
+		'	vec2 tex = vUv * tSize - center;',
+		'	vec2 point = vec2( c * tex.x - s * tex.y, s * tex.x + c * tex.y ) * scale;',
 
-		}
+		'	return ( sin( point.x ) * sin( point.y ) ) * 4.0;',
 
-		void main() {
+		'}',
 
-			vec4 color = texture2D( tDiffuse, vUv );
+		'void main() {',
 
-			float average = ( color.r + color.g + color.b ) / 3.0;
+		'	vec4 color = texture2D( tDiffuse, vUv );',
 
-			gl_FragColor = vec4( vec3( average * 10.0 - 5.0 + pattern() ), color.a );
+		'	float average = ( color.r + color.g + color.b ) / 3.0;',
 
-		}`
+		'	gl_FragColor = vec4( vec3( average * 10.0 - 5.0 + pattern() ), color.a );',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

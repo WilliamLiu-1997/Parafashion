@@ -6,104 +6,103 @@ import {
 	MathUtils
 } from '../../../build/three.module.js';
 
-class PositionalAudioHelper extends Line {
+function PositionalAudioHelper( audio, range, divisionsInnerAngle, divisionsOuterAngle ) {
 
-	constructor( audio, range = 1, divisionsInnerAngle = 16, divisionsOuterAngle = 2 ) {
+	this.audio = audio;
+	this.range = range || 1;
+	this.divisionsInnerAngle = divisionsInnerAngle || 16;
+	this.divisionsOuterAngle = divisionsOuterAngle || 2;
 
-		const geometry = new BufferGeometry();
-		const divisions = divisionsInnerAngle + divisionsOuterAngle * 2;
-		const positions = new Float32Array( ( divisions * 3 + 3 ) * 3 );
-		geometry.setAttribute( 'position', new BufferAttribute( positions, 3 ) );
+	var geometry = new BufferGeometry();
+	var divisions = this.divisionsInnerAngle + this.divisionsOuterAngle * 2;
+	var positions = new Float32Array( ( divisions * 3 + 3 ) * 3 );
+	geometry.setAttribute( 'position', new BufferAttribute( positions, 3 ) );
 
-		const materialInnerAngle = new LineBasicMaterial( { color: 0x00ff00 } );
-		const materialOuterAngle = new LineBasicMaterial( { color: 0xffff00 } );
+	var materialInnerAngle = new LineBasicMaterial( { color: 0x00ff00 } );
+	var materialOuterAngle = new LineBasicMaterial( { color: 0xffff00 } );
 
-		super( geometry, [ materialOuterAngle, materialInnerAngle ] );
+	Line.call( this, geometry, [ materialOuterAngle, materialInnerAngle ] );
 
-		this.audio = audio;
-		this.range = range;
-		this.divisionsInnerAngle = divisionsInnerAngle;
-		this.divisionsOuterAngle = divisionsOuterAngle;
-		this.type = 'PositionalAudioHelper';
+	this.type = 'PositionalAudioHelper';
 
-		this.update();
+	this.update();
 
-	}
+}
 
-	update() {
+PositionalAudioHelper.prototype = Object.create( Line.prototype );
+PositionalAudioHelper.prototype.constructor = PositionalAudioHelper;
 
-		const audio = this.audio;
-		const range = this.range;
-		const divisionsInnerAngle = this.divisionsInnerAngle;
-		const divisionsOuterAngle = this.divisionsOuterAngle;
+PositionalAudioHelper.prototype.update = function () {
 
-		const coneInnerAngle = MathUtils.degToRad( audio.panner.coneInnerAngle );
-		const coneOuterAngle = MathUtils.degToRad( audio.panner.coneOuterAngle );
+	var audio = this.audio;
+	var range = this.range;
+	var divisionsInnerAngle = this.divisionsInnerAngle;
+	var divisionsOuterAngle = this.divisionsOuterAngle;
 
-		const halfConeInnerAngle = coneInnerAngle / 2;
-		const halfConeOuterAngle = coneOuterAngle / 2;
+	var coneInnerAngle = MathUtils.degToRad( audio.panner.coneInnerAngle );
+	var coneOuterAngle = MathUtils.degToRad( audio.panner.coneOuterAngle );
 
-		let start = 0;
-		let count = 0;
-		let i;
-		let stride;
+	var halfConeInnerAngle = coneInnerAngle / 2;
+	var halfConeOuterAngle = coneOuterAngle / 2;
 
-		const geometry = this.geometry;
-		const positionAttribute = geometry.attributes.position;
+	var start = 0;
+	var count = 0;
+	var i, stride;
 
-		geometry.clearGroups();
+	var geometry = this.geometry;
+	var positionAttribute = geometry.attributes.position;
 
-		//
+	geometry.clearGroups();
 
-		function generateSegment( from, to, divisions, materialIndex ) {
+	//
 
-			const step = ( to - from ) / divisions;
+	function generateSegment( from, to, divisions, materialIndex ) {
 
-			positionAttribute.setXYZ( start, 0, 0, 0 );
-			count ++;
+		var step = ( to - from ) / divisions;
 
-			for ( i = from; i < to; i += step ) {
+		positionAttribute.setXYZ( start, 0, 0, 0 );
+		count ++;
 
-				stride = start + count;
+		for ( i = from; i < to; i += step ) {
 
-				positionAttribute.setXYZ( stride, Math.sin( i ) * range, 0, Math.cos( i ) * range );
-				positionAttribute.setXYZ( stride + 1, Math.sin( Math.min( i + step, to ) ) * range, 0, Math.cos( Math.min( i + step, to ) ) * range );
-				positionAttribute.setXYZ( stride + 2, 0, 0, 0 );
+			stride = start + count;
 
-				count += 3;
+			positionAttribute.setXYZ( stride, Math.sin( i ) * range, 0, Math.cos( i ) * range );
+			positionAttribute.setXYZ( stride + 1, Math.sin( Math.min( i + step, to ) ) * range, 0, Math.cos( Math.min( i + step, to ) ) * range );
+			positionAttribute.setXYZ( stride + 2, 0, 0, 0 );
 
-			}
-
-			geometry.addGroup( start, count, materialIndex );
-
-			start += count;
-			count = 0;
+			count += 3;
 
 		}
 
-		//
+		geometry.addGroup( start, count, materialIndex );
 
-		generateSegment( - halfConeOuterAngle, - halfConeInnerAngle, divisionsOuterAngle, 0 );
-		generateSegment( - halfConeInnerAngle, halfConeInnerAngle, divisionsInnerAngle, 1 );
-		generateSegment( halfConeInnerAngle, halfConeOuterAngle, divisionsOuterAngle, 0 );
-
-		//
-
-		positionAttribute.needsUpdate = true;
-
-		if ( coneInnerAngle === coneOuterAngle ) this.material[ 0 ].visible = false;
+		start += count;
+		count = 0;
 
 	}
 
-	dispose() {
+	//
 
-		this.geometry.dispose();
-		this.material[ 0 ].dispose();
-		this.material[ 1 ].dispose();
+	generateSegment( - halfConeOuterAngle, - halfConeInnerAngle, divisionsOuterAngle, 0 );
+	generateSegment( - halfConeInnerAngle, halfConeInnerAngle, divisionsInnerAngle, 1 );
+	generateSegment( halfConeInnerAngle, halfConeOuterAngle, divisionsOuterAngle, 0 );
 
-	}
+	//
 
-}
+	positionAttribute.needsUpdate = true;
+
+	if ( coneInnerAngle === coneOuterAngle ) this.material[ 0 ].visible = false;
+
+};
+
+PositionalAudioHelper.prototype.dispose = function () {
+
+	this.geometry.dispose();
+	this.material[ 0 ].dispose();
+	this.material[ 1 ].dispose();
+
+};
 
 
 export { PositionalAudioHelper };

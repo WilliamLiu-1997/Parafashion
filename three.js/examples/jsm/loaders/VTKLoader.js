@@ -6,21 +6,23 @@ import {
 	Loader,
 	LoaderUtils
 } from '../../../build/three.module.js';
-import * as fflate from '../libs/fflate.module.js';
+import * as fflate from '../libs/fflate.module.min.js';
 
-class VTKLoader extends Loader {
+var VTKLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+};
 
-	}
+VTKLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: VTKLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( scope.manager );
+		var scope = this;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.setResponseType( 'arraybuffer' );
 		loader.setRequestHeader( scope.requestHeader );
@@ -49,9 +51,9 @@ class VTKLoader extends Loader {
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( data ) {
+	parse: function ( data ) {
 
 		function parseASCII( data ) {
 
@@ -551,23 +553,23 @@ class VTKLoader extends Loader {
 
 		function Float32Concat( first, second ) {
 
-			const firstLength = first.length, result = new Float32Array( firstLength + second.length );
+		    var firstLength = first.length, result = new Float32Array( firstLength + second.length );
 
-			result.set( first );
-			result.set( second, firstLength );
+		    result.set( first );
+		    result.set( second, firstLength );
 
-			return result;
+		    return result;
 
 		}
 
 		function Int32Concat( first, second ) {
 
-			var firstLength = first.length, result = new Int32Array( firstLength + second.length );
+		    var firstLength = first.length, result = new Int32Array( firstLength + second.length );
 
-			result.set( first );
-			result.set( second, firstLength );
+		    result.set( first );
+		    result.set( second, firstLength );
 
-			return result;
+		    return result;
 
 		}
 
@@ -1177,6 +1179,6 @@ class VTKLoader extends Loader {
 
 	}
 
-}
+} );
 
 export { VTKLoader };

@@ -7,108 +7,111 @@ import {
 	VectorKeyframeTrack
 } from '../../../build/three.module.js';
 
-class AnimationClipCreator {
+var AnimationClipCreator = function () {};
 
-	static CreateRotationAnimation( period, axis = 'x' ) {
+AnimationClipCreator.CreateRotationAnimation = function ( period, axis ) {
 
-		const times = [ 0, period ], values = [ 0, 360 ];
+	var times = [ 0, period ], values = [ 0, 360 ];
 
-		const trackName = '.rotation[' + axis + ']';
+	axis = axis || 'x';
+	var trackName = '.rotation[' + axis + ']';
 
-		const track = new NumberKeyframeTrack( trackName, times, values );
+	var track = new NumberKeyframeTrack( trackName, times, values );
 
-		return new AnimationClip( null, period, [ track ] );
+	return new AnimationClip( null, period, [ track ] );
 
-	}
+};
 
-	static CreateScaleAxisAnimation( period, axis = 'x' ) {
+AnimationClipCreator.CreateScaleAxisAnimation = function ( period, axis ) {
 
-		const times = [ 0, period ], values = [ 0, 1 ];
+	var times = [ 0, period ], values = [ 0, 1 ];
 
-		const trackName = '.scale[' + axis + ']';
+	axis = axis || 'x';
+	var trackName = '.scale[' + axis + ']';
 
-		const track = new NumberKeyframeTrack( trackName, times, values );
+	var track = new NumberKeyframeTrack( trackName, times, values );
 
-		return new AnimationClip( null, period, [ track ] );
+	return new AnimationClip( null, period, [ track ] );
 
-	}
+};
 
-	static CreateShakeAnimation( duration, shakeScale ) {
+AnimationClipCreator.CreateShakeAnimation = function ( duration, shakeScale ) {
 
-		const times = [], values = [], tmp = new Vector3();
+	var times = [], values = [], tmp = new Vector3();
 
-		for ( let i = 0; i < duration * 10; i ++ ) {
+	for ( var i = 0; i < duration * 10; i ++ ) {
 
-			times.push( i / 10 );
+		times.push( i / 10 );
 
-			tmp.set( Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0 ).
-				multiply( shakeScale ).
-				toArray( values, values.length );
-
-		}
-
-		const trackName = '.position';
-
-		const track = new VectorKeyframeTrack( trackName, times, values );
-
-		return new AnimationClip( null, duration, [ track ] );
+		tmp.set( Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0, Math.random() * 2.0 - 1.0 ).
+			multiply( shakeScale ).
+			toArray( values, values.length );
 
 	}
 
-	static CreatePulsationAnimation( duration, pulseScale ) {
+	var trackName = '.position';
 
-		const times = [], values = [], tmp = new Vector3();
+	var track = new VectorKeyframeTrack( trackName, times, values );
 
-		for ( let i = 0; i < duration * 10; i ++ ) {
+	return new AnimationClip( null, duration, [ track ] );
 
-			times.push( i / 10 );
+};
 
-			const scaleFactor = Math.random() * pulseScale;
-			tmp.set( scaleFactor, scaleFactor, scaleFactor ).
-				toArray( values, values.length );
 
-		}
+AnimationClipCreator.CreatePulsationAnimation = function ( duration, pulseScale ) {
 
-		const trackName = '.scale';
+	var times = [], values = [], tmp = new Vector3();
 
-		const track = new VectorKeyframeTrack( trackName, times, values );
+	for ( var i = 0; i < duration * 10; i ++ ) {
 
-		return new AnimationClip( null, duration, [ track ] );
+		times.push( i / 10 );
 
-	}
-
-	static CreateVisibilityAnimation( duration ) {
-
-		const times = [ 0, duration / 2, duration ], values = [ true, false, true ];
-
-		const trackName = '.visible';
-
-		const track = new BooleanKeyframeTrack( trackName, times, values );
-
-		return new AnimationClip( null, duration, [ track ] );
+		var scaleFactor = Math.random() * pulseScale;
+		tmp.set( scaleFactor, scaleFactor, scaleFactor ).
+			toArray( values, values.length );
 
 	}
 
-	static CreateMaterialColorAnimation( duration, colors ) {
+	var trackName = '.scale';
 
-		const times = [], values = [],
-			timeStep = duration / colors.length;
+	var track = new VectorKeyframeTrack( trackName, times, values );
 
-		for ( let i = 0; i <= colors.length; i ++ ) {
+	return new AnimationClip( null, duration, [ track ] );
 
-			times.push( i * timeStep );
-			values.push( colors[ i % colors.length ] );
+};
 
-		}
 
-		const trackName = '.material[0].color';
+AnimationClipCreator.CreateVisibilityAnimation = function ( duration ) {
 
-		const track = new ColorKeyframeTrack( trackName, times, values );
+	var times = [ 0, duration / 2, duration ], values = [ true, false, true ];
 
-		return new AnimationClip( null, duration, [ track ] );
+	var trackName = '.visible';
+
+	var track = new BooleanKeyframeTrack( trackName, times, values );
+
+	return new AnimationClip( null, duration, [ track ] );
+
+};
+
+
+AnimationClipCreator.CreateMaterialColorAnimation = function ( duration, colors ) {
+
+	var times = [], values = [],
+		timeStep = duration / colors.length;
+
+	for ( var i = 0; i <= colors.length; i ++ ) {
+
+		times.push( i * timeStep );
+		values.push( colors[ i % colors.length ] );
 
 	}
 
-}
+	var trackName = '.material[0].color';
+
+	var track = new ColorKeyframeTrack( trackName, times, values );
+
+	return new AnimationClip( null, duration, [ track ] );
+
+};
 
 export { AnimationClipCreator };

@@ -18,19 +18,21 @@ import {
 	NumberKeyframeTrack
 } from '../../../build/three.module.js';
 
-class MDDLoader extends Loader {
+var MDDLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+};
 
-	}
+MDDLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: MDDLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( this.manager );
+		var scope = this;
+
+		var loader = new FileLoader( this.manager );
 		loader.setPath( this.path );
 		loader.setResponseType( 'arraybuffer' );
 		loader.load( url, function ( data ) {
@@ -39,43 +41,43 @@ class MDDLoader extends Loader {
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( data ) {
+	parse: function ( data ) {
 
-		const view = new DataView( data );
+		var view = new DataView( data );
 
-		const totalFrames = view.getUint32( 0 );
-		const totalPoints = view.getUint32( 4 );
+		var totalFrames = view.getUint32( 0 );
+		var totalPoints = view.getUint32( 4 );
 
-		let offset = 8;
+		var offset = 8;
 
 		// animation clip
 
-		const times = new Float32Array( totalFrames );
-		const values = new Float32Array( totalFrames * totalFrames ).fill( 0 );
+		var times = new Float32Array( totalFrames );
+		var values = new Float32Array( totalFrames * totalFrames ).fill( 0 );
 
-		for ( let i = 0; i < totalFrames; i ++ ) {
+		for ( var i = 0; i < totalFrames; i ++ ) {
 
 			times[ i ] = view.getFloat32( offset ); offset += 4;
 			values[ ( totalFrames * i ) + i ] = 1;
 
 		}
 
-		const track = new NumberKeyframeTrack( '.morphTargetInfluences', times, values );
-		const clip = new AnimationClip( 'default', times[ times.length - 1 ], [ track ] );
+		var track = new NumberKeyframeTrack( '.morphTargetInfluences', times, values );
+		var clip = new AnimationClip( 'default', times[ times.length - 1 ], [ track ] );
 
 		// morph targets
 
-		const morphTargets = [];
+		var morphTargets = [];
 
-		for ( let i = 0; i < totalFrames; i ++ ) {
+		for ( var i = 0; i < totalFrames; i ++ ) {
 
-			const morphTarget = new Float32Array( totalPoints * 3 );
+			var morphTarget = new Float32Array( totalPoints * 3 );
 
-			for ( let j = 0; j < totalPoints; j ++ ) {
+			for ( var j = 0; j < totalPoints; j ++ ) {
 
-				const stride = ( j * 3 );
+				var stride = ( j * 3 );
 
 				morphTarget[ stride + 0 ] = view.getFloat32( offset ); offset += 4; // x
 				morphTarget[ stride + 1 ] = view.getFloat32( offset ); offset += 4; // y
@@ -83,7 +85,7 @@ class MDDLoader extends Loader {
 
 			}
 
-			const attribute = new BufferAttribute( morphTarget, 3 );
+			var attribute = new BufferAttribute( morphTarget, 3 );
 			attribute.name = 'morph_' + i;
 
 			morphTargets.push( attribute );
@@ -97,6 +99,6 @@ class MDDLoader extends Loader {
 
 	}
 
-}
+} );
 
 export { MDDLoader };

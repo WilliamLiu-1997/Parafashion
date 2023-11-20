@@ -1,29 +1,81 @@
 import {
-	Loader,
+	DefaultLoadingManager,
 	FileLoader
 } from '../../../build/three.module.js';
 
 import * as Nodes from '../nodes/Nodes.js';
 
-class NodeMaterialLoader extends Loader {
+var NodeMaterialLoader = function ( manager, library ) {
 
-	constructor( manager, library = {} ) {
+	this.manager = ( manager !== undefined ) ? manager : DefaultLoadingManager;
 
-		super( manager );
+	this.nodes = {};
+	this.materials = {};
+	this.passes = {};
+	this.names = {};
+	this.library = library || {};
 
-		this.nodes = {};
-		this.materials = {};
-		this.passes = {};
-		this.names = {};
-		this.library = library;
+};
+
+var NodeMaterialLoaderUtils = {
+
+	replaceUUIDObject: function ( object, uuid, value, recursive ) {
+
+		recursive = recursive !== undefined ? recursive : true;
+
+		if ( typeof uuid === 'object' ) uuid = uuid.uuid;
+
+		if ( typeof object === 'object' ) {
+
+			var keys = Object.keys( object );
+
+			for ( var i = 0; i < keys.length; i ++ ) {
+
+				var key = keys[ i ];
+
+				if ( recursive ) {
+
+					object[ key ] = this.replaceUUIDObject( object[ key ], uuid, value );
+
+				}
+
+				if ( key === uuid ) {
+
+					object[ uuid ] = object[ key ];
+
+					delete object[ key ];
+
+				}
+
+			}
+
+		}
+
+		return object === uuid ? value : object;
+
+	},
+
+	replaceUUID: function ( json, uuid, value ) {
+
+		this.replaceUUIDObject( json, uuid, value, false );
+		this.replaceUUIDObject( json.nodes, uuid, value );
+		this.replaceUUIDObject( json.materials, uuid, value );
+		this.replaceUUIDObject( json.passes, uuid, value );
+		this.replaceUUIDObject( json.library, uuid, value, false );
+
+		return json;
 
 	}
 
-	load( url, onLoad, onProgress, onError ) {
+};
 
-		const scope = this;
+Object.assign( NodeMaterialLoader.prototype, {
 
-		const loader = new FileLoader( scope.manager );
+	load: function ( url, onLoad, onProgress, onError ) {
+
+		var scope = this;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.load( url, function ( text ) {
 
@@ -33,15 +85,22 @@ class NodeMaterialLoader extends Loader {
 
 		return this;
 
-	}
+	},
 
-	getObjectByName( uuid ) {
+	setPath: function ( value ) {
+
+		this.path = value;
+		return this;
+
+	},
+
+	getObjectByName: function ( uuid ) {
 
 		return this.names[ uuid ];
 
-	}
+	},
 
-	getObjectById( uuid ) {
+	getObjectById: function ( uuid ) {
 
 		return this.library[ uuid ] ||
 			this.nodes[ uuid ] ||
@@ -49,11 +108,11 @@ class NodeMaterialLoader extends Loader {
 			this.passes[ uuid ] ||
 			this.names[ uuid ];
 
-	}
+	},
 
-	getNode( uuid ) {
+	getNode: function ( uuid ) {
 
-		const object = this.getObjectById( uuid );
+		var object = this.getObjectById( uuid );
 
 		if ( ! object ) {
 
@@ -63,9 +122,9 @@ class NodeMaterialLoader extends Loader {
 
 		return object;
 
-	}
+	},
 
-	resolve( json ) {
+	resolve: function ( json ) {
 
 		switch ( typeof json ) {
 
@@ -88,7 +147,7 @@ class NodeMaterialLoader extends Loader {
 
 				if ( Array.isArray( json ) ) {
 
-					for ( let i = 0; i < json.length; i ++ ) {
+					for ( var i = 0; i < json.length; i ++ ) {
 
 						json[ i ] = this.resolve( json[ i ] );
 
@@ -96,7 +155,7 @@ class NodeMaterialLoader extends Loader {
 
 				} else {
 
-					for ( const prop in json ) {
+					for ( var prop in json ) {
 
 						if ( prop === 'uuid' ) continue;
 
@@ -110,11 +169,11 @@ class NodeMaterialLoader extends Loader {
 
 		return json;
 
-	}
+	},
 
-	declare( json ) {
+	declare: function ( json ) {
 
-		let uuid, node, object;
+		var uuid, node, object;
 
 		for ( uuid in json.nodes ) {
 
@@ -176,11 +235,11 @@ class NodeMaterialLoader extends Loader {
 
 		return json;
 
-	}
+	},
 
-	parse( json ) {
+	parse: function ( json ) {
 
-		let uuid;
+		var uuid;
 
 		json = this.resolve( this.declare( json ) );
 
@@ -206,58 +265,6 @@ class NodeMaterialLoader extends Loader {
 
 	}
 
-}
-
-class NodeMaterialLoaderUtils {
-
-	static replaceUUIDObject( object, uuid, value, recursive ) {
-
-		recursive = recursive !== undefined ? recursive : true;
-
-		if ( typeof uuid === 'object' ) uuid = uuid.uuid;
-
-		if ( typeof object === 'object' ) {
-
-			const keys = Object.keys( object );
-
-			for ( let i = 0; i < keys.length; i ++ ) {
-
-				const key = keys[ i ];
-
-				if ( recursive ) {
-
-					object[ key ] = this.replaceUUIDObject( object[ key ], uuid, value );
-
-				}
-
-				if ( key === uuid ) {
-
-					object[ uuid ] = object[ key ];
-
-					delete object[ key ];
-
-				}
-
-			}
-
-		}
-
-		return object === uuid ? value : object;
-
-	}
-
-	static replaceUUID( json, uuid, value ) {
-
-		this.replaceUUIDObject( json, uuid, value, false );
-		this.replaceUUIDObject( json.nodes, uuid, value );
-		this.replaceUUIDObject( json.materials, uuid, value );
-		this.replaceUUIDObject( json.passes, uuid, value );
-		this.replaceUUIDObject( json.library, uuid, value, false );
-
-		return json;
-
-	}
-
-}
+} );
 
 export { NodeMaterialLoader, NodeMaterialLoaderUtils };

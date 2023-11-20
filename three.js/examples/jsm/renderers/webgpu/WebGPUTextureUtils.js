@@ -53,11 +53,11 @@ class WebGPUTextureUtils {
 		this.pipelines = {};
 
 		this.mipmapVertexShaderModule = device.createShaderModule( {
-			code: glslang.compileGLSL( mipmapVertexSource, 'vertex' ),
-		} );
-		this.mipmapFragmentShaderModule = device.createShaderModule( {
-			code: glslang.compileGLSL( mipmapFragmentSource, 'fragment' ),
-		} );
+			 code: glslang.compileGLSL( mipmapVertexSource, 'vertex' ),
+		 } );
+		 this.mipmapFragmentShaderModule = device.createShaderModule( {
+			 code: glslang.compileGLSL( mipmapFragmentSource, 'fragment' ),
+		 } );
 
 	}
 
@@ -68,19 +68,19 @@ class WebGPUTextureUtils {
 		if ( pipeline === undefined ) {
 
 			pipeline = this.device.createRenderPipeline( {
-				vertex: {
+				vertexStage: {
 					module: this.mipmapVertexShaderModule,
 					entryPoint: 'main',
 				},
-				fragment: {
+				fragmentStage: {
 					module: this.mipmapFragmentShaderModule,
 					entryPoint: 'main',
-					targets: [ { format } ],
 				},
-				primitive: {
-					topology: GPUPrimitiveTopology.TriangleStrip,
-					stripIndexFormat: GPUIndexFormat.Uint32
-				}
+				primitiveTopology: GPUPrimitiveTopology.TriangleStrip,
+				vertexState: {
+					indexFormat: GPUIndexFormat.Uint32
+				},
+				colorStates: [ { format } ],
 			} );
 			this.pipelines[ format ] = pipeline;
 
@@ -111,7 +111,7 @@ class WebGPUTextureUtils {
 
 			const passEncoder = commandEncoder.beginRenderPass( {
 				colorAttachments: [ {
-					view: dstView,
+					attachment: dstView,
 					loadValue: [ 0, 0, 0, 0 ],
 				} ],
 			} );

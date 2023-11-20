@@ -8,9 +8,9 @@ import { GLTFLoader } from '../loaders/GLTFLoader.js';
 // VRM is based on glTF 2.0 and VRM extension is defined
 // in top-level json.extensions.VRM
 
-class VRMLoader extends Loader {
+var VRMLoader = ( function () {
 
-	constructor( manager ) {
+	function VRMLoader( manager ) {
 
 		if ( GLTFLoader === undefined ) {
 
@@ -18,61 +18,69 @@ class VRMLoader extends Loader {
 
 		}
 
-		super( manager );
+		Loader.call( this, manager );
 
-		this.gltfLoader = new GLTFLoader( manager );
+		this.gltfLoader = new GLTFLoader( this.manager );
 
 	}
 
-	load( url, onLoad, onProgress, onError ) {
+	VRMLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-		const scope = this;
+		constructor: VRMLoader,
 
-		this.gltfLoader.load( url, function ( gltf ) {
+		load: function ( url, onLoad, onProgress, onError ) {
 
-			try {
+			var scope = this;
 
-				scope.parse( gltf, onLoad );
+			this.gltfLoader.load( url, function ( gltf ) {
 
-			} catch ( e ) {
+				try {
 
-				if ( onError ) {
+					scope.parse( gltf, onLoad );
 
-					onError( e );
+				} catch ( e ) {
 
-				} else {
+					if ( onError ) {
 
-					console.error( e );
+						onError( e );
+
+					} else {
+
+						console.error( e );
+
+					}
+
+					scope.manager.itemError( url );
 
 				}
 
-				scope.manager.itemError( url );
+			}, onProgress, onError );
 
-			}
+		},
 
-		}, onProgress, onError );
+		setDRACOLoader: function ( dracoLoader ) {
 
-	}
+			this.gltfLoader.setDRACOLoader( dracoLoader );
+			return this;
 
-	setDRACOLoader( dracoLoader ) {
+		},
 
-		this.gltfLoader.setDRACOLoader( dracoLoader );
-		return this;
+		parse: function ( gltf, onLoad ) {
 
-	}
+			// var gltfParser = gltf.parser;
+			// var gltfExtensions = gltf.userData.gltfExtensions || {};
+			// var vrmExtension = gltfExtensions.VRM || {};
 
-	parse( gltf, onLoad ) {
+			// handle VRM Extension here
 
-		// const gltfParser = gltf.parser;
-		// const gltfExtensions = gltf.userData.gltfExtensions || {};
-		// const vrmExtension = gltfExtensions.VRM || {};
+			onLoad( gltf );
 
-		// handle VRM Extension here
+		}
 
-		onLoad( gltf );
+	} );
 
-	}
+	return VRMLoader;
 
-}
+} )();
 
 export { VRMLoader };

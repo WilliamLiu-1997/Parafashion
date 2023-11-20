@@ -11,31 +11,35 @@ var CopyShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform float opacity;
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse;
+		'uniform float opacity;',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 texel = texture2D( tDiffuse, vUv );
-			gl_FragColor = opacity * texel;
+		'void main() {',
 
-		}`
+		'	vec4 texel = texture2D( tDiffuse, vUv );',
+		'	gl_FragColor = opacity * texel;',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

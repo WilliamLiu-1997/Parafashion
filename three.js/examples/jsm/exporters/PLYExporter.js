@@ -7,7 +7,7 @@ import {
  * https://github.com/gkjohnson/ply-exporter-js
  *
  * Usage:
- *  const exporter = new PLYExporter();
+ *  var exporter = new PLYExporter();
  *
  *  // second argument is a list of options
  *  exporter.parse(mesh, data => console.log(data), { binary: true, excludeAttributes: [ 'color' ], littleEndian: true });
@@ -16,9 +16,13 @@ import {
  * http://paulbourke.net/dataformats/ply/
  */
 
-class PLYExporter {
+var PLYExporter = function () {};
 
-	parse( object, onDone, options ) {
+PLYExporter.prototype = {
+
+	constructor: PLYExporter,
+
+	parse: function ( object, onDone, options ) {
 
 		if ( onDone && typeof onDone === 'object' ) {
 
@@ -35,8 +39,8 @@ class PLYExporter {
 
 				if ( child.isMesh === true ) {
 
-					const mesh = child;
-					const geometry = mesh.geometry;
+					var mesh = child;
+					var geometry = mesh.geometry;
 
 					if ( geometry.isBufferGeometry !== true ) {
 
@@ -57,7 +61,7 @@ class PLYExporter {
 		}
 
 		// Default options
-		const defaultOptions = {
+		var defaultOptions = {
 			binary: false,
 			excludeAttributes: [], // normal, uv, color, index
 			littleEndian: false
@@ -65,21 +69,21 @@ class PLYExporter {
 
 		options = Object.assign( defaultOptions, options );
 
-		const excludeAttributes = options.excludeAttributes;
-		let includeNormals = false;
-		let includeColors = false;
-		let includeUVs = false;
+		var excludeAttributes = options.excludeAttributes;
+		var includeNormals = false;
+		var includeColors = false;
+		var includeUVs = false;
 
 		// count the vertices, check which properties are used,
 		// and cache the BufferGeometry
-		let vertexCount = 0;
-		let faceCount = 0;
+		var vertexCount = 0;
+		var faceCount = 0;
 		object.traverse( function ( child ) {
 
 			if ( child.isMesh === true ) {
 
-				const mesh = child;
-				const geometry = mesh.geometry;
+				var mesh = child;
+				var geometry = mesh.geometry;
 
 				if ( geometry.isBufferGeometry !== true ) {
 
@@ -87,11 +91,11 @@ class PLYExporter {
 
 				}
 
-				const vertices = geometry.getAttribute( 'position' );
-				const normals = geometry.getAttribute( 'normal' );
-				const uvs = geometry.getAttribute( 'uv' );
-				const colors = geometry.getAttribute( 'color' );
-				const indices = geometry.getIndex();
+				var vertices = geometry.getAttribute( 'position' );
+				var normals = geometry.getAttribute( 'normal' );
+				var uvs = geometry.getAttribute( 'uv' );
+				var colors = geometry.getAttribute( 'color' );
+				var indices = geometry.getIndex();
 
 				if ( vertices === undefined ) {
 
@@ -112,7 +116,7 @@ class PLYExporter {
 
 		} );
 
-		const includeIndices = excludeAttributes.indexOf( 'index' ) === - 1;
+		var includeIndices = excludeAttributes.indexOf( 'index' ) === - 1;
 		includeNormals = includeNormals && excludeAttributes.indexOf( 'normal' ) === - 1;
 		includeColors = includeColors && excludeAttributes.indexOf( 'color' ) === - 1;
 		includeUVs = includeUVs && excludeAttributes.indexOf( 'uv' ) === - 1;
@@ -134,9 +138,9 @@ class PLYExporter {
 
 		}
 
-		const indexByteCount = 4;
+		var indexByteCount = 4;
 
-		let header =
+		var header =
 			'ply\n' +
 			`format ${ options.binary ? ( options.littleEndian ? 'binary_little_endian' : 'binary_big_endian' ) : 'ascii' } 1.0\n` +
 			`element vertex ${vertexCount}\n` +
@@ -188,42 +192,42 @@ class PLYExporter {
 
 
 		// Generate attribute data
-		const vertex = new Vector3();
-		const normalMatrixWorld = new Matrix3();
-		let result = null;
+		var vertex = new Vector3();
+		var normalMatrixWorld = new Matrix3();
+		var result = null;
 
 		if ( options.binary === true ) {
 
 			// Binary File Generation
-			const headerBin = new TextEncoder().encode( header );
+			var headerBin = new TextEncoder().encode( header );
 
 			// 3 position values at 4 bytes
 			// 3 normal values at 4 bytes
 			// 3 color channels with 1 byte
 			// 2 uv values at 4 bytes
-			const vertexListLength = vertexCount * ( 4 * 3 + ( includeNormals ? 4 * 3 : 0 ) + ( includeColors ? 3 : 0 ) + ( includeUVs ? 4 * 2 : 0 ) );
+			var vertexListLength = vertexCount * ( 4 * 3 + ( includeNormals ? 4 * 3 : 0 ) + ( includeColors ? 3 : 0 ) + ( includeUVs ? 4 * 2 : 0 ) );
 
 			// 1 byte shape desciptor
 			// 3 vertex indices at ${indexByteCount} bytes
-			const faceListLength = includeIndices ? faceCount * ( indexByteCount * 3 + 1 ) : 0;
-			const output = new DataView( new ArrayBuffer( headerBin.length + vertexListLength + faceListLength ) );
+			var faceListLength = includeIndices ? faceCount * ( indexByteCount * 3 + 1 ) : 0;
+			var output = new DataView( new ArrayBuffer( headerBin.length + vertexListLength + faceListLength ) );
 			new Uint8Array( output.buffer ).set( headerBin, 0 );
 
 
-			let vOffset = headerBin.length;
-			let fOffset = headerBin.length + vertexListLength;
-			let writtenVertices = 0;
+			var vOffset = headerBin.length;
+			var fOffset = headerBin.length + vertexListLength;
+			var writtenVertices = 0;
 			traverseMeshes( function ( mesh, geometry ) {
 
-				const vertices = geometry.getAttribute( 'position' );
-				const normals = geometry.getAttribute( 'normal' );
-				const uvs = geometry.getAttribute( 'uv' );
-				const colors = geometry.getAttribute( 'color' );
-				const indices = geometry.getIndex();
+				var vertices = geometry.getAttribute( 'position' );
+				var normals = geometry.getAttribute( 'normal' );
+				var uvs = geometry.getAttribute( 'uv' );
+				var colors = geometry.getAttribute( 'color' );
+				var indices = geometry.getIndex();
 
 				normalMatrixWorld.getNormalMatrix( mesh.matrixWorld );
 
-				for ( let i = 0, l = vertices.count; i < l; i ++ ) {
+				for ( var i = 0, l = vertices.count; i < l; i ++ ) {
 
 					vertex.x = vertices.getX( i );
 					vertex.y = vertices.getY( i );
@@ -337,7 +341,7 @@ class PLYExporter {
 
 					if ( indices !== null ) {
 
-						for ( let i = 0, l = indices.count; i < l; i += 3 ) {
+						for ( var i = 0, l = indices.count; i < l; i += 3 ) {
 
 							output.setUint8( fOffset, 3 );
 							fOffset += 1;
@@ -355,7 +359,7 @@ class PLYExporter {
 
 					} else {
 
-						for ( let i = 0, l = vertices.count; i < l; i += 3 ) {
+						for ( var i = 0, l = vertices.count; i < l; i += 3 ) {
 
 							output.setUint8( fOffset, 3 );
 							fOffset += 1;
@@ -388,22 +392,22 @@ class PLYExporter {
 
 			// Ascii File Generation
 			// count the number of vertices
-			let writtenVertices = 0;
-			let vertexList = '';
-			let faceList = '';
+			var writtenVertices = 0;
+			var vertexList = '';
+			var faceList = '';
 
 			traverseMeshes( function ( mesh, geometry ) {
 
-				const vertices = geometry.getAttribute( 'position' );
-				const normals = geometry.getAttribute( 'normal' );
-				const uvs = geometry.getAttribute( 'uv' );
-				const colors = geometry.getAttribute( 'color' );
-				const indices = geometry.getIndex();
+				var vertices = geometry.getAttribute( 'position' );
+				var normals = geometry.getAttribute( 'normal' );
+				var uvs = geometry.getAttribute( 'uv' );
+				var colors = geometry.getAttribute( 'color' );
+				var indices = geometry.getIndex();
 
 				normalMatrixWorld.getNormalMatrix( mesh.matrixWorld );
 
 				// form each line
-				for ( let i = 0, l = vertices.count; i < l; i ++ ) {
+				for ( var i = 0, l = vertices.count; i < l; i ++ ) {
 
 					vertex.x = vertices.getX( i );
 					vertex.y = vertices.getY( i );
@@ -413,7 +417,7 @@ class PLYExporter {
 
 
 					// Position information
-					let line =
+					var line =
 						vertex.x + ' ' +
 						vertex.y + ' ' +
 						vertex.z;
@@ -486,7 +490,7 @@ class PLYExporter {
 
 					if ( indices !== null ) {
 
-						for ( let i = 0, l = indices.count; i < l; i += 3 ) {
+						for ( var i = 0, l = indices.count; i < l; i += 3 ) {
 
 							faceList += `3 ${ indices.getX( i + 0 ) + writtenVertices }`;
 							faceList += ` ${ indices.getX( i + 1 ) + writtenVertices }`;
@@ -496,7 +500,7 @@ class PLYExporter {
 
 					} else {
 
-						for ( let i = 0, l = vertices.count; i < l; i += 3 ) {
+						for ( var i = 0, l = vertices.count; i < l; i += 3 ) {
 
 							faceList += `3 ${ writtenVertices + i } ${ writtenVertices + i + 1 } ${ writtenVertices + i + 2 }\n`;
 
@@ -517,11 +521,10 @@ class PLYExporter {
 		}
 
 		if ( typeof onDone === 'function' ) requestAnimationFrame( () => onDone( result ) );
-
 		return result;
 
 	}
 
-}
+};
 
 export { PLYExporter };

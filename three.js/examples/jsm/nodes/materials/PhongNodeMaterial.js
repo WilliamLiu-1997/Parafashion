@@ -2,19 +2,18 @@ import { PhongNode } from './nodes/PhongNode.js';
 import { NodeMaterial } from './NodeMaterial.js';
 import { NodeUtils } from '../core/NodeUtils.js';
 
-class PhongNodeMaterial extends NodeMaterial {
+function PhongNodeMaterial() {
 
-	constructor() {
+	var node = new PhongNode();
 
-		const node = new PhongNode();
+	NodeMaterial.call( this, node, node );
 
-		super( node, node );
-
-		this.type = 'PhongNodeMaterial';
-
-	}
+	this.type = 'PhongNodeMaterial';
 
 }
+
+PhongNodeMaterial.prototype = Object.create( NodeMaterial.prototype );
+PhongNodeMaterial.prototype.constructor = PhongNodeMaterial;
 
 NodeUtils.addShortcuts( PhongNodeMaterial.prototype, 'fragment', [
 	'color',

@@ -18,46 +18,48 @@ const _m1 = new Matrix4();
 const _obj = new Object3D();
 const _offset = new Vector3();
 
-class Geometry extends EventDispatcher {
+function Geometry() {
 
-	constructor() {
+	this.uuid = MathUtils.generateUUID();
 
-		super();
+	this.name = '';
+	this.type = 'Geometry';
 
-		this.uuid = MathUtils.generateUUID();
+	this.vertices = [];
+	this.colors = [];
+	this.faces = [];
+	this.faceVertexUvs = [[]];
 
-		this.name = '';
-		this.type = 'Geometry';
+	this.morphTargets = [];
+	this.morphNormals = [];
 
-		this.vertices = [];
-		this.colors = [];
-		this.faces = [];
-		this.faceVertexUvs = [[]];
+	this.skinWeights = [];
+	this.skinIndices = [];
 
-		this.morphTargets = [];
-		this.morphNormals = [];
+	this.lineDistances = [];
 
-		this.skinWeights = [];
-		this.skinIndices = [];
+	this.boundingBox = null;
+	this.boundingSphere = null;
 
-		this.lineDistances = [];
+	// update flags
 
-		this.boundingBox = null;
-		this.boundingSphere = null;
+	this.elementsNeedUpdate = false;
+	this.verticesNeedUpdate = false;
+	this.uvsNeedUpdate = false;
+	this.normalsNeedUpdate = false;
+	this.colorsNeedUpdate = false;
+	this.lineDistancesNeedUpdate = false;
+	this.groupsNeedUpdate = false;
 
-		// update flags
+}
 
-		this.elementsNeedUpdate = false;
-		this.verticesNeedUpdate = false;
-		this.uvsNeedUpdate = false;
-		this.normalsNeedUpdate = false;
-		this.colorsNeedUpdate = false;
-		this.lineDistancesNeedUpdate = false;
-		this.groupsNeedUpdate = false;
+Geometry.prototype = Object.assign( Object.create( EventDispatcher.prototype ), {
 
-	}
+	constructor: Geometry,
 
-	applyMatrix4( matrix ) {
+	isGeometry: true,
+
+	applyMatrix4: function ( matrix ) {
 
 		const normalMatrix = new Matrix3().getNormalMatrix( matrix );
 
@@ -98,9 +100,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	rotateX( angle ) {
+	rotateX: function ( angle ) {
 
 		// rotate geometry around world x-axis
 
@@ -110,9 +112,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	rotateY( angle ) {
+	rotateY: function ( angle ) {
 
 		// rotate geometry around world y-axis
 
@@ -122,9 +124,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	rotateZ( angle ) {
+	rotateZ: function ( angle ) {
 
 		// rotate geometry around world z-axis
 
@@ -134,9 +136,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	translate( x, y, z ) {
+	translate: function ( x, y, z ) {
 
 		// translate geometry
 
@@ -146,9 +148,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	scale( x, y, z ) {
+	scale: function ( x, y, z ) {
 
 		// scale geometry
 
@@ -158,9 +160,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	lookAt( vector ) {
+	lookAt: function ( vector ) {
 
 		_obj.lookAt( vector );
 
@@ -170,9 +172,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	fromBufferGeometry( geometry ) {
+	fromBufferGeometry: function ( geometry ) {
 
 		const scope = this;
 
@@ -311,9 +313,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	center() {
+	center: function () {
 
 		this.computeBoundingBox();
 
@@ -323,9 +325,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	normalize() {
+	normalize: function () {
 
 		this.computeBoundingSphere();
 
@@ -346,9 +348,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	computeFaceNormals() {
+	computeFaceNormals: function () {
 
 		const cb = new Vector3(), ab = new Vector3();
 
@@ -370,9 +372,9 @@ class Geometry extends EventDispatcher {
 
 		}
 
-	}
+	},
 
-	computeVertexNormals( areaWeighted = true ) {
+	computeVertexNormals: function ( areaWeighted = true ) {
 
 		const vertices = new Array( this.vertices.length );
 
@@ -457,9 +459,9 @@ class Geometry extends EventDispatcher {
 
 		}
 
-	}
+	},
 
-	computeFlatVertexNormals() {
+	computeFlatVertexNormals: function () {
 
 		this.computeFaceNormals();
 
@@ -491,9 +493,9 @@ class Geometry extends EventDispatcher {
 
 		}
 
-	}
+	},
 
-	computeMorphNormals() {
+	computeMorphNormals: function () {
 
 		// save original normals
 		// - create temp variables on first access
@@ -602,9 +604,9 @@ class Geometry extends EventDispatcher {
 
 		}
 
-	}
+	},
 
-	computeBoundingBox() {
+	computeBoundingBox: function () {
 
 		if ( this.boundingBox === null ) {
 
@@ -614,9 +616,9 @@ class Geometry extends EventDispatcher {
 
 		this.boundingBox.setFromPoints( this.vertices );
 
-	}
+	},
 
-	computeBoundingSphere() {
+	computeBoundingSphere: function () {
 
 		if ( this.boundingSphere === null ) {
 
@@ -626,9 +628,9 @@ class Geometry extends EventDispatcher {
 
 		this.boundingSphere.setFromPoints( this.vertices );
 
-	}
+	},
 
-	merge( geometry, matrix, materialIndexOffset = 0 ) {
+	merge: function ( geometry, matrix, materialIndexOffset = 0 ) {
 
 		if ( ! ( geometry && geometry.isGeometry ) ) {
 
@@ -745,9 +747,9 @@ class Geometry extends EventDispatcher {
 
 		}
 
-	}
+	},
 
-	mergeMesh( mesh ) {
+	mergeMesh: function ( mesh ) {
 
 		if ( ! ( mesh && mesh.isMesh ) ) {
 
@@ -760,7 +762,7 @@ class Geometry extends EventDispatcher {
 
 		this.merge( mesh.geometry, mesh.matrix );
 
-	}
+	},
 
 	/*
 	 * Checks for duplicate vertices with hashmap.
@@ -768,7 +770,7 @@ class Geometry extends EventDispatcher {
 	 * and faces' vertices are updated.
 	 */
 
-	mergeVertices( precisionPoints = 4 ) {
+	mergeVertices: function ( precisionPoints = 4 ) {
 
 		const verticesMap = {}; // Hashmap for looking up vertices by position coordinates (and making sure they are unique)
 		const unique = [], changes = [];
@@ -845,9 +847,9 @@ class Geometry extends EventDispatcher {
 		this.vertices = unique;
 		return diff;
 
-	}
+	},
 
-	setFromPoints( points ) {
+	setFromPoints: function ( points ) {
 
 		this.vertices = [];
 
@@ -860,9 +862,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	sortFacesByMaterialIndex() {
+	sortFacesByMaterialIndex: function () {
 
 		const faces = this.faces;
 		const length = faces.length;
@@ -907,9 +909,9 @@ class Geometry extends EventDispatcher {
 		if ( newUvs1 ) this.faceVertexUvs[ 0 ] = newUvs1;
 		if ( newUvs2 ) this.faceVertexUvs[ 1 ] = newUvs2;
 
-	}
+	},
 
-	toJSON() {
+	toJSON: function () {
 
 		const data = {
 			metadata: {
@@ -1100,9 +1102,9 @@ class Geometry extends EventDispatcher {
 
 		return data;
 
-	}
+	},
 
-	clone() {
+	clone: function () {
 
 		/*
 		 // Handle primitives
@@ -1130,9 +1132,9 @@ class Geometry extends EventDispatcher {
 
 		return new Geometry().copy( this );
 
-	}
+	},
 
-	copy( source ) {
+	copy: function ( source ) {
 
 		// reset
 
@@ -1362,9 +1364,9 @@ class Geometry extends EventDispatcher {
 
 		return this;
 
-	}
+	},
 
-	toBufferGeometry() {
+	toBufferGeometry: function () {
 
 		const geometry = new DirectGeometry().fromGeometry( this );
 
@@ -1459,80 +1461,78 @@ class Geometry extends EventDispatcher {
 
 		return buffergeometry;
 
-	}
+	},
 
-	computeTangents() {
+	computeTangents: function () {
 
 		console.error( 'THREE.Geometry: .computeTangents() has been removed.' );
 
-	}
+	},
 
-	computeLineDistances() {
+	computeLineDistances: function () {
 
 		console.error( 'THREE.Geometry: .computeLineDistances() has been removed. Use THREE.Line.computeLineDistances() instead.' );
 
-	}
+	},
 
-	applyMatrix( matrix ) {
+	applyMatrix: function ( matrix ) {
 
 		console.warn( 'THREE.Geometry: .applyMatrix() has been renamed to .applyMatrix4().' );
 		return this.applyMatrix4( matrix );
 
-	}
+	},
 
-	dispose() {
+	dispose: function () {
 
 		this.dispatchEvent( { type: 'dispose' } );
 
 	}
 
-	static createBufferGeometryFromObject( object ) {
+} );
 
-		let buffergeometry = new BufferGeometry();
+Geometry.createBufferGeometryFromObject = function ( object ) {
 
-		const geometry = object.geometry;
+	let buffergeometry = new BufferGeometry();
 
-		if ( object.isPoints || object.isLine ) {
+	const geometry = object.geometry;
 
-			const positions = new Float32BufferAttribute( geometry.vertices.length * 3, 3 );
-			const colors = new Float32BufferAttribute( geometry.colors.length * 3, 3 );
+	if ( object.isPoints || object.isLine ) {
 
-			buffergeometry.setAttribute( 'position', positions.copyVector3sArray( geometry.vertices ) );
-			buffergeometry.setAttribute( 'color', colors.copyColorsArray( geometry.colors ) );
+		const positions = new Float32BufferAttribute( geometry.vertices.length * 3, 3 );
+		const colors = new Float32BufferAttribute( geometry.colors.length * 3, 3 );
 
-			if ( geometry.lineDistances && geometry.lineDistances.length === geometry.vertices.length ) {
+		buffergeometry.setAttribute( 'position', positions.copyVector3sArray( geometry.vertices ) );
+		buffergeometry.setAttribute( 'color', colors.copyColorsArray( geometry.colors ) );
 
-				const lineDistances = new Float32BufferAttribute( geometry.lineDistances.length, 1 );
+		if ( geometry.lineDistances && geometry.lineDistances.length === geometry.vertices.length ) {
 
-				buffergeometry.setAttribute( 'lineDistance', lineDistances.copyArray( geometry.lineDistances ) );
+			const lineDistances = new Float32BufferAttribute( geometry.lineDistances.length, 1 );
 
-			}
-
-			if ( geometry.boundingSphere !== null ) {
-
-				buffergeometry.boundingSphere = geometry.boundingSphere.clone();
-
-			}
-
-			if ( geometry.boundingBox !== null ) {
-
-				buffergeometry.boundingBox = geometry.boundingBox.clone();
-
-			}
-
-		} else if ( object.isMesh ) {
-
-			buffergeometry = geometry.toBufferGeometry();
+			buffergeometry.setAttribute( 'lineDistance', lineDistances.copyArray( geometry.lineDistances ) );
 
 		}
 
-		return buffergeometry;
+		if ( geometry.boundingSphere !== null ) {
+
+			buffergeometry.boundingSphere = geometry.boundingSphere.clone();
+
+		}
+
+		if ( geometry.boundingBox !== null ) {
+
+			buffergeometry.boundingBox = geometry.boundingBox.clone();
+
+		}
+
+	} else if ( object.isMesh ) {
+
+		buffergeometry = geometry.toBufferGeometry();
 
 	}
 
-}
+	return buffergeometry;
 
-Geometry.prototype.isGeometry = true;
+};
 
 class DirectGeometry {
 

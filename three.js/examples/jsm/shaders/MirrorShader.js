@@ -5,7 +5,7 @@
  * side: side of input to mirror (0 = left, 1 = right, 2 = top, 3 = bottom)
  */
 
-const MirrorShader = {
+var MirrorShader = {
 
 	uniforms: {
 
@@ -14,40 +14,44 @@ const MirrorShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform sampler2D tDiffuse;
-		uniform int side;
+	fragmentShader: [
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
+		'uniform int side;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec2 p = vUv;
-			if (side == 0){
-				if (p.x > 0.5) p.x = 1.0 - p.x;
-			}else if (side == 1){
-				if (p.x < 0.5) p.x = 1.0 - p.x;
-			}else if (side == 2){
-				if (p.y < 0.5) p.y = 1.0 - p.y;
-			}else if (side == 3){
-				if (p.y > 0.5) p.y = 1.0 - p.y;
-			}
-			vec4 color = texture2D(tDiffuse, p);
-			gl_FragColor = color;
+		'void main() {',
 
-		}`
+		'	vec2 p = vUv;',
+		'	if (side == 0){',
+		'		if (p.x > 0.5) p.x = 1.0 - p.x;',
+		'	}else if (side == 1){',
+		'		if (p.x < 0.5) p.x = 1.0 - p.x;',
+		'	}else if (side == 2){',
+		'		if (p.y < 0.5) p.y = 1.0 - p.y;',
+		'	}else if (side == 3){',
+		'		if (p.y > 0.5) p.y = 1.0 - p.y;',
+		'	} ',
+		'	vec4 color = texture2D(tDiffuse, p);',
+		'	gl_FragColor = color;',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

@@ -34,7 +34,7 @@ class CodeNode extends Node {
 
 		if ( this.useKeywords === true ) {
 
-			const contextKeywords = builder.getContextValue( 'keywords' );
+			const contextKeywords = builder.getContextParameter( 'keywords' );
 
 			if ( contextKeywords !== undefined ) {
 

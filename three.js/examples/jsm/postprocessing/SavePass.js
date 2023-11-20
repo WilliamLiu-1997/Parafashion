@@ -5,47 +5,50 @@ import {
 	UniformsUtils,
 	WebGLRenderTarget
 } from '../../../build/three.module.js';
-import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
+import { Pass } from '../postprocessing/Pass.js';
 import { CopyShader } from '../shaders/CopyShader.js';
 
-class SavePass extends Pass {
+var SavePass = function ( renderTarget ) {
 
-	constructor( renderTarget ) {
+	Pass.call( this );
 
-		super();
+	if ( CopyShader === undefined )
+		console.error( 'THREE.SavePass relies on CopyShader' );
 
-		if ( CopyShader === undefined ) console.error( 'THREE.SavePass relies on CopyShader' );
+	var shader = CopyShader;
 
-		const shader = CopyShader;
+	this.textureID = 'tDiffuse';
 
-		this.textureID = 'tDiffuse';
+	this.uniforms = UniformsUtils.clone( shader.uniforms );
 
-		this.uniforms = UniformsUtils.clone( shader.uniforms );
+	this.material = new ShaderMaterial( {
 
-		this.material = new ShaderMaterial( {
+		uniforms: this.uniforms,
+		vertexShader: shader.vertexShader,
+		fragmentShader: shader.fragmentShader
 
-			uniforms: this.uniforms,
-			vertexShader: shader.vertexShader,
-			fragmentShader: shader.fragmentShader
+	} );
 
-		} );
+	this.renderTarget = renderTarget;
 
-		this.renderTarget = renderTarget;
+	if ( this.renderTarget === undefined ) {
 
-		if ( this.renderTarget === undefined ) {
-
-			this.renderTarget = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter, magFilter: LinearFilter, format: RGBFormat } );
-			this.renderTarget.texture.name = 'SavePass.rt';
-
-		}
-
-		this.needsSwap = false;
-
-		this.fsQuad = new FullScreenQuad( this.material );
+		this.renderTarget = new WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: LinearFilter, magFilter: LinearFilter, format: RGBFormat } );
+		this.renderTarget.texture.name = 'SavePass.rt';
 
 	}
 
-	render( renderer, writeBuffer, readBuffer/*, deltaTime, maskActive */ ) {
+	this.needsSwap = false;
+
+	this.fsQuad = new Pass.FullScreenQuad( this.material );
+
+};
+
+SavePass.prototype = Object.assign( Object.create( Pass.prototype ), {
+
+	constructor: SavePass,
+
+	render: function ( renderer, writeBuffer, readBuffer ) {
 
 		if ( this.uniforms[ this.textureID ] ) {
 
@@ -59,6 +62,6 @@ class SavePass extends Pass {
 
 	}
 
-}
+} );
 
 export { SavePass };

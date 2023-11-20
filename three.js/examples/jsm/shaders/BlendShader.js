@@ -2,7 +2,7 @@
  * Blend two textures
  */
 
-const BlendShader = {
+var BlendShader = {
 
 	uniforms: {
 
@@ -13,34 +13,38 @@ const BlendShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform float opacity;
-		uniform float mixRatio;
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse1;
-		uniform sampler2D tDiffuse2;
+		'uniform float opacity;',
+		'uniform float mixRatio;',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse1;',
+		'uniform sampler2D tDiffuse2;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 texel1 = texture2D( tDiffuse1, vUv );
-			vec4 texel2 = texture2D( tDiffuse2, vUv );
-			gl_FragColor = opacity * mix( texel1, texel2, mixRatio );
+		'void main() {',
 
-		}`
+		'	vec4 texel1 = texture2D( tDiffuse1, vUv );',
+		'	vec4 texel2 = texture2D( tDiffuse2, vUv );',
+		'	gl_FragColor = opacity * mix( texel1, texel2, mixRatio );',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

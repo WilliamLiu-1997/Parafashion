@@ -8,8 +8,6 @@ class UVNode extends AttributeNode {
 
 		this.index = index;
 
-		Object.defineProperty( this, 'isUVNode', { value: true } );
-
 	}
 
 	getAttributeName( /*builder*/ ) {

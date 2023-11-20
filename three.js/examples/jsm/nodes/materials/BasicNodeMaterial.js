@@ -2,19 +2,18 @@ import { BasicNode } from './nodes/BasicNode.js';
 import { NodeMaterial } from './NodeMaterial.js';
 import { NodeUtils } from '../core/NodeUtils.js';
 
-class BasicNodeMaterial extends NodeMaterial {
+function BasicNodeMaterial() {
 
-	constructor() {
+	var node = new BasicNode();
 
-		const node = new BasicNode();
+	NodeMaterial.call( this, node, node );
 
-		super( node, node );
-
-		this.type = 'BasicNodeMaterial';
-
-	}
+	this.type = 'BasicNodeMaterial';
 
 }
+
+BasicNodeMaterial.prototype = Object.create( NodeMaterial.prototype );
+BasicNodeMaterial.prototype.constructor = BasicNodeMaterial;
 
 NodeUtils.addShortcuts( BasicNodeMaterial.prototype, 'fragment', [
 	'color',

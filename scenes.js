@@ -8,7 +8,6 @@ import { PLYExporter } from './three.js/examples/jsm/exporters/PLYExporter.js';
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
-import { mergeVertices } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
 import { Water } from './three.js/examples/jsm/objects/Water.js';
 
 var continue_start_flag = false;
@@ -651,8 +650,8 @@ function init() {
     MeshWater = new Water(
       waterGeometry,
       {
-        textureWidth: 1024,
-        textureHeight: 1024,
+        textureWidth: 2048,
+        textureHeight: 2048,
         waterNormals: new THREE.TextureLoader().load(
           "./three.js/examples/textures/waternormals.jpg",
           function (texture) {
@@ -662,14 +661,14 @@ function init() {
         sunDirection: new THREE.Vector3(),
         sunColor: 0xffffff,
         waterColor: 0x001e1f,
-        distortionScale: 3,
+        distortionScale: 1,
         fog: scene.fog !== undefined,
       },
-      2.0
+      10
     );
     MeshWater.name = "Water";
-    MeshWater.receiveShadow = true;
-    MeshWater.castShadow = false;
+    MeshWater.rotation.x = -Math.PI / 2;
+    scene.add(MeshWater);
 
     directional_light = new THREE.DirectionalLight(0xffffff, 0.8);
     directional_light.castShadow = true;
@@ -892,6 +891,7 @@ function animate() {
             directional_light.position.copy(new THREE.Vector3(0, 3, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
             camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
+            MeshWater.material.uniforms[ 'sunDirection' ].value.copy( directional_light.position.clone().addScalar(-1) ).normalize();
 
         }
 
@@ -903,7 +903,7 @@ function animate() {
         $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.80 - 15 })
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(450, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
-        MeshWater.material.uniforms["time"].value += 1.0 / 180.0;
+        MeshWater.material.uniforms["time"].value += 0.5 / 180.0;
         render();
         timeStamp = timeStamp % singleFrameTime;
     }
@@ -2409,17 +2409,6 @@ function individual_garmentToPatch(bufGeom, ig) {
 
 
 
-function smoothNormals(geo) {
-    let tempGeo = mergeVertices(geo, 0);
-    tempGeo.computeVertexNormals();
-    geo.computeVertexNormals();
-    for (let i = 0; i < geo.getAttribute('position').count; i++) {
-        let j = tempGeo.index.array[i]
-        geo.getAttribute('normal').setXYZ(i, tempGeo.getAttribute('normal').getX(j), tempGeo.getAttribute('normal').getY(j), tempGeo.getAttribute('normal').getZ(j));
-    }
-    return geo;
-}
-
 function get_face_position(position) {
     let position_projection = {}
     let positions = []
@@ -2764,7 +2753,7 @@ function obj_loader(url_obj, scale) {
             }, 1000)
             let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             obj_size = 1
-            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value, -(z_min + z_max) / 2 / scale_value);
+            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value-0.006, -(z_min + z_max) / 2 / scale_value);
             root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
             newobj.add(root);
         },

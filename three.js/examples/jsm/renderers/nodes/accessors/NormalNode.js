@@ -5,7 +5,6 @@ import ModelNode from '../accessors/ModelNode.js';
 import CameraNode from '../accessors/CameraNode.js';
 import OperatorNode from '../math/OperatorNode.js';
 import MathNode from '../math/MathNode.js';
-import { inverseTransformDirection } from '../functions/MathFunctions.js';
 
 class NormalNode extends Node {
 
@@ -45,7 +44,8 @@ class NormalNode extends Node {
 
 			if ( viewNormalNode === undefined ) {
 
-				const vertexNormalNode = new OperatorNode( '*', new ModelNode( ModelNode.NORMAL_MATRIX ), localNormalNode );
+				const unnormalizedWNNode = new OperatorNode( '*', new ModelNode( ModelNode.NORMAL ), localNormalNode );
+				const vertexNormalNode = new MathNode( MathNode.NORMALIZE, unnormalizedWNNode );
 
 				viewNormalNode = new MathNode( MathNode.NORMALIZE, new VaryNode( vertexNormalNode ) );
 
@@ -61,9 +61,9 @@ class NormalNode extends Node {
 
 			if ( worldNormalNode === undefined ) {
 
-				const vertexNormalNode = inverseTransformDirection.call( { dir: new NormalNode( NormalNode.VIEW ), matrix: new CameraNode( CameraNode.VIEW_MATRIX ) } );
+				const vertexNormalNode = new MathNode( MathNode.INVERSE_TRANSFORM_DIRETION, new NormalNode( NormalNode.VIEW ), new CameraNode( CameraNode.VIEW ) );
 
-				worldNormalNode = new MathNode( MathNode.NORMALIZE, new VaryNode( vertexNormalNode ) );
+				worldNormalNode = new VaryNode( vertexNormalNode );
 
 				nodeData.worldNormalNode = worldNormalNode;
 

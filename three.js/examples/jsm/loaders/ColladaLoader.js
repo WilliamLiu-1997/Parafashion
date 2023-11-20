@@ -38,21 +38,23 @@ import {
 } from '../../../build/three.module.js';
 import { TGALoader } from '../loaders/TGALoader.js';
 
-class ColladaLoader extends Loader {
+var ColladaLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+};
 
-	}
+ColladaLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: ColladaLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const path = ( scope.path === '' ) ? LoaderUtils.extractUrlBase( url ) : scope.path;
+		var scope = this;
 
-		const loader = new FileLoader( scope.manager );
+		var path = ( scope.path === '' ) ? LoaderUtils.extractUrlBase( url ) : scope.path;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.setRequestHeader( scope.requestHeader );
 		loader.setWithCredentials( scope.withCredentials );
@@ -80,20 +82,30 @@ class ColladaLoader extends Loader {
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( text, path ) {
+	options: {
+
+		set convertUpAxis( value ) {
+
+			console.warn( 'THREE.ColladaLoader: options.convertUpAxis() has been removed. Up axis is converted automatically.' );
+
+		}
+
+	},
+
+	parse: function ( text, path ) {
 
 		function getElementsByTagName( xml, name ) {
 
 			// Non recursive xml.getElementsByTagName() ...
 
-			const array = [];
-			const childNodes = xml.childNodes;
+			var array = [];
+			var childNodes = xml.childNodes;
 
-			for ( let i = 0, l = childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = childNodes.length; i < l; i ++ ) {
 
-				const child = childNodes[ i ];
+				var child = childNodes[ i ];
 
 				if ( child.nodeName === name ) {
 
@@ -111,10 +123,10 @@ class ColladaLoader extends Loader {
 
 			if ( text.length === 0 ) return [];
 
-			const parts = text.trim().split( /\s+/ );
-			const array = new Array( parts.length );
+			var parts = text.trim().split( /\s+/ );
+			var array = new Array( parts.length );
 
-			for ( let i = 0, l = parts.length; i < l; i ++ ) {
+			for ( var i = 0, l = parts.length; i < l; i ++ ) {
 
 				array[ i ] = parts[ i ];
 
@@ -128,10 +140,10 @@ class ColladaLoader extends Loader {
 
 			if ( text.length === 0 ) return [];
 
-			const parts = text.trim().split( /\s+/ );
-			const array = new Array( parts.length );
+			var parts = text.trim().split( /\s+/ );
+			var array = new Array( parts.length );
 
-			for ( let i = 0, l = parts.length; i < l; i ++ ) {
+			for ( var i = 0, l = parts.length; i < l; i ++ ) {
 
 				array[ i ] = parseFloat( parts[ i ] );
 
@@ -145,10 +157,10 @@ class ColladaLoader extends Loader {
 
 			if ( text.length === 0 ) return [];
 
-			const parts = text.trim().split( /\s+/ );
-			const array = new Array( parts.length );
+			var parts = text.trim().split( /\s+/ );
+			var array = new Array( parts.length );
 
-			for ( let i = 0, l = parts.length; i < l; i ++ ) {
+			for ( var i = 0, l = parts.length; i < l; i ++ ) {
 
 				array[ i ] = parseInt( parts[ i ] );
 
@@ -211,13 +223,13 @@ class ColladaLoader extends Loader {
 
 		function parseLibrary( xml, libraryName, nodeName, parser ) {
 
-			const library = getElementsByTagName( xml, libraryName )[ 0 ];
+			var library = getElementsByTagName( xml, libraryName )[ 0 ];
 
 			if ( library !== undefined ) {
 
-				const elements = getElementsByTagName( library, nodeName );
+				var elements = getElementsByTagName( library, nodeName );
 
-				for ( let i = 0; i < elements.length; i ++ ) {
+				for ( var i = 0; i < elements.length; i ++ ) {
 
 					parser( elements[ i ] );
 
@@ -229,9 +241,9 @@ class ColladaLoader extends Loader {
 
 		function buildLibrary( data, builder ) {
 
-			for ( const name in data ) {
+			for ( var name in data ) {
 
-				const object = data[ name ];
+				var object = data[ name ];
 				object.build = builder( data[ name ] );
 
 			}
@@ -254,21 +266,21 @@ class ColladaLoader extends Loader {
 
 		function parseAnimation( xml ) {
 
-			const data = {
+			var data = {
 				sources: {},
 				samplers: {},
 				channels: {}
 			};
 
-			let hasChildren = false;
+			var hasChildren = false;
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
-				let id;
+				var id;
 
 				switch ( child.nodeName ) {
 
@@ -312,21 +324,21 @@ class ColladaLoader extends Loader {
 
 		function parseAnimationSampler( xml ) {
 
-			const data = {
+			var data = {
 				inputs: {},
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
 				switch ( child.nodeName ) {
 
 					case 'input':
-						const id = parseId( child.getAttribute( 'source' ) );
-						const semantic = child.getAttribute( 'semantic' );
+						var id = parseId( child.getAttribute( 'source' ) );
+						var semantic = child.getAttribute( 'semantic' );
 						data.inputs[ semantic ] = id;
 						break;
 
@@ -340,21 +352,21 @@ class ColladaLoader extends Loader {
 
 		function parseAnimationChannel( xml ) {
 
-			const data = {};
+			var data = {};
 
-			const target = xml.getAttribute( 'target' );
+			var target = xml.getAttribute( 'target' );
 
 			// parsing SID Addressing Syntax
 
-			let parts = target.split( '/' );
+			var parts = target.split( '/' );
 
-			const id = parts.shift();
-			let sid = parts.shift();
+			var id = parts.shift();
+			var sid = parts.shift();
 
 			// check selection syntax
 
-			const arraySyntax = ( sid.indexOf( '(' ) !== - 1 );
-			const memberSyntax = ( sid.indexOf( '.' ) !== - 1 );
+			var arraySyntax = ( sid.indexOf( '(' ) !== - 1 );
+			var memberSyntax = ( sid.indexOf( '.' ) !== - 1 );
 
 			if ( memberSyntax ) {
 
@@ -368,10 +380,10 @@ class ColladaLoader extends Loader {
 
 				// array-access syntax. can be used to express fields in one-dimensional vectors or two-dimensional matrices.
 
-				const indices = sid.split( '(' );
+				var indices = sid.split( '(' );
 				sid = indices.shift();
 
-				for ( let i = 0; i < indices.length; i ++ ) {
+				for ( var i = 0; i < indices.length; i ++ ) {
 
 					indices[ i ] = parseInt( indices[ i ].replace( /\)/, '' ) );
 
@@ -395,26 +407,26 @@ class ColladaLoader extends Loader {
 
 		function buildAnimation( data ) {
 
-			const tracks = [];
+			var tracks = [];
 
-			const channels = data.channels;
-			const samplers = data.samplers;
-			const sources = data.sources;
+			var channels = data.channels;
+			var samplers = data.samplers;
+			var sources = data.sources;
 
-			for ( const target in channels ) {
+			for ( var target in channels ) {
 
 				if ( channels.hasOwnProperty( target ) ) {
 
-					const channel = channels[ target ];
-					const sampler = samplers[ channel.sampler ];
+					var channel = channels[ target ];
+					var sampler = samplers[ channel.sampler ];
 
-					const inputId = sampler.inputs.INPUT;
-					const outputId = sampler.inputs.OUTPUT;
+					var inputId = sampler.inputs.INPUT;
+					var outputId = sampler.inputs.OUTPUT;
 
-					const inputSource = sources[ inputId ];
-					const outputSource = sources[ outputId ];
+					var inputSource = sources[ inputId ];
+					var outputSource = sources[ outputId ];
 
-					const animation = buildAnimationChannel( channel, inputSource, outputSource );
+					var animation = buildAnimationChannel( channel, inputSource, outputSource );
 
 					createKeyframeTracks( animation, tracks );
 
@@ -434,16 +446,16 @@ class ColladaLoader extends Loader {
 
 		function buildAnimationChannel( channel, inputSource, outputSource ) {
 
-			const node = library.nodes[ channel.id ];
-			const object3D = getNode( node.id );
+			var node = library.nodes[ channel.id ];
+			var object3D = getNode( node.id );
 
-			const transform = node.transforms[ channel.sid ];
-			const defaultMatrix = node.matrix.clone().transpose();
+			var transform = node.transforms[ channel.sid ];
+			var defaultMatrix = node.matrix.clone().transpose();
 
-			let time, stride;
-			let i, il, j, jl;
+			var time, stride;
+			var i, il, j, jl;
 
-			const data = {};
+			var data = {};
 
 			// the collada spec allows the animation of data in various ways.
 			// depending on the transform type (matrix, translate, rotate, scale), we execute different logic
@@ -461,8 +473,8 @@ class ColladaLoader extends Loader {
 
 						if ( channel.arraySyntax === true ) {
 
-							const value = outputSource.array[ stride ];
-							const index = channel.indices[ 0 ] + 4 * channel.indices[ 1 ];
+							var value = outputSource.array[ stride ];
+							var index = channel.indices[ 0 ] + 4 * channel.indices[ 1 ];
 
 							data[ time ][ index ] = value;
 
@@ -494,9 +506,9 @@ class ColladaLoader extends Loader {
 
 			}
 
-			const keyframes = prepareAnimationData( data, defaultMatrix );
+			var keyframes = prepareAnimationData( data, defaultMatrix );
 
-			const animation = {
+			var animation = {
 				name: object3D.uuid,
 				keyframes: keyframes
 			};
@@ -507,11 +519,11 @@ class ColladaLoader extends Loader {
 
 		function prepareAnimationData( data, defaultMatrix ) {
 
-			const keyframes = [];
+			var keyframes = [];
 
 			// transfer data into a sortable array
 
-			for ( const time in data ) {
+			for ( var time in data ) {
 
 				keyframes.push( { time: parseFloat( time ), value: data[ time ] } );
 
@@ -523,7 +535,7 @@ class ColladaLoader extends Loader {
 
 			// now we clean up all animation data, so we can use them for keyframe tracks
 
-			for ( let i = 0; i < 16; i ++ ) {
+			for ( var i = 0; i < 16; i ++ ) {
 
 				transformAnimationData( keyframes, i, defaultMatrix.elements[ i ] );
 
@@ -541,26 +553,26 @@ class ColladaLoader extends Loader {
 
 		}
 
-		const position = new Vector3();
-		const scale = new Vector3();
-		const quaternion = new Quaternion();
+		var position = new Vector3();
+		var scale = new Vector3();
+		var quaternion = new Quaternion();
 
 		function createKeyframeTracks( animation, tracks ) {
 
-			const keyframes = animation.keyframes;
-			const name = animation.name;
+			var keyframes = animation.keyframes;
+			var name = animation.name;
 
-			const times = [];
-			const positionData = [];
-			const quaternionData = [];
-			const scaleData = [];
+			var times = [];
+			var positionData = [];
+			var quaternionData = [];
+			var scaleData = [];
 
-			for ( let i = 0, l = keyframes.length; i < l; i ++ ) {
+			for ( var i = 0, l = keyframes.length; i < l; i ++ ) {
 
-				const keyframe = keyframes[ i ];
+				var keyframe = keyframes[ i ];
 
-				const time = keyframe.time;
-				const value = keyframe.value;
+				var time = keyframe.time;
+				var value = keyframe.value;
 
 				matrix.fromArray( value ).transpose();
 				matrix.decompose( position, quaternion, scale );
@@ -582,10 +594,10 @@ class ColladaLoader extends Loader {
 
 		function transformAnimationData( keyframes, property, defaultValue ) {
 
-			let keyframe;
+			var keyframe;
 
-			let empty = true;
-			let i, l;
+			var empty = true;
+			var i, l;
 
 			// check, if values of a property are missing in our keyframes
 
@@ -629,11 +641,11 @@ class ColladaLoader extends Loader {
 
 		function createMissingKeyframes( keyframes, property ) {
 
-			let prev, next;
+			var prev, next;
 
-			for ( let i = 0, l = keyframes.length; i < l; i ++ ) {
+			for ( var i = 0, l = keyframes.length; i < l; i ++ ) {
 
-				const keyframe = keyframes[ i ];
+				var keyframe = keyframes[ i ];
 
 				if ( keyframe.value[ property ] === null ) {
 
@@ -666,7 +678,7 @@ class ColladaLoader extends Loader {
 
 			while ( i >= 0 ) {
 
-				const keyframe = keyframes[ i ];
+				var keyframe = keyframes[ i ];
 
 				if ( keyframe.value[ property ] !== null ) return keyframe;
 
@@ -682,7 +694,7 @@ class ColladaLoader extends Loader {
 
 			while ( i < keyframes.length ) {
 
-				const keyframe = keyframes[ i ];
+				var keyframe = keyframes[ i ];
 
 				if ( keyframe.value[ property ] !== null ) return keyframe;
 
@@ -711,16 +723,16 @@ class ColladaLoader extends Loader {
 
 		function parseAnimationClip( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'id' ) || 'default',
 				start: parseFloat( xml.getAttribute( 'start' ) || 0 ),
 				end: parseFloat( xml.getAttribute( 'end' ) || 0 ),
 				animations: []
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -740,17 +752,17 @@ class ColladaLoader extends Loader {
 
 		function buildAnimationClip( data ) {
 
-			const tracks = [];
+			var tracks = [];
 
-			const name = data.name;
-			const duration = ( data.end - data.start ) || - 1;
-			const animations = data.animations;
+			var name = data.name;
+			var duration = ( data.end - data.start ) || - 1;
+			var animations = data.animations;
 
-			for ( let i = 0, il = animations.length; i < il; i ++ ) {
+			for ( var i = 0, il = animations.length; i < il; i ++ ) {
 
-				const animationTracks = getAnimation( animations[ i ] );
+				var animationTracks = getAnimation( animations[ i ] );
 
-				for ( let j = 0, jl = animationTracks.length; j < jl; j ++ ) {
+				for ( var j = 0, jl = animationTracks.length; j < jl; j ++ ) {
 
 					tracks.push( animationTracks[ j ] );
 
@@ -772,11 +784,11 @@ class ColladaLoader extends Loader {
 
 		function parseController( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -803,13 +815,13 @@ class ColladaLoader extends Loader {
 
 		function parseSkin( xml ) {
 
-			const data = {
+			var data = {
 				sources: {}
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -820,7 +832,7 @@ class ColladaLoader extends Loader {
 						break;
 
 					case 'source':
-						const id = child.getAttribute( 'id' );
+						var id = child.getAttribute( 'id' );
 						data.sources[ id ] = parseSource( child );
 						break;
 
@@ -842,21 +854,21 @@ class ColladaLoader extends Loader {
 
 		function parseJoints( xml ) {
 
-			const data = {
+			var data = {
 				inputs: {}
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
 				switch ( child.nodeName ) {
 
 					case 'input':
-						const semantic = child.getAttribute( 'semantic' );
-						const id = parseId( child.getAttribute( 'source' ) );
+						var semantic = child.getAttribute( 'semantic' );
+						var id = parseId( child.getAttribute( 'source' ) );
 						data.inputs[ semantic ] = id;
 						break;
 
@@ -870,22 +882,22 @@ class ColladaLoader extends Loader {
 
 		function parseVertexWeights( xml ) {
 
-			const data = {
+			var data = {
 				inputs: {}
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
 				switch ( child.nodeName ) {
 
 					case 'input':
-						const semantic = child.getAttribute( 'semantic' );
-						const id = parseId( child.getAttribute( 'source' ) );
-						const offset = parseInt( child.getAttribute( 'offset' ) );
+						var semantic = child.getAttribute( 'semantic' );
+						var id = parseId( child.getAttribute( 'source' ) );
+						var offset = parseInt( child.getAttribute( 'offset' ) );
 						data.inputs[ semantic ] = { id: id, offset: offset };
 						break;
 
@@ -907,11 +919,11 @@ class ColladaLoader extends Loader {
 
 		function buildController( data ) {
 
-			const build = {
+			var build = {
 				id: data.id
 			};
 
-			const geometry = library.geometries[ build.id ];
+			var geometry = library.geometries[ build.id ];
 
 			if ( data.skin !== undefined ) {
 
@@ -930,9 +942,9 @@ class ColladaLoader extends Loader {
 
 		function buildSkin( data ) {
 
-			const BONE_LIMIT = 4;
+			var BONE_LIMIT = 4;
 
-			const build = {
+			var build = {
 				joints: [], // this must be an array to preserve the joint order
 				indices: {
 					array: [],
@@ -944,34 +956,34 @@ class ColladaLoader extends Loader {
 				}
 			};
 
-			const sources = data.sources;
-			const vertexWeights = data.vertexWeights;
+			var sources = data.sources;
+			var vertexWeights = data.vertexWeights;
 
-			const vcount = vertexWeights.vcount;
-			const v = vertexWeights.v;
-			const jointOffset = vertexWeights.inputs.JOINT.offset;
-			const weightOffset = vertexWeights.inputs.WEIGHT.offset;
+			var vcount = vertexWeights.vcount;
+			var v = vertexWeights.v;
+			var jointOffset = vertexWeights.inputs.JOINT.offset;
+			var weightOffset = vertexWeights.inputs.WEIGHT.offset;
 
-			const jointSource = data.sources[ data.joints.inputs.JOINT ];
-			const inverseSource = data.sources[ data.joints.inputs.INV_BIND_MATRIX ];
+			var jointSource = data.sources[ data.joints.inputs.JOINT ];
+			var inverseSource = data.sources[ data.joints.inputs.INV_BIND_MATRIX ];
 
-			const weights = sources[ vertexWeights.inputs.WEIGHT.id ].array;
-			let stride = 0;
+			var weights = sources[ vertexWeights.inputs.WEIGHT.id ].array;
+			var stride = 0;
 
-			let i, j, l;
+			var i, j, l;
 
 			// procces skin data for each vertex
 
 			for ( i = 0, l = vcount.length; i < l; i ++ ) {
 
-				const jointCount = vcount[ i ]; // this is the amount of joints that affect a single vertex
-				const vertexSkinData = [];
+				var jointCount = vcount[ i ]; // this is the amount of joints that affect a single vertex
+				var vertexSkinData = [];
 
 				for ( j = 0; j < jointCount; j ++ ) {
 
-					const skinIndex = v[ stride + jointOffset ];
-					const weightId = v[ stride + weightOffset ];
-					const skinWeight = weights[ weightId ];
+					var skinIndex = v[ stride + jointOffset ];
+					var weightId = v[ stride + weightOffset ];
+					var skinWeight = weights[ weightId ];
 
 					vertexSkinData.push( { index: skinIndex, weight: skinWeight } );
 
@@ -989,7 +1001,7 @@ class ColladaLoader extends Loader {
 
 				for ( j = 0; j < BONE_LIMIT; j ++ ) {
 
-					const d = vertexSkinData[ j ];
+					var d = vertexSkinData[ j ];
 
 					if ( d !== undefined ) {
 
@@ -1023,8 +1035,8 @@ class ColladaLoader extends Loader {
 
 			for ( i = 0, l = jointSource.array.length; i < l; i ++ ) {
 
-				const name = jointSource.array[ i ];
-				const boneInverse = new Matrix4().fromArray( inverseSource.array, i * inverseSource.stride ).transpose();
+				var name = jointSource.array[ i ];
+				var boneInverse = new Matrix4().fromArray( inverseSource.array, i * inverseSource.stride ).transpose();
 
 				build.joints.push( { name: name, boneInverse: boneInverse } );
 
@@ -1052,7 +1064,7 @@ class ColladaLoader extends Loader {
 
 		function parseImage( xml ) {
 
-			const data = {
+			var data = {
 				init_from: getElementsByTagName( xml, 'init_from' )[ 0 ].textContent
 			};
 
@@ -1070,7 +1082,7 @@ class ColladaLoader extends Loader {
 
 		function getImage( id ) {
 
-			const data = library.images[ id ];
+			var data = library.images[ id ];
 
 			if ( data !== undefined ) {
 
@@ -1088,11 +1100,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffect( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1112,14 +1124,14 @@ class ColladaLoader extends Loader {
 
 		function parseEffectProfileCOMMON( xml ) {
 
-			const data = {
+			var data = {
 				surfaces: {},
 				samplers: {}
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1147,11 +1159,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectNewparam( xml, data ) {
 
-			const sid = xml.getAttribute( 'sid' );
+			var sid = xml.getAttribute( 'sid' );
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1173,11 +1185,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectSurface( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1197,11 +1209,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectSampler( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1221,11 +1233,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectTechnique( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1249,11 +1261,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectParameters( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1285,11 +1297,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectParameter( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1317,13 +1329,13 @@ class ColladaLoader extends Loader {
 
 		function parseEffectParameterTexture( xml ) {
 
-			const data = {
+			var data = {
 				technique: {}
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1343,9 +1355,9 @@ class ColladaLoader extends Loader {
 
 		function parseEffectParameterTextureExtra( xml, data ) {
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1363,9 +1375,9 @@ class ColladaLoader extends Loader {
 
 		function parseEffectParameterTextureExtraTechnique( xml, data ) {
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1407,11 +1419,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectExtra( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1431,11 +1443,11 @@ class ColladaLoader extends Loader {
 
 		function parseEffectExtraTechnique( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1469,13 +1481,13 @@ class ColladaLoader extends Loader {
 
 		function parseMaterial( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'name' )
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1495,9 +1507,9 @@ class ColladaLoader extends Loader {
 
 		function getTextureLoader( image ) {
 
-			let loader;
+			var loader;
 
-			let extension = image.slice( ( image.lastIndexOf( '.' ) - 1 >>> 0 ) + 2 ); // http://www.jstips.co/en/javascript/get-file-extension/
+			var extension = image.slice( ( image.lastIndexOf( '.' ) - 1 >>> 0 ) + 2 ); // http://www.jstips.co/en/javascript/get-file-extension/
 			extension = extension.toLowerCase();
 
 			switch ( extension ) {
@@ -1517,11 +1529,11 @@ class ColladaLoader extends Loader {
 
 		function buildMaterial( data ) {
 
-			const effect = getEffect( data.url );
-			const technique = effect.profile.technique;
-			const extra = effect.profile.extra;
+			var effect = getEffect( data.url );
+			var technique = effect.profile.technique;
+			var extra = effect.profile.extra;
 
-			let material;
+			var material;
 
 			switch ( technique.type ) {
 
@@ -1544,14 +1556,14 @@ class ColladaLoader extends Loader {
 
 			function getTexture( textureObject ) {
 
-				const sampler = effect.profile.samplers[ textureObject.id ];
-				let image = null;
+				var sampler = effect.profile.samplers[ textureObject.id ];
+				var image = null;
 
 				// get image
 
 				if ( sampler !== undefined ) {
 
-					const surface = effect.profile.surfaces[ sampler.source ];
+					var surface = effect.profile.surfaces[ sampler.source ];
 					image = getImage( surface.init_from );
 
 				} else {
@@ -1565,17 +1577,17 @@ class ColladaLoader extends Loader {
 
 				if ( image !== null ) {
 
-					const loader = getTextureLoader( image );
+					var loader = getTextureLoader( image );
 
 					if ( loader !== undefined ) {
 
-						const texture = loader.load( image );
+						var texture = loader.load( image );
 
-						const extra = textureObject.extra;
+						var extra = textureObject.extra;
 
 						if ( extra !== undefined && extra.technique !== undefined && isEmpty( extra.technique ) === false ) {
 
-							const technique = extra.technique;
+							var technique = extra.technique;
 
 							texture.wrapS = technique.wrapU ? RepeatWrapping : ClampToEdgeWrapping;
 							texture.wrapT = technique.wrapV ? RepeatWrapping : ClampToEdgeWrapping;
@@ -1610,11 +1622,11 @@ class ColladaLoader extends Loader {
 
 			}
 
-			const parameters = technique.parameters;
+			var parameters = technique.parameters;
 
-			for ( const key in parameters ) {
+			for ( var key in parameters ) {
 
-				const parameter = parameters[ key ];
+				var parameter = parameters[ key ];
 
 				switch ( key ) {
 
@@ -1646,8 +1658,8 @@ class ColladaLoader extends Loader {
 
 			//
 
-			let transparent = parameters[ 'transparent' ];
-			let transparency = parameters[ 'transparency' ];
+			var transparent = parameters[ 'transparent' ];
+			var transparency = parameters[ 'transparency' ];
 
 			// <transparency> does not exist but <transparent>
 
@@ -1683,7 +1695,7 @@ class ColladaLoader extends Loader {
 
 				} else {
 
-					const color = transparent.data.color;
+					var color = transparent.data.color;
 
 					switch ( transparent.opaque ) {
 
@@ -1732,13 +1744,13 @@ class ColladaLoader extends Loader {
 
 		function parseCamera( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'name' )
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1758,9 +1770,9 @@ class ColladaLoader extends Loader {
 
 		function parseCameraOptics( xml ) {
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				switch ( child.nodeName ) {
 
@@ -1777,11 +1789,11 @@ class ColladaLoader extends Loader {
 
 		function parseCameraTechnique( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				switch ( child.nodeName ) {
 
@@ -1803,11 +1815,11 @@ class ColladaLoader extends Loader {
 
 		function parseCameraParameters( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				switch ( child.nodeName ) {
 
@@ -1831,7 +1843,7 @@ class ColladaLoader extends Loader {
 
 		function buildCamera( data ) {
 
-			let camera;
+			var camera;
 
 			switch ( data.optics.technique ) {
 
@@ -1845,9 +1857,9 @@ class ColladaLoader extends Loader {
 					break;
 
 				case 'orthographic':
-					let ymag = data.optics.parameters.ymag;
-					let xmag = data.optics.parameters.xmag;
-					const aspectRatio = data.optics.parameters.aspect_ratio;
+					var ymag = data.optics.parameters.ymag;
+					var xmag = data.optics.parameters.xmag;
+					var aspectRatio = data.optics.parameters.aspect_ratio;
 
 					xmag = ( xmag === undefined ) ? ( ymag * aspectRatio ) : xmag;
 					ymag = ( ymag === undefined ) ? ( xmag / aspectRatio ) : ymag;
@@ -1876,7 +1888,7 @@ class ColladaLoader extends Loader {
 
 		function getCamera( id ) {
 
-			const data = library.cameras[ id ];
+			var data = library.cameras[ id ];
 
 			if ( data !== undefined ) {
 
@@ -1894,11 +1906,11 @@ class ColladaLoader extends Loader {
 
 		function parseLight( xml ) {
 
-			let data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1918,11 +1930,11 @@ class ColladaLoader extends Loader {
 
 		function parseLightTechnique( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -1946,18 +1958,18 @@ class ColladaLoader extends Loader {
 
 		function parseLightParameters( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
 				switch ( child.nodeName ) {
 
 					case 'color':
-						const array = parseFloats( child.textContent );
+						var array = parseFloats( child.textContent );
 						data.color = new Color().fromArray( array );
 						break;
 
@@ -1966,7 +1978,7 @@ class ColladaLoader extends Loader {
 						break;
 
 					case 'quadratic_attenuation':
-						const f = parseFloat( child.textContent );
+						var f = parseFloat( child.textContent );
 						data.distance = f ? Math.sqrt( 1 / f ) : 0;
 						break;
 
@@ -1980,7 +1992,7 @@ class ColladaLoader extends Loader {
 
 		function buildLight( data ) {
 
-			let light;
+			var light;
 
 			switch ( data.technique ) {
 
@@ -2011,7 +2023,7 @@ class ColladaLoader extends Loader {
 
 		function getLight( id ) {
 
-			const data = library.lights[ id ];
+			var data = library.lights[ id ];
 
 			if ( data !== undefined ) {
 
@@ -2029,25 +2041,25 @@ class ColladaLoader extends Loader {
 
 		function parseGeometry( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'name' ),
 				sources: {},
 				vertices: {},
 				primitives: []
 			};
 
-			const mesh = getElementsByTagName( xml, 'mesh' )[ 0 ];
+			var mesh = getElementsByTagName( xml, 'mesh' )[ 0 ];
 
 			// the following tags inside geometry are not supported yet (see https://github.com/mrdoob/three.js/pull/12606): convex_mesh, spline, brep
 			if ( mesh === undefined ) return;
 
-			for ( let i = 0; i < mesh.childNodes.length; i ++ ) {
+			for ( var i = 0; i < mesh.childNodes.length; i ++ ) {
 
-				const child = mesh.childNodes[ i ];
+				var child = mesh.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
-				const id = child.getAttribute( 'id' );
+				var id = child.getAttribute( 'id' );
 
 				switch ( child.nodeName ) {
 
@@ -2084,14 +2096,14 @@ class ColladaLoader extends Loader {
 
 		function parseSource( xml ) {
 
-			const data = {
+			var data = {
 				array: [],
 				stride: 3
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2106,7 +2118,7 @@ class ColladaLoader extends Loader {
 						break;
 
 					case 'technique_common':
-						const accessor = getElementsByTagName( child, 'accessor' )[ 0 ];
+						var accessor = getElementsByTagName( child, 'accessor' )[ 0 ];
 
 						if ( accessor !== undefined ) {
 
@@ -2126,11 +2138,11 @@ class ColladaLoader extends Loader {
 
 		function parseGeometryVertices( xml ) {
 
-			const data = {};
+			var data = {};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2144,7 +2156,7 @@ class ColladaLoader extends Loader {
 
 		function parseGeometryPrimitive( xml ) {
 
-			const primitive = {
+			var primitive = {
 				type: xml.nodeName,
 				material: xml.getAttribute( 'material' ),
 				count: parseInt( xml.getAttribute( 'count' ) ),
@@ -2153,20 +2165,20 @@ class ColladaLoader extends Loader {
 				hasUV: false
 			};
 
-			for ( let i = 0, l = xml.childNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = xml.childNodes.length; i < l; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
 				switch ( child.nodeName ) {
 
 					case 'input':
-						const id = parseId( child.getAttribute( 'source' ) );
-						const semantic = child.getAttribute( 'semantic' );
-						const offset = parseInt( child.getAttribute( 'offset' ) );
-						const set = parseInt( child.getAttribute( 'set' ) );
-						const inputname = ( set > 0 ? semantic + set : semantic );
+						var id = parseId( child.getAttribute( 'source' ) );
+						var semantic = child.getAttribute( 'semantic' );
+						var offset = parseInt( child.getAttribute( 'offset' ) );
+						var set = parseInt( child.getAttribute( 'set' ) );
+						var inputname = ( set > 0 ? semantic + set : semantic );
 						primitive.inputs[ inputname ] = { id: id, offset: offset };
 						primitive.stride = Math.max( primitive.stride, offset + 1 );
 						if ( semantic === 'TEXCOORD' ) primitive.hasUV = true;
@@ -2190,11 +2202,11 @@ class ColladaLoader extends Loader {
 
 		function groupPrimitives( primitives ) {
 
-			const build = {};
+			var build = {};
 
-			for ( let i = 0; i < primitives.length; i ++ ) {
+			for ( var i = 0; i < primitives.length; i ++ ) {
 
-				const primitive = primitives[ i ];
+				var primitive = primitives[ i ];
 
 				if ( build[ primitive.type ] === undefined ) build[ primitive.type ] = [];
 
@@ -2208,11 +2220,11 @@ class ColladaLoader extends Loader {
 
 		function checkUVCoordinates( primitives ) {
 
-			let count = 0;
+			var count = 0;
 
-			for ( let i = 0, l = primitives.length; i < l; i ++ ) {
+			for ( var i = 0, l = primitives.length; i < l; i ++ ) {
 
-				const primitive = primitives[ i ];
+				var primitive = primitives[ i ];
 
 				if ( primitive.hasUV === true ) {
 
@@ -2232,22 +2244,22 @@ class ColladaLoader extends Loader {
 
 		function buildGeometry( data ) {
 
-			const build = {};
+			var build = {};
 
-			const sources = data.sources;
-			const vertices = data.vertices;
-			const primitives = data.primitives;
+			var sources = data.sources;
+			var vertices = data.vertices;
+			var primitives = data.primitives;
 
 			if ( primitives.length === 0 ) return {};
 
 			// our goal is to create one buffer geometry for a single type of primitives
 			// first, we group all primitives by their type
 
-			const groupedPrimitives = groupPrimitives( primitives );
+			var groupedPrimitives = groupPrimitives( primitives );
 
-			for ( const type in groupedPrimitives ) {
+			for ( var type in groupedPrimitives ) {
 
-				const primitiveType = groupedPrimitives[ type ];
+				var primitiveType = groupedPrimitives[ type ];
 
 				// second, ensure consistent uv coordinates for each type of primitives (polylist,triangles or lines)
 
@@ -2265,31 +2277,31 @@ class ColladaLoader extends Loader {
 
 		function buildGeometryType( primitives, sources, vertices ) {
 
-			const build = {};
+			var build = {};
 
-			const position = { array: [], stride: 0 };
-			const normal = { array: [], stride: 0 };
-			const uv = { array: [], stride: 0 };
-			const uv2 = { array: [], stride: 0 };
-			const color = { array: [], stride: 0 };
+			var position = { array: [], stride: 0 };
+			var normal = { array: [], stride: 0 };
+			var uv = { array: [], stride: 0 };
+			var uv2 = { array: [], stride: 0 };
+			var color = { array: [], stride: 0 };
 
-			const skinIndex = { array: [], stride: 4 };
-			const skinWeight = { array: [], stride: 4 };
+			var skinIndex = { array: [], stride: 4 };
+			var skinWeight = { array: [], stride: 4 };
 
-			const geometry = new BufferGeometry();
+			var geometry = new BufferGeometry();
 
-			const materialKeys = [];
+			var materialKeys = [];
 
-			let start = 0;
+			var start = 0;
 
-			for ( let p = 0; p < primitives.length; p ++ ) {
+			for ( var p = 0; p < primitives.length; p ++ ) {
 
-				const primitive = primitives[ p ];
-				const inputs = primitive.inputs;
+				var primitive = primitives[ p ];
+				var inputs = primitive.inputs;
 
 				// groups
 
-				let count = 0;
+				var count = 0;
 
 				switch ( primitive.type ) {
 
@@ -2304,9 +2316,9 @@ class ColladaLoader extends Loader {
 
 					case 'polylist':
 
-						for ( let g = 0; g < primitive.count; g ++ ) {
+						for ( var g = 0; g < primitive.count; g ++ ) {
 
-							const vc = primitive.vcount[ g ];
+							var vc = primitive.vcount[ g ];
 
 							switch ( vc ) {
 
@@ -2346,21 +2358,21 @@ class ColladaLoader extends Loader {
 
 				// geometry data
 
-				for ( const name in inputs ) {
+				for ( var name in inputs ) {
 
-					const input = inputs[ name ];
+					var input = inputs[ name ];
 
 					switch ( name )	{
 
 						case 'VERTEX':
-							for ( const key in vertices ) {
+							for ( var key in vertices ) {
 
-								const id = vertices[ key ];
+								var id = vertices[ key ];
 
 								switch ( key ) {
 
 									case 'POSITION':
-										const prevLength = position.array.length;
+										var prevLength = position.array.length;
 										buildGeometryData( primitive, sources[ id ], input.offset, position.array );
 										position.stride = sources[ id ].stride;
 
@@ -2375,9 +2387,9 @@ class ColladaLoader extends Loader {
 
 										if ( primitive.hasUV === false && primitives.uvsNeedsFix === true ) {
 
-											const count = ( position.array.length - prevLength ) / position.stride;
+											var count = ( position.array.length - prevLength ) / position.stride;
 
-											for ( let i = 0; i < count; i ++ ) {
+											for ( var i = 0; i < count; i ++ ) {
 
 												// fill missing uv coordinates
 
@@ -2465,14 +2477,14 @@ class ColladaLoader extends Loader {
 
 		function buildGeometryData( primitive, source, offset, array ) {
 
-			const indices = primitive.p;
-			const stride = primitive.stride;
-			const vcount = primitive.vcount;
+			var indices = primitive.p;
+			var stride = primitive.stride;
+			var vcount = primitive.vcount;
 
 			function pushVector( i ) {
 
-				let index = indices[ i + offset ] * sourceStride;
-				const length = index + sourceStride;
+				var index = indices[ i + offset ] * sourceStride;
+				var length = index + sourceStride;
 
 				for ( ; index < length; index ++ ) {
 
@@ -2482,42 +2494,42 @@ class ColladaLoader extends Loader {
 
 			}
 
-			const sourceArray = source.array;
-			const sourceStride = source.stride;
+			var sourceArray = source.array;
+			var sourceStride = source.stride;
 
 			if ( primitive.vcount !== undefined ) {
 
-				let index = 0;
+				var index = 0;
 
-				for ( let i = 0, l = vcount.length; i < l; i ++ ) {
+				for ( var i = 0, l = vcount.length; i < l; i ++ ) {
 
-					const count = vcount[ i ];
+					var count = vcount[ i ];
 
 					if ( count === 4 ) {
 
-						const a = index + stride * 0;
-						const b = index + stride * 1;
-						const c = index + stride * 2;
-						const d = index + stride * 3;
+						var a = index + stride * 0;
+						var b = index + stride * 1;
+						var c = index + stride * 2;
+						var d = index + stride * 3;
 
 						pushVector( a ); pushVector( b ); pushVector( d );
 						pushVector( b ); pushVector( c ); pushVector( d );
 
 					} else if ( count === 3 ) {
 
-						const a = index + stride * 0;
-						const b = index + stride * 1;
-						const c = index + stride * 2;
+						var a = index + stride * 0;
+						var b = index + stride * 1;
+						var c = index + stride * 2;
 
 						pushVector( a ); pushVector( b ); pushVector( c );
 
 					} else if ( count > 4 ) {
 
-						for ( let k = 1, kl = ( count - 2 ); k <= kl; k ++ ) {
+						for ( var k = 1, kl = ( count - 2 ); k <= kl; k ++ ) {
 
-							const a = index + stride * 0;
-							const b = index + stride * k;
-							const c = index + stride * ( k + 1 );
+							var a = index + stride * 0;
+							var b = index + stride * k;
+							var c = index + stride * ( k + 1 );
 
 							pushVector( a ); pushVector( b ); pushVector( c );
 
@@ -2531,7 +2543,7 @@ class ColladaLoader extends Loader {
 
 			} else {
 
-				for ( let i = 0, l = indices.length; i < l; i += stride ) {
+				for ( var i = 0, l = indices.length; i < l; i += stride ) {
 
 					pushVector( i );
 
@@ -2551,15 +2563,15 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsModel( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'name' ) || '',
 				joints: {},
 				links: []
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2593,9 +2605,9 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsTechniqueCommon( xml, data ) {
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2617,11 +2629,11 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsJoint( xml ) {
 
-			let data;
+			var data;
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2640,9 +2652,9 @@ class ColladaLoader extends Loader {
 
 		}
 
-		function parseKinematicsJointParameter( xml ) {
+		function parseKinematicsJointParameter( xml, data ) {
 
-			const data = {
+			var data = {
 				sid: xml.getAttribute( 'sid' ),
 				name: xml.getAttribute( 'name' ) || '',
 				axis: new Vector3(),
@@ -2656,21 +2668,21 @@ class ColladaLoader extends Loader {
 				middlePosition: 0
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
 				switch ( child.nodeName ) {
 
 					case 'axis':
-						const array = parseFloats( child.textContent );
+						var array = parseFloats( child.textContent );
 						data.axis.fromArray( array );
 						break;
 					case 'limits':
-						const max = child.getElementsByTagName( 'max' )[ 0 ];
-						const min = child.getElementsByTagName( 'min' )[ 0 ];
+						var max = child.getElementsByTagName( 'max' )[ 0 ];
+						var min = child.getElementsByTagName( 'min' )[ 0 ];
 
 						data.limits.max = parseFloat( max.textContent );
 						data.limits.min = parseFloat( min.textContent );
@@ -2698,16 +2710,16 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsLink( xml ) {
 
-			const data = {
+			var data = {
 				sid: xml.getAttribute( 'sid' ),
 				name: xml.getAttribute( 'name' ) || '',
 				attachments: [],
 				transforms: []
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2733,15 +2745,15 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsAttachment( xml ) {
 
-			const data = {
+			var data = {
 				joint: xml.getAttribute( 'joint' ).split( '/' ).pop(),
 				transforms: [],
 				links: []
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2767,11 +2779,11 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsTransform( xml ) {
 
-			const data = {
+			var data = {
 				type: xml.nodeName
 			};
 
-			const array = parseFloats( xml.textContent );
+			var array = parseFloats( xml.textContent );
 
 			switch ( data.type ) {
 
@@ -2801,14 +2813,14 @@ class ColladaLoader extends Loader {
 
 		function parsePhysicsModel( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'name' ) || '',
 				rigidBodies: {}
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2829,9 +2841,9 @@ class ColladaLoader extends Loader {
 
 		function parsePhysicsRigidBody( xml, data ) {
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2849,9 +2861,9 @@ class ColladaLoader extends Loader {
 
 		function parsePhysicsTechniqueCommon( xml, data ) {
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2875,13 +2887,13 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsScene( xml ) {
 
-			const data = {
+			var data = {
 				bindJointAxis: []
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
@@ -2901,22 +2913,22 @@ class ColladaLoader extends Loader {
 
 		function parseKinematicsBindJointAxis( xml ) {
 
-			const data = {
+			var data = {
 				target: xml.getAttribute( 'target' ).split( '/' ).pop()
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
 
 				switch ( child.nodeName ) {
 
 					case 'axis':
-						const param = child.getElementsByTagName( 'param' )[ 0 ];
+						var param = child.getElementsByTagName( 'param' )[ 0 ];
 						data.axis = param.textContent;
-						const tmpJointIndex = data.axis.split( 'inst_' ).pop().split( 'axis' )[ 0 ];
+						var tmpJointIndex = data.axis.split( 'inst_' ).pop().split( 'axis' )[ 0 ];
 						data.jointIndex = tmpJointIndex.substr( 0, tmpJointIndex.length - 1 );
 						break;
 
@@ -2944,32 +2956,32 @@ class ColladaLoader extends Loader {
 
 		function setupKinematics() {
 
-			const kinematicsModelId = Object.keys( library.kinematicsModels )[ 0 ];
-			const kinematicsSceneId = Object.keys( library.kinematicsScenes )[ 0 ];
-			const visualSceneId = Object.keys( library.visualScenes )[ 0 ];
+			var kinematicsModelId = Object.keys( library.kinematicsModels )[ 0 ];
+			var kinematicsSceneId = Object.keys( library.kinematicsScenes )[ 0 ];
+			var visualSceneId = Object.keys( library.visualScenes )[ 0 ];
 
 			if ( kinematicsModelId === undefined || kinematicsSceneId === undefined ) return;
 
-			const kinematicsModel = getKinematicsModel( kinematicsModelId );
-			const kinematicsScene = getKinematicsScene( kinematicsSceneId );
-			const visualScene = getVisualScene( visualSceneId );
+			var kinematicsModel = getKinematicsModel( kinematicsModelId );
+			var kinematicsScene = getKinematicsScene( kinematicsSceneId );
+			var visualScene = getVisualScene( visualSceneId );
 
-			const bindJointAxis = kinematicsScene.bindJointAxis;
-			const jointMap = {};
+			var bindJointAxis = kinematicsScene.bindJointAxis;
+			var jointMap = {};
 
-			for ( let i = 0, l = bindJointAxis.length; i < l; i ++ ) {
+			for ( var i = 0, l = bindJointAxis.length; i < l; i ++ ) {
 
-				const axis = bindJointAxis[ i ];
+				var axis = bindJointAxis[ i ];
 
 				// the result of the following query is an element of type 'translate', 'rotate','scale' or 'matrix'
 
-				const targetElement = collada.querySelector( '[sid="' + axis.target + '"]' );
+				var targetElement = collada.querySelector( '[sid="' + axis.target + '"]' );
 
 				if ( targetElement ) {
 
 					// get the parent of the transform element
 
-					const parentVisualElement = targetElement.parentElement;
+					var parentVisualElement = targetElement.parentElement;
 
 					// connect the joint of the kinematics model with the element in the visual scene
 
@@ -2981,8 +2993,8 @@ class ColladaLoader extends Loader {
 
 			function connect( jointIndex, visualElement ) {
 
-				const visualElementName = visualElement.getAttribute( 'name' );
-				const joint = kinematicsModel.joints[ jointIndex ];
+				var visualElementName = visualElement.getAttribute( 'name' );
+				var joint = kinematicsModel.joints[ jointIndex ];
 
 				visualScene.traverse( function ( object ) {
 
@@ -3001,7 +3013,7 @@ class ColladaLoader extends Loader {
 
 			}
 
-			const m0 = new Matrix4();
+			var m0 = new Matrix4();
 
 			kinematics = {
 
@@ -3009,7 +3021,7 @@ class ColladaLoader extends Loader {
 
 				getJointValue: function ( jointIndex ) {
 
-					const jointData = jointMap[ jointIndex ];
+					var jointData = jointMap[ jointIndex ];
 
 					if ( jointData ) {
 
@@ -3025,11 +3037,11 @@ class ColladaLoader extends Loader {
 
 				setJointValue: function ( jointIndex, value ) {
 
-					const jointData = jointMap[ jointIndex ];
+					var jointData = jointMap[ jointIndex ];
 
 					if ( jointData ) {
 
-						const joint = jointData.joint;
+						var joint = jointData.joint;
 
 						if ( value > joint.limits.max || value < joint.limits.min ) {
 
@@ -3041,17 +3053,17 @@ class ColladaLoader extends Loader {
 
 						} else {
 
-							const object = jointData.object;
-							const axis = joint.axis;
-							const transforms = jointData.transforms;
+							var object = jointData.object;
+							var axis = joint.axis;
+							var transforms = jointData.transforms;
 
 							matrix.identity();
 
 							// each update, we have to apply all transforms in the correct order
 
-							for ( let i = 0; i < transforms.length; i ++ ) {
+							for ( var i = 0; i < transforms.length; i ++ ) {
 
-								const transform = transforms[ i ];
+								var transform = transforms[ i ];
 
 								// if there is a connection of the transform node with a joint, apply the joint value
 
@@ -3120,23 +3132,21 @@ class ColladaLoader extends Loader {
 
 		function buildTransformList( node ) {
 
-			const transforms = [];
+			var transforms = [];
 
-			const xml = collada.querySelector( '[id="' + node.id + '"]' );
+			var xml = collada.querySelector( '[id="' + node.id + '"]' );
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
-
-				let array, vector;
 
 				switch ( child.nodeName ) {
 
 					case 'matrix':
-						array = parseFloats( child.textContent );
-						const matrix = new Matrix4().fromArray( array ).transpose();
+						var array = parseFloats( child.textContent );
+						var matrix = new Matrix4().fromArray( array ).transpose();
 						transforms.push( {
 							sid: child.getAttribute( 'sid' ),
 							type: child.nodeName,
@@ -3146,8 +3156,8 @@ class ColladaLoader extends Loader {
 
 					case 'translate':
 					case 'scale':
-						array = parseFloats( child.textContent );
-						vector = new Vector3().fromArray( array );
+						var array = parseFloats( child.textContent );
+						var vector = new Vector3().fromArray( array );
 						transforms.push( {
 							sid: child.getAttribute( 'sid' ),
 							type: child.nodeName,
@@ -3156,9 +3166,9 @@ class ColladaLoader extends Loader {
 						break;
 
 					case 'rotate':
-						array = parseFloats( child.textContent );
-						vector = new Vector3().fromArray( array );
-						const angle = MathUtils.degToRad( array[ 3 ] );
+						var array = parseFloats( child.textContent );
+						var vector = new Vector3().fromArray( array );
+						var angle = MathUtils.degToRad( array[ 3 ] );
 						transforms.push( {
 							sid: child.getAttribute( 'sid' ),
 							type: child.nodeName,
@@ -3179,13 +3189,13 @@ class ColladaLoader extends Loader {
 
 		function prepareNodes( xml ) {
 
-			const elements = xml.getElementsByTagName( 'node' );
+			var elements = xml.getElementsByTagName( 'node' );
 
 			// ensure all node elements have id attributes
 
-			for ( let i = 0; i < elements.length; i ++ ) {
+			for ( var i = 0; i < elements.length; i ++ ) {
 
-				const element = elements[ i ];
+				var element = elements[ i ];
 
 				if ( element.hasAttribute( 'id' ) === false ) {
 
@@ -3197,12 +3207,12 @@ class ColladaLoader extends Loader {
 
 		}
 
-		const matrix = new Matrix4();
-		const vector = new Vector3();
+		var matrix = new Matrix4();
+		var vector = new Vector3();
 
 		function parseNode( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'name' ) || '',
 				type: xml.getAttribute( 'type' ),
 				id: xml.getAttribute( 'id' ),
@@ -3217,13 +3227,11 @@ class ColladaLoader extends Loader {
 				transforms: {}
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				if ( child.nodeType !== 1 ) continue;
-
-				let array;
 
 				switch ( child.nodeName ) {
 
@@ -3253,27 +3261,27 @@ class ColladaLoader extends Loader {
 						break;
 
 					case 'matrix':
-						array = parseFloats( child.textContent );
+						var array = parseFloats( child.textContent );
 						data.matrix.multiply( matrix.fromArray( array ).transpose() );
 						data.transforms[ child.getAttribute( 'sid' ) ] = child.nodeName;
 						break;
 
 					case 'translate':
-						array = parseFloats( child.textContent );
+						var array = parseFloats( child.textContent );
 						vector.fromArray( array );
 						data.matrix.multiply( matrix.makeTranslation( vector.x, vector.y, vector.z ) );
 						data.transforms[ child.getAttribute( 'sid' ) ] = child.nodeName;
 						break;
 
 					case 'rotate':
-						array = parseFloats( child.textContent );
-						const angle = MathUtils.degToRad( array[ 3 ] );
+						var array = parseFloats( child.textContent );
+						var angle = MathUtils.degToRad( array[ 3 ] );
 						data.matrix.multiply( matrix.makeRotationAxis( vector.fromArray( array ), angle ) );
 						data.transforms[ child.getAttribute( 'sid' ) ] = child.nodeName;
 						break;
 
 					case 'scale':
-						array = parseFloats( child.textContent );
+						var array = parseFloats( child.textContent );
 						data.matrix.scale( vector.fromArray( array ) );
 						data.transforms[ child.getAttribute( 'sid' ) ] = child.nodeName;
 						break;
@@ -3304,26 +3312,26 @@ class ColladaLoader extends Loader {
 
 		function parseNodeInstance( xml ) {
 
-			const data = {
+			var data = {
 				id: parseId( xml.getAttribute( 'url' ) ),
 				materials: {},
 				skeletons: []
 			};
 
-			for ( let i = 0; i < xml.childNodes.length; i ++ ) {
+			for ( var i = 0; i < xml.childNodes.length; i ++ ) {
 
-				const child = xml.childNodes[ i ];
+				var child = xml.childNodes[ i ];
 
 				switch ( child.nodeName ) {
 
 					case 'bind_material':
-						const instances = child.getElementsByTagName( 'instance_material' );
+						var instances = child.getElementsByTagName( 'instance_material' );
 
-						for ( let j = 0; j < instances.length; j ++ ) {
+						for ( var j = 0; j < instances.length; j ++ ) {
 
-							const instance = instances[ j ];
-							const symbol = instance.getAttribute( 'symbol' );
-							const target = instance.getAttribute( 'target' );
+							var instance = instances[ j ];
+							var symbol = instance.getAttribute( 'symbol' );
+							var target = instance.getAttribute( 'target' );
 
 							data.materials[ symbol ] = parseId( target );
 
@@ -3348,19 +3356,19 @@ class ColladaLoader extends Loader {
 
 		function buildSkeleton( skeletons, joints ) {
 
-			const boneData = [];
-			const sortedBoneData = [];
+			var boneData = [];
+			var sortedBoneData = [];
 
-			let i, j, data;
+			var i, j, data;
 
 			// a skeleton can have multiple root bones. collada expresses this
 			// situtation with multiple "skeleton" tags per controller instance
 
 			for ( i = 0; i < skeletons.length; i ++ ) {
 
-				const skeleton = skeletons[ i ];
+				var skeleton = skeletons[ i ];
 
-				let root;
+				var root;
 
 				if ( hasNode( skeleton ) ) {
 
@@ -3371,16 +3379,16 @@ class ColladaLoader extends Loader {
 
 					// handle case where the skeleton refers to the visual scene (#13335)
 
-					const visualScene = library.visualScenes[ skeleton ];
-					const children = visualScene.children;
+					var visualScene = library.visualScenes[ skeleton ];
+					var children = visualScene.children;
 
-					for ( let j = 0; j < children.length; j ++ ) {
+					for ( var j = 0; j < children.length; j ++ ) {
 
-						const child = children[ j ];
+						var child = children[ j ];
 
 						if ( child.type === 'JOINT' ) {
 
-							const root = getNode( child.id );
+							var root = getNode( child.id );
 							buildBoneHierarchy( root, joints, boneData );
 
 						}
@@ -3432,8 +3440,8 @@ class ColladaLoader extends Loader {
 
 			// setup arrays for skeleton creation
 
-			const bones = [];
-			const boneInverses = [];
+			var bones = [];
+			var boneInverses = [];
 
 			for ( i = 0; i < sortedBoneData.length; i ++ ) {
 
@@ -3456,13 +3464,13 @@ class ColladaLoader extends Loader {
 
 				if ( object.isBone === true ) {
 
-					let boneInverse;
+					var boneInverse;
 
 					// retrieve the boneInverse from the controller data
 
-					for ( let i = 0; i < joints.length; i ++ ) {
+					for ( var i = 0; i < joints.length; i ++ ) {
 
-						const joint = joints[ i ];
+						var joint = joints[ i ];
 
 						if ( joint.name === object.name ) {
 
@@ -3495,20 +3503,20 @@ class ColladaLoader extends Loader {
 
 		function buildNode( data ) {
 
-			const objects = [];
+			var objects = [];
 
-			const matrix = data.matrix;
-			const nodes = data.nodes;
-			const type = data.type;
-			const instanceCameras = data.instanceCameras;
-			const instanceControllers = data.instanceControllers;
-			const instanceLights = data.instanceLights;
-			const instanceGeometries = data.instanceGeometries;
-			const instanceNodes = data.instanceNodes;
+			var matrix = data.matrix;
+			var nodes = data.nodes;
+			var type = data.type;
+			var instanceCameras = data.instanceCameras;
+			var instanceControllers = data.instanceControllers;
+			var instanceLights = data.instanceLights;
+			var instanceGeometries = data.instanceGeometries;
+			var instanceNodes = data.instanceNodes;
 
 			// nodes
 
-			for ( let i = 0, l = nodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = nodes.length; i < l; i ++ ) {
 
 				objects.push( getNode( nodes[ i ] ) );
 
@@ -3516,9 +3524,9 @@ class ColladaLoader extends Loader {
 
 			// instance cameras
 
-			for ( let i = 0, l = instanceCameras.length; i < l; i ++ ) {
+			for ( var i = 0, l = instanceCameras.length; i < l; i ++ ) {
 
-				const instanceCamera = getCamera( instanceCameras[ i ] );
+				var instanceCamera = getCamera( instanceCameras[ i ] );
 
 				if ( instanceCamera !== null ) {
 
@@ -3530,21 +3538,21 @@ class ColladaLoader extends Loader {
 
 			// instance controllers
 
-			for ( let i = 0, l = instanceControllers.length; i < l; i ++ ) {
+			for ( var i = 0, l = instanceControllers.length; i < l; i ++ ) {
 
-				const instance = instanceControllers[ i ];
-				const controller = getController( instance.id );
-				const geometries = getGeometry( controller.id );
-				const newObjects = buildObjects( geometries, instance.materials );
+				var instance = instanceControllers[ i ];
+				var controller = getController( instance.id );
+				var geometries = getGeometry( controller.id );
+				var newObjects = buildObjects( geometries, instance.materials );
 
-				const skeletons = instance.skeletons;
-				const joints = controller.skin.joints;
+				var skeletons = instance.skeletons;
+				var joints = controller.skin.joints;
 
-				const skeleton = buildSkeleton( skeletons, joints );
+				var skeleton = buildSkeleton( skeletons, joints );
 
-				for ( let j = 0, jl = newObjects.length; j < jl; j ++ ) {
+				for ( var j = 0, jl = newObjects.length; j < jl; j ++ ) {
 
-					const object = newObjects[ j ];
+					var object = newObjects[ j ];
 
 					if ( object.isSkinnedMesh ) {
 
@@ -3561,9 +3569,9 @@ class ColladaLoader extends Loader {
 
 			// instance lights
 
-			for ( let i = 0, l = instanceLights.length; i < l; i ++ ) {
+			for ( var i = 0, l = instanceLights.length; i < l; i ++ ) {
 
-				const instanceLight = getLight( instanceLights[ i ] );
+				var instanceLight = getLight( instanceLights[ i ] );
 
 				if ( instanceLight !== null ) {
 
@@ -3575,17 +3583,17 @@ class ColladaLoader extends Loader {
 
 			// instance geometries
 
-			for ( let i = 0, l = instanceGeometries.length; i < l; i ++ ) {
+			for ( var i = 0, l = instanceGeometries.length; i < l; i ++ ) {
 
-				const instance = instanceGeometries[ i ];
+				var instance = instanceGeometries[ i ];
 
 				// a single geometry instance in collada can lead to multiple object3Ds.
 				// this is the case when primitives are combined like triangles and lines
 
-				const geometries = getGeometry( instance.id );
-				const newObjects = buildObjects( geometries, instance.materials );
+				var geometries = getGeometry( instance.id );
+				var newObjects = buildObjects( geometries, instance.materials );
 
-				for ( let j = 0, jl = newObjects.length; j < jl; j ++ ) {
+				for ( var j = 0, jl = newObjects.length; j < jl; j ++ ) {
 
 					objects.push( newObjects[ j ] );
 
@@ -3595,13 +3603,13 @@ class ColladaLoader extends Loader {
 
 			// instance nodes
 
-			for ( let i = 0, l = instanceNodes.length; i < l; i ++ ) {
+			for ( var i = 0, l = instanceNodes.length; i < l; i ++ ) {
 
 				objects.push( getNode( instanceNodes[ i ] ).clone() );
 
 			}
 
-			let object;
+			var object;
 
 			if ( nodes.length === 0 && objects.length === 1 ) {
 
@@ -3611,7 +3619,7 @@ class ColladaLoader extends Loader {
 
 				object = ( type === 'JOINT' ) ? new Bone() : new Group();
 
-				for ( let i = 0; i < objects.length; i ++ ) {
+				for ( var i = 0; i < objects.length; i ++ ) {
 
 					object.add( objects[ i ] );
 
@@ -3627,15 +3635,15 @@ class ColladaLoader extends Loader {
 
 		}
 
-		const fallbackMaterial = new MeshBasicMaterial( { color: 0xff00ff } );
+		var fallbackMaterial = new MeshBasicMaterial( { color: 0xff00ff } );
 
 		function resolveMaterialBinding( keys, instanceMaterials ) {
 
-			const materials = [];
+			var materials = [];
 
-			for ( let i = 0, l = keys.length; i < l; i ++ ) {
+			for ( var i = 0, l = keys.length; i < l; i ++ ) {
 
-				const id = instanceMaterials[ keys[ i ] ];
+				var id = instanceMaterials[ keys[ i ] ];
 
 				if ( id === undefined ) {
 
@@ -3656,13 +3664,13 @@ class ColladaLoader extends Loader {
 
 		function buildObjects( geometries, instanceMaterials ) {
 
-			const objects = [];
+			var objects = [];
 
-			for ( const type in geometries ) {
+			for ( var type in geometries ) {
 
-				const geometry = geometries[ type ];
+				var geometry = geometries[ type ];
 
-				const materials = resolveMaterialBinding( geometry.materialKeys, instanceMaterials );
+				var materials = resolveMaterialBinding( geometry.materialKeys, instanceMaterials );
 
 				// handle case if no materials are defined
 
@@ -3682,15 +3690,25 @@ class ColladaLoader extends Loader {
 
 				// regard skinning
 
-				const skinning = ( geometry.data.attributes.skinIndex !== undefined );
+				var skinning = ( geometry.data.attributes.skinIndex !== undefined );
+
+				if ( skinning ) {
+
+					for ( var i = 0, l = materials.length; i < l; i ++ ) {
+
+						materials[ i ].skinning = true;
+
+					}
+
+				}
 
 				// choose between a single or multi materials (material array)
 
-				const material = ( materials.length === 1 ) ? materials[ 0 ] : materials;
+				var material = ( materials.length === 1 ) ? materials[ 0 ] : materials;
 
 				// now create a specific 3D object
 
-				let object;
+				var object;
 
 				switch ( type ) {
 
@@ -3742,16 +3760,16 @@ class ColladaLoader extends Loader {
 
 		function parseVisualScene( xml ) {
 
-			const data = {
+			var data = {
 				name: xml.getAttribute( 'name' ),
 				children: []
 			};
 
 			prepareNodes( xml );
 
-			const elements = getElementsByTagName( xml, 'node' );
+			var elements = getElementsByTagName( xml, 'node' );
 
-			for ( let i = 0; i < elements.length; i ++ ) {
+			for ( var i = 0; i < elements.length; i ++ ) {
 
 				data.children.push( parseNode( elements[ i ] ) );
 
@@ -3763,14 +3781,14 @@ class ColladaLoader extends Loader {
 
 		function buildVisualScene( data ) {
 
-			const group = new Group();
+			var group = new Group();
 			group.name = data.name;
 
-			const children = data.children;
+			var children = data.children;
 
-			for ( let i = 0; i < children.length; i ++ ) {
+			for ( var i = 0; i < children.length; i ++ ) {
 
-				const child = children[ i ];
+				var child = children[ i ];
 
 				group.add( getNode( child.id ) );
 
@@ -3796,14 +3814,14 @@ class ColladaLoader extends Loader {
 
 		function parseScene( xml ) {
 
-			const instance = getElementsByTagName( xml, 'instance_visual_scene' )[ 0 ];
+			var instance = getElementsByTagName( xml, 'instance_visual_scene' )[ 0 ];
 			return getVisualScene( parseId( instance.getAttribute( 'url' ) ) );
 
 		}
 
 		function setupAnimations() {
 
-			const clips = library.clips;
+			var clips = library.clips;
 
 			if ( isEmpty( clips ) === true ) {
 
@@ -3811,13 +3829,13 @@ class ColladaLoader extends Loader {
 
 					// if there are animations but no clips, we create a default clip for playback
 
-					const tracks = [];
+					var tracks = [];
 
-					for ( const id in library.animations ) {
+					for ( var id in library.animations ) {
 
-						const animationTracks = getAnimation( id );
+						var animationTracks = getAnimation( id );
 
-						for ( let i = 0, l = animationTracks.length; i < l; i ++ ) {
+						for ( var i = 0, l = animationTracks.length; i < l; i ++ ) {
 
 							tracks.push( animationTracks[ i ] );
 
@@ -3831,7 +3849,7 @@ class ColladaLoader extends Loader {
 
 			} else {
 
-				for ( const id in clips ) {
+				for ( var id in clips ) {
 
 					animations.push( getAnimationClip( id ) );
 
@@ -3846,12 +3864,12 @@ class ColladaLoader extends Loader {
 
 		function parserErrorToText( parserError ) {
 
-			let result = '';
-			const stack = [ parserError ];
+			var result = '';
+			var stack = [ parserError ];
 
 			while ( stack.length ) {
 
-				const node = stack.shift();
+				var node = stack.shift();
 
 				if ( node.nodeType === Node.TEXT_NODE ) {
 
@@ -3876,17 +3894,17 @@ class ColladaLoader extends Loader {
 
 		}
 
-		const xml = new DOMParser().parseFromString( text, 'application/xml' );
+		var xml = new DOMParser().parseFromString( text, 'application/xml' );
 
-		const collada = getElementsByTagName( xml, 'COLLADA' )[ 0 ];
+		var collada = getElementsByTagName( xml, 'COLLADA' )[ 0 ];
 
-		const parserError = xml.getElementsByTagName( 'parsererror' )[ 0 ];
+		var parserError = xml.getElementsByTagName( 'parsererror' )[ 0 ];
 		if ( parserError !== undefined ) {
 
 			// Chrome will return parser error with a div in it
 
-			const errorElement = getElementsByTagName( parserError, 'div' )[ 0 ];
-			let errorText;
+			var errorElement = getElementsByTagName( parserError, 'div' )[ 0 ];
+			var errorText;
 
 			if ( errorElement ) {
 
@@ -3906,14 +3924,14 @@ class ColladaLoader extends Loader {
 
 		// metadata
 
-		const version = collada.getAttribute( 'version' );
+		var version = collada.getAttribute( 'version' );
 		console.log( 'THREE.ColladaLoader: File version', version );
 
-		const asset = parseAsset( getElementsByTagName( collada, 'asset' )[ 0 ] );
-		const textureLoader = new TextureLoader( this.manager );
+		var asset = parseAsset( getElementsByTagName( collada, 'asset' )[ 0 ] );
+		var textureLoader = new TextureLoader( this.manager );
 		textureLoader.setPath( this.resourcePath || path ).setCrossOrigin( this.crossOrigin );
 
-		let tgaLoader;
+		var tgaLoader;
 
 		if ( TGALoader ) {
 
@@ -3924,13 +3942,13 @@ class ColladaLoader extends Loader {
 
 		//
 
-		const animations = [];
-		let kinematics = {};
-		let count = 0;
+		var animations = [];
+		var kinematics = {};
+		var count = 0;
 
 		//
 
-		const library = {
+		var library = {
 			animations: {},
 			clips: {},
 			controllers: {},
@@ -3976,7 +3994,7 @@ class ColladaLoader extends Loader {
 		setupAnimations();
 		setupKinematics();
 
-		const scene = parseScene( getElementsByTagName( collada, 'scene' )[ 0 ] );
+		var scene = parseScene( getElementsByTagName( collada, 'scene' )[ 0 ] );
 		scene.animations = animations;
 
 		if ( asset.upAxis === 'Z_UP' ) {
@@ -4001,6 +4019,6 @@ class ColladaLoader extends Loader {
 
 	}
 
-}
+} );
 
 export { ColladaLoader };

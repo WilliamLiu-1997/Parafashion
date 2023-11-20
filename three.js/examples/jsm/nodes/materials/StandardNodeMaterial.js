@@ -2,19 +2,18 @@ import { StandardNode } from './nodes/StandardNode.js';
 import { NodeMaterial } from './NodeMaterial.js';
 import { NodeUtils } from '../core/NodeUtils.js';
 
-class StandardNodeMaterial extends NodeMaterial {
+function StandardNodeMaterial() {
 
-	constructor() {
+	var node = new StandardNode();
 
-		const node = new StandardNode();
+	NodeMaterial.call( this, node, node );
 
-		super( node, node );
-
-		this.type = 'StandardNodeMaterial';
-
-	}
+	this.type = 'StandardNodeMaterial';
 
 }
+
+StandardNodeMaterial.prototype = Object.create( NodeMaterial.prototype );
+StandardNodeMaterial.prototype.constructor = StandardNodeMaterial;
 
 NodeUtils.addShortcuts( StandardNodeMaterial.prototype, 'fragment', [
 	'color',
@@ -34,7 +33,7 @@ NodeUtils.addShortcuts( StandardNodeMaterial.prototype, 'fragment', [
 	'environment',
 	'mask',
 	'position',
-	'sheenTint'
+	'sheen'
 ] );
 
 export { StandardNodeMaterial };

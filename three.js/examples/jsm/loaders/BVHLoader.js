@@ -17,22 +17,24 @@ import {
  *
  */
 
-class BVHLoader extends Loader {
+var BVHLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+	this.animateBonePositions = true;
+	this.animateBoneRotations = true;
 
-		this.animateBonePositions = true;
-		this.animateBoneRotations = true;
+};
 
-	}
+BVHLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: BVHLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( scope.manager );
+		var scope = this;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.setRequestHeader( scope.requestHeader );
 		loader.setWithCredentials( scope.withCredentials );
@@ -60,9 +62,9 @@ class BVHLoader extends Loader {
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( text ) {
+	parse: function ( text ) {
 
 		/*
 			reads a string array (lines) from a BVH file
@@ -81,8 +83,8 @@ class BVHLoader extends Loader {
 
 			}
 
-			const list = []; // collects flat array of all bones
-			const root = readNode( lines, nextLine( lines ), list );
+			var list = []; // collects flat array of all bones
+			var root = readNode( lines, nextLine( lines ), list );
 
 			// read motion data
 
@@ -94,8 +96,8 @@ class BVHLoader extends Loader {
 
 			// number of frames
 
-			let tokens = nextLine( lines ).split( /[\s]+/ );
-			const numFrames = parseInt( tokens[ 1 ] );
+			var tokens = nextLine( lines ).split( /[\s]+/ );
+			var numFrames = parseInt( tokens[ 1 ] );
 
 			if ( isNaN( numFrames ) ) {
 
@@ -106,7 +108,7 @@ class BVHLoader extends Loader {
 			// frame time
 
 			tokens = nextLine( lines ).split( /[\s]+/ );
-			const frameTime = parseFloat( tokens[ 2 ] );
+			var frameTime = parseFloat( tokens[ 2 ] );
 
 			if ( isNaN( frameTime ) ) {
 
@@ -116,7 +118,7 @@ class BVHLoader extends Loader {
 
 			// read frame data line by line
 
-			for ( let i = 0; i < numFrames; i ++ ) {
+			for ( var i = 0; i < numFrames; i ++ ) {
 
 				tokens = nextLine( lines ).split( /[\s]+/ );
 				readFrameData( tokens, i * frameTime, root );
@@ -145,7 +147,7 @@ class BVHLoader extends Loader {
 
 			// add keyframe
 
-			const keyframe = {
+			var keyframe = {
 				time: frameTime,
 				position: new Vector3(),
 				rotation: new Quaternion()
@@ -153,15 +155,15 @@ class BVHLoader extends Loader {
 
 			bone.frames.push( keyframe );
 
-			const quat = new Quaternion();
+			var quat = new Quaternion();
 
-			const vx = new Vector3( 1, 0, 0 );
-			const vy = new Vector3( 0, 1, 0 );
-			const vz = new Vector3( 0, 0, 1 );
+			var vx = new Vector3( 1, 0, 0 );
+			var vy = new Vector3( 0, 1, 0 );
+			var vz = new Vector3( 0, 0, 1 );
 
 			// parse values for each channel in node
 
-			for ( let i = 0; i < bone.channels.length; i ++ ) {
+			for ( var i = 0; i < bone.channels.length; i ++ ) {
 
 				switch ( bone.channels[ i ] ) {
 
@@ -195,7 +197,7 @@ class BVHLoader extends Loader {
 
 			// parse child nodes
 
-			for ( let i = 0; i < bone.children.length; i ++ ) {
+			for ( var i = 0; i < bone.children.length; i ++ ) {
 
 				readFrameData( data, frameTime, bone.children[ i ] );
 
@@ -214,12 +216,12 @@ class BVHLoader extends Loader {
 		*/
 		function readNode( lines, firstline, list ) {
 
-			const node = { name: '', type: '', frames: [] };
+			var node = { name: '', type: '', frames: [] };
 			list.push( node );
 
 			// parse node type and name
 
-			let tokens = firstline.split( /[\s]+/ );
+			var tokens = firstline.split( /[\s]+/ );
 
 			if ( tokens[ 0 ].toUpperCase() === 'END' && tokens[ 1 ].toUpperCase() === 'SITE' ) {
 
@@ -255,7 +257,7 @@ class BVHLoader extends Loader {
 
 			}
 
-			const offset = new Vector3(
+			var offset = new Vector3(
 				parseFloat( tokens[ 1 ] ),
 				parseFloat( tokens[ 2 ] ),
 				parseFloat( tokens[ 3 ] )
@@ -281,7 +283,7 @@ class BVHLoader extends Loader {
 
 				}
 
-				const numChannels = parseInt( tokens[ 1 ] );
+				var numChannels = parseInt( tokens[ 1 ] );
 				node.channels = tokens.splice( 2, numChannels );
 				node.children = [];
 
@@ -291,7 +293,7 @@ class BVHLoader extends Loader {
 
 			while ( true ) {
 
-				const line = nextLine( lines );
+				var line = nextLine( lines );
 
 				if ( line === '}' ) {
 
@@ -317,7 +319,7 @@ class BVHLoader extends Loader {
 		*/
 		function toTHREEBone( source, list ) {
 
-			const bone = new Bone();
+			var bone = new Bone();
 			list.push( bone );
 
 			bone.position.add( source.offset );
@@ -325,7 +327,7 @@ class BVHLoader extends Loader {
 
 			if ( source.type !== 'ENDSITE' ) {
 
-				for ( let i = 0; i < source.children.length; i ++ ) {
+				for ( var i = 0; i < source.children.length; i ++ ) {
 
 					bone.add( toTHREEBone( source.children[ i ], list ) );
 
@@ -346,26 +348,26 @@ class BVHLoader extends Loader {
 		*/
 		function toTHREEAnimation( bones ) {
 
-			const tracks = [];
+			var tracks = [];
 
 			// create a position and quaternion animation track for each node
 
-			for ( let i = 0; i < bones.length; i ++ ) {
+			for ( var i = 0; i < bones.length; i ++ ) {
 
-				const bone = bones[ i ];
+				var bone = bones[ i ];
 
 				if ( bone.type === 'ENDSITE' )
 					continue;
 
 				// track data
 
-				const times = [];
-				const positions = [];
-				const rotations = [];
+				var times = [];
+				var positions = [];
+				var rotations = [];
 
-				for ( let j = 0; j < bone.frames.length; j ++ ) {
+				for ( var j = 0; j < bone.frames.length; j ++ ) {
 
-					const frame = bone.frames[ j ];
+					var frame = bone.frames[ j ];
 
 					times.push( frame.time );
 
@@ -406,7 +408,7 @@ class BVHLoader extends Loader {
 		*/
 		function nextLine( lines ) {
 
-			let line;
+			var line;
 			// skip empty lines
 			while ( ( line = lines.shift().trim() ).length === 0 ) { }
 
@@ -414,16 +416,16 @@ class BVHLoader extends Loader {
 
 		}
 
-		const scope = this;
+		var scope = this;
 
-		const lines = text.split( /[\r\n]+/g );
+		var lines = text.split( /[\r\n]+/g );
 
-		const bones = readBvh( lines );
+		var bones = readBvh( lines );
 
-		const threeBones = [];
+		var threeBones = [];
 		toTHREEBone( bones[ 0 ], threeBones );
 
-		const threeClip = toTHREEAnimation( bones );
+		var threeClip = toTHREEAnimation( bones );
 
 		return {
 			skeleton: new Skeleton( threeBones ),
@@ -432,6 +434,6 @@ class BVHLoader extends Loader {
 
 	}
 
-}
+} );
 
 export { BVHLoader };

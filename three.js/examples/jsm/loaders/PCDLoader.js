@@ -8,21 +8,24 @@ import {
 	PointsMaterial
 } from '../../../build/three.module.js';
 
-class PCDLoader extends Loader {
+var PCDLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+	this.littleEndian = true;
 
-		this.littleEndian = true;
+};
 
-	}
 
-	load( url, onLoad, onProgress, onError ) {
+PCDLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-		const scope = this;
+	constructor: PCDLoader,
 
-		const loader = new FileLoader( scope.manager );
+	load: function ( url, onLoad, onProgress, onError ) {
+
+		var scope = this;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.setResponseType( 'arraybuffer' );
 		loader.setRequestHeader( scope.requestHeader );
@@ -51,21 +54,21 @@ class PCDLoader extends Loader {
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( data, url ) {
+	parse: function ( data, url ) {
 
 		// from https://gitlab.com/taketwo/three-pcd-loader/blob/master/decompress-lzf.js
 
 		function decompressLZF( inData, outLength ) {
 
-			const inLength = inData.length;
-			const outData = new Uint8Array( outLength );
-			let inPtr = 0;
-			let outPtr = 0;
-			let ctrl;
-			let len;
-			let ref;
+			var inLength = inData.length;
+			var outData = new Uint8Array( outLength );
+			var inPtr = 0;
+			var outPtr = 0;
+			var ctrl;
+			var len;
+			var ref;
 			do {
 
 				ctrl = inData[ inPtr ++ ];
@@ -112,9 +115,9 @@ class PCDLoader extends Loader {
 
 		function parseHeader( data ) {
 
-			const PCDheader = {};
-			const result1 = data.search( /[\r\n]DATA\s(\S*)\s/i );
-			const result2 = /[\r\n]DATA\s(\S*)\s/i.exec( data.substr( result1 - 1 ) );
+			var PCDheader = {};
+			var result1 = data.search( /[\r\n]DATA\s(\S*)\s/i );
+			var result2 = /[\r\n]DATA\s(\S*)\s/i.exec( data.substr( result1 - 1 ) );
 
 			PCDheader.data = result2[ 1 ];
 			PCDheader.headerLen = result2[ 0 ].length + result1;
@@ -184,7 +187,7 @@ class PCDLoader extends Loader {
 
 				PCDheader.count = [];
 
-				for ( let i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
+				for ( var i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
 
 					PCDheader.count.push( 1 );
 
@@ -194,9 +197,9 @@ class PCDLoader extends Loader {
 
 			PCDheader.offset = {};
 
-			let sizeSum = 0;
+			var sizeSum = 0;
 
-			for ( let i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
+			for ( var i = 0, l = PCDheader.fields.length; i < l; i ++ ) {
 
 				if ( PCDheader.data === 'ascii' ) {
 
@@ -219,31 +222,31 @@ class PCDLoader extends Loader {
 
 		}
 
-		const textData = LoaderUtils.decodeText( new Uint8Array( data ) );
+		var textData = LoaderUtils.decodeText( new Uint8Array( data ) );
 
 		// parse header (always ascii format)
 
-		const PCDheader = parseHeader( textData );
+		var PCDheader = parseHeader( textData );
 
 		// parse data
 
-		const position = [];
-		const normal = [];
-		const color = [];
+		var position = [];
+		var normal = [];
+		var color = [];
 
 		// ascii
 
 		if ( PCDheader.data === 'ascii' ) {
 
-			const offset = PCDheader.offset;
-			const pcdData = textData.substr( PCDheader.headerLen );
-			const lines = pcdData.split( '\n' );
+			var offset = PCDheader.offset;
+			var pcdData = textData.substr( PCDheader.headerLen );
+			var lines = pcdData.split( '\n' );
 
-			for ( let i = 0, l = lines.length; i < l; i ++ ) {
+			for ( var i = 0, l = lines.length; i < l; i ++ ) {
 
 				if ( lines[ i ] === '' ) continue;
 
-				const line = lines[ i ].split( ' ' );
+				var line = lines[ i ].split( ' ' );
 
 				if ( offset.x !== undefined ) {
 
@@ -255,10 +258,10 @@ class PCDLoader extends Loader {
 
 				if ( offset.rgb !== undefined ) {
 
-					const rgb = parseFloat( line[ offset.rgb ] );
-					const r = ( rgb >> 16 ) & 0x0000ff;
-					const g = ( rgb >> 8 ) & 0x0000ff;
-					const b = ( rgb >> 0 ) & 0x0000ff;
+					var rgb = parseFloat( line[ offset.rgb ] );
+					var r = ( rgb >> 16 ) & 0x0000ff;
+					var g = ( rgb >> 8 ) & 0x0000ff;
+					var b = ( rgb >> 0 ) & 0x0000ff;
 					color.push( r / 255, g / 255, b / 255 );
 
 				}
@@ -283,15 +286,15 @@ class PCDLoader extends Loader {
 
 		if ( PCDheader.data === 'binary_compressed' ) {
 
-			const sizes = new Uint32Array( data.slice( PCDheader.headerLen, PCDheader.headerLen + 8 ) );
-			const compressedSize = sizes[ 0 ];
-			const decompressedSize = sizes[ 1 ];
-			const decompressed = decompressLZF( new Uint8Array( data, PCDheader.headerLen + 8, compressedSize ), decompressedSize );
-			const dataview = new DataView( decompressed.buffer );
+			var sizes = new Uint32Array( data.slice( PCDheader.headerLen, PCDheader.headerLen + 8 ) );
+			var compressedSize = sizes[ 0 ];
+			var decompressedSize = sizes[ 1 ];
+			var decompressed = decompressLZF( new Uint8Array( data, PCDheader.headerLen + 8, compressedSize ), decompressedSize );
+			var dataview = new DataView( decompressed.buffer );
 
-			const offset = PCDheader.offset;
+			var offset = PCDheader.offset;
 
-			for ( let i = 0; i < PCDheader.points; i ++ ) {
+			for ( var i = 0; i < PCDheader.points; i ++ ) {
 
 				if ( offset.x !== undefined ) {
 
@@ -325,10 +328,10 @@ class PCDLoader extends Loader {
 
 		if ( PCDheader.data === 'binary' ) {
 
-			const dataview = new DataView( data, PCDheader.headerLen );
-			const offset = PCDheader.offset;
+			var dataview = new DataView( data, PCDheader.headerLen );
+			var offset = PCDheader.offset;
 
-			for ( let i = 0, row = 0; i < PCDheader.points; i ++, row += PCDheader.rowSize ) {
+			for ( var i = 0, row = 0; i < PCDheader.points; i ++, row += PCDheader.rowSize ) {
 
 				if ( offset.x !== undefined ) {
 
@@ -360,7 +363,7 @@ class PCDLoader extends Loader {
 
 		// build geometry
 
-		const geometry = new BufferGeometry();
+		var geometry = new BufferGeometry();
 
 		if ( position.length > 0 ) geometry.setAttribute( 'position', new Float32BufferAttribute( position, 3 ) );
 		if ( normal.length > 0 ) geometry.setAttribute( 'normal', new Float32BufferAttribute( normal, 3 ) );
@@ -370,7 +373,7 @@ class PCDLoader extends Loader {
 
 		// build material
 
-		const material = new PointsMaterial( { size: 0.005 } );
+		var material = new PointsMaterial( { size: 0.005 } );
 
 		if ( color.length > 0 ) {
 
@@ -384,8 +387,8 @@ class PCDLoader extends Loader {
 
 		// build point cloud
 
-		const mesh = new Points( geometry, material );
-		let name = url.split( '' ).reverse().join( '' );
+		var mesh = new Points( geometry, material );
+		var name = url.split( '' ).reverse().join( '' );
 		name = /([^\/]*)/.exec( name );
 		name = name[ 1 ].split( '' ).reverse().join( '' );
 		mesh.name = name;
@@ -394,6 +397,6 @@ class PCDLoader extends Loader {
 
 	}
 
-}
+} );
 
 export { PCDLoader };

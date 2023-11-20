@@ -2,42 +2,44 @@ import {
 	ShaderMaterial,
 	UniformsUtils
 } from '../../../build/three.module.js';
-import { Pass, FullScreenQuad } from '../postprocessing/Pass.js';
+import { Pass } from '../postprocessing/Pass.js';
 
-class ShaderPass extends Pass {
+var ShaderPass = function ( shader, textureID ) {
 
-	constructor( shader, textureID ) {
+	Pass.call( this );
 
-		super();
+	this.textureID = ( textureID !== undefined ) ? textureID : 'tDiffuse';
 
-		this.textureID = ( textureID !== undefined ) ? textureID : 'tDiffuse';
+	if ( shader instanceof ShaderMaterial ) {
 
-		if ( shader instanceof ShaderMaterial ) {
+		this.uniforms = shader.uniforms;
 
-			this.uniforms = shader.uniforms;
+		this.material = shader;
 
-			this.material = shader;
+	} else if ( shader ) {
 
-		} else if ( shader ) {
+		this.uniforms = UniformsUtils.clone( shader.uniforms );
 
-			this.uniforms = UniformsUtils.clone( shader.uniforms );
+		this.material = new ShaderMaterial( {
 
-			this.material = new ShaderMaterial( {
+			defines: Object.assign( {}, shader.defines ),
+			uniforms: this.uniforms,
+			vertexShader: shader.vertexShader,
+			fragmentShader: shader.fragmentShader
 
-				defines: Object.assign( {}, shader.defines ),
-				uniforms: this.uniforms,
-				vertexShader: shader.vertexShader,
-				fragmentShader: shader.fragmentShader
-
-			} );
-
-		}
-
-		this.fsQuad = new FullScreenQuad( this.material );
+		} );
 
 	}
 
-	render( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
+	this.fsQuad = new Pass.FullScreenQuad( this.material );
+
+};
+
+ShaderPass.prototype = Object.assign( Object.create( Pass.prototype ), {
+
+	constructor: ShaderPass,
+
+	render: function ( renderer, writeBuffer, readBuffer /*, deltaTime, maskActive */ ) {
 
 		if ( this.uniforms[ this.textureID ] ) {
 
@@ -63,6 +65,6 @@ class ShaderPass extends Pass {
 
 	}
 
-}
+} );
 
 export { ShaderPass };

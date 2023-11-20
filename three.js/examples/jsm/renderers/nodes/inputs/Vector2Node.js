@@ -1,5 +1,5 @@
 import InputNode from '../core/InputNode.js';
-import { Vector2 } from 'three';
+import { Vector2 } from '../../../../../build/three.module.js';
 
 class Vector2Node extends InputNode {
 
@@ -9,10 +9,10 @@ class Vector2Node extends InputNode {
 
 		this.value = value;
 
+		Object.defineProperty( this, 'isVector2Node', { value: true } );
+
 	}
 
 }
-
-Vector2Node.prototype.isVector2Node = true;
 
 export default Vector2Node;

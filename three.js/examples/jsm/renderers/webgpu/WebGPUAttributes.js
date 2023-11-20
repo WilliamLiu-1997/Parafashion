@@ -9,15 +9,11 @@ class WebGPUAttributes {
 
 	get( attribute ) {
 
-		if ( attribute.isInterleavedBufferAttribute ) attribute = attribute.data;
-
 		return this.buffers.get( attribute );
 
 	}
 
 	remove( attribute ) {
-
-		if ( attribute.isInterleavedBufferAttribute ) attribute = attribute.data;
 
 		const data = this.buffers.get( attribute );
 
@@ -32,8 +28,6 @@ class WebGPUAttributes {
 	}
 
 	update( attribute, isIndex = false, usage = null ) {
-
-		if ( attribute.isInterleavedBufferAttribute ) attribute = attribute.data;
 
 		let data = this.buffers.get( attribute );
 

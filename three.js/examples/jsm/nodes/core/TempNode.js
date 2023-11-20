@@ -1,142 +1,143 @@
 import { MathUtils } from '../../../../build/three.module.js';
 import { Node } from './Node.js';
 
-class TempNode extends Node {
+function TempNode( type, params ) {
 
-	constructor( type, params = {} ) {
+	Node.call( this, type );
 
-		super( type );
+	params = params || {};
 
-		this.shared = params.shared !== undefined ? params.shared : true;
-		this.unique = params.unique !== undefined ? params.unique : false;
+	this.shared = params.shared !== undefined ? params.shared : true;
+	this.unique = params.unique !== undefined ? params.unique : false;
 
-	}
+}
 
-	build( builder, output, uuid, ns ) {
+TempNode.prototype = Object.create( Node.prototype );
+TempNode.prototype.constructor = TempNode;
 
-		output = output || this.getType( builder );
+TempNode.prototype.build = function ( builder, output, uuid, ns ) {
 
-		if ( this.getShared( builder, output ) ) {
+	output = output || this.getType( builder );
 
-			const isUnique = this.getUnique( builder, output );
+	if ( this.getShared( builder, output ) ) {
 
-			if ( isUnique && this.constructor.uuid === undefined ) {
+		var isUnique = this.getUnique( builder, output );
 
-				this.constructor.uuid = MathUtils.generateUUID();
+		if ( isUnique && this.constructor.uuid === undefined ) {
 
-			}
-
-			uuid = builder.getUuid( uuid || this.getUuid(), ! isUnique );
-
-			const data = builder.getNodeData( uuid ),
-				type = data.output || this.getType( builder );
-
-			if ( builder.analyzing ) {
-
-				if ( ( data.deps || 0 ) > 0 || this.getLabel() ) {
-
-					this.appendDepsNode( builder, data, output );
-
-					return this.generate( builder, output, uuid );
-
-				}
-
-				return super.build( builder, output, uuid );
-
-			} else if ( isUnique ) {
-
-				data.name = data.name || super.build( builder, output, uuid );
-
-				return data.name;
-
-			} else if ( ! this.getLabel() && ( ! this.getShared( builder, type ) || ( builder.context.ignoreCache || data.deps === 1 ) ) ) {
-
-				return super.build( builder, output, uuid );
-
-			}
-
-			uuid = this.getUuid( false );
-
-			let name = this.getTemp( builder, uuid );
-
-			if ( name ) {
-
-				return builder.format( name, type, output );
-
-			} else {
-
-				name = TempNode.prototype.generate.call( this, builder, output, uuid, data.output, ns );
-
-				const code = this.generate( builder, type, uuid );
-
-				builder.addNodeCode( name + ' = ' + code + ';' );
-
-				return builder.format( name, type, output );
-
-			}
+			this.constructor.uuid = MathUtils.generateUUID();
 
 		}
 
-		return super.build( builder, output, uuid );
+		uuid = builder.getUuid( uuid || this.getUuid(), ! isUnique );
+
+		var data = builder.getNodeData( uuid ),
+			type = data.output || this.getType( builder );
+
+		if ( builder.analyzing ) {
+
+			if ( ( data.deps || 0 ) > 0 || this.getLabel() ) {
+
+				this.appendDepsNode( builder, data, output );
+
+				return this.generate( builder, output, uuid );
+
+			}
+
+			return Node.prototype.build.call( this, builder, output, uuid );
+
+		} else if ( isUnique ) {
+
+			data.name = data.name || Node.prototype.build.call( this, builder, output, uuid );
+
+			return data.name;
+
+		} else if ( ! this.getLabel() && ( ! this.getShared( builder, type ) || ( builder.context.ignoreCache || data.deps === 1 ) ) ) {
+
+			return Node.prototype.build.call( this, builder, output, uuid );
+
+		}
+
+		uuid = this.getUuid( false );
+
+		var name = this.getTemp( builder, uuid );
+
+		if ( name ) {
+
+			return builder.format( name, type, output );
+
+		} else {
+
+			name = TempNode.prototype.generate.call( this, builder, output, uuid, data.output, ns );
+
+			var code = this.generate( builder, type, uuid );
+
+			builder.addNodeCode( name + ' = ' + code + ';' );
+
+			return builder.format( name, type, output );
+
+		}
 
 	}
 
-	getShared( builder, output ) {
+	return Node.prototype.build.call( this, builder, output, uuid );
 
-		return output !== 'sampler2D' && output !== 'samplerCube' && this.shared;
+};
 
-	}
+TempNode.prototype.getShared = function ( builder, output ) {
 
-	getUnique( /* builder, output */ ) {
+	return output !== 'sampler2D' && output !== 'samplerCube' && this.shared;
 
-		return this.unique;
+};
 
-	}
+TempNode.prototype.getUnique = function ( /* builder, output */ ) {
 
-	setLabel( name ) {
+	return this.unique;
 
-		this.label = name;
+};
 
-		return this;
+TempNode.prototype.setLabel = function ( name ) {
 
-	}
+	this.label = name;
 
-	getLabel( /* builder */ ) {
+	return this;
 
-		return this.label;
+};
 
-	}
+TempNode.prototype.getLabel = function ( /* builder */ ) {
 
-	getUuid( unique ) {
+	return this.label;
 
-		let uuid = unique || unique == undefined ? this.constructor.uuid || this.uuid : this.uuid;
+};
 
-		if ( typeof this.scope === 'string' ) uuid = this.scope + '-' + uuid;
+TempNode.prototype.getUuid = function ( unique ) {
 
-		return uuid;
+	var uuid = unique || unique == undefined ? this.constructor.uuid || this.uuid : this.uuid;
 
-	}
+	if ( typeof this.scope === 'string' ) uuid = this.scope + '-' + uuid;
 
-	getTemp( builder, uuid ) {
+	return uuid;
 
-		uuid = uuid || this.uuid;
+};
 
-		const tempVar = builder.getVars()[ uuid ];
+TempNode.prototype.getTemp = function ( builder, uuid ) {
 
-		return tempVar ? tempVar.name : undefined;
+	uuid = uuid || this.uuid;
 
-	}
+	var tempVar = builder.getVars()[ uuid ];
 
-	generate( builder, output, uuid, type, ns ) {
+	return tempVar ? tempVar.name : undefined;
 
-		if ( ! this.getShared( builder, output ) ) console.error( 'THREE.TempNode is not shared!' );
+};
 
-		uuid = uuid || this.uuid;
+TempNode.prototype.generate = function ( builder, output, uuid, type, ns ) {
 
-		return builder.getTempVar( uuid, type || this.getType( builder ), ns, this.getLabel() ).name;
+	if ( ! this.getShared( builder, output ) ) console.error( 'THREE.TempNode is not shared!' );
 
-	}
+	uuid = uuid || this.uuid;
 
-}
+	return builder.getTempVar( uuid, type || this.getType( builder ), ns, this.getLabel() ).name;
+
+};
 
 export { TempNode };

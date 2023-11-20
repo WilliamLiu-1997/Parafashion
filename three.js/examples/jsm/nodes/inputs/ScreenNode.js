@@ -1,28 +1,26 @@
 import { InputNode } from '../core/InputNode.js';
 import { TextureNode } from './TextureNode.js';
 
-class ScreenNode extends TextureNode {
+function ScreenNode( uv ) {
 
-	constructor( uv ) {
-
-		super( undefined, uv );
-
-	}
-
-	getUnique() {
-
-		return true;
-
-	}
-
-	getTexture( builder, output ) {
-
-		return InputNode.prototype.generate.call( this, builder, output, this.getUuid(), 't', 'renderTexture' );
-
-	}
+	TextureNode.call( this, undefined, uv );
 
 }
 
+ScreenNode.prototype = Object.create( TextureNode.prototype );
+ScreenNode.prototype.constructor = ScreenNode;
 ScreenNode.prototype.nodeType = 'Screen';
+
+ScreenNode.prototype.getUnique = function () {
+
+	return true;
+
+};
+
+ScreenNode.prototype.getTexture = function ( builder, output ) {
+
+	return InputNode.prototype.generate.call( this, builder, output, this.getUuid(), 't', 'renderTexture' );
+
+};
 
 export { ScreenNode };

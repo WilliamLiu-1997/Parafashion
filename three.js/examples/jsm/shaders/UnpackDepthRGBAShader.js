@@ -3,7 +3,7 @@
  * - show RGBA encoded depth as monochrome color
  */
 
-const UnpackDepthRGBAShader = {
+var UnpackDepthRGBAShader = {
 
 	uniforms: {
 
@@ -12,33 +12,37 @@ const UnpackDepthRGBAShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	vUv = uv;',
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		uniform float opacity;
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse;
+		'uniform float opacity;',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
 
-		#include <packing>
+		'varying vec2 vUv;',
 
-		void main() {
+		'#include <packing>',
 
-			float depth = 1.0 - unpackRGBAToDepth( texture2D( tDiffuse, vUv ) );
-			gl_FragColor = vec4( vec3( depth ), opacity );
+		'void main() {',
 
-		}`
+		'	float depth = 1.0 - unpackRGBAToDepth( texture2D( tDiffuse, vUv ) );',
+		'	gl_FragColor = vec4( vec3( depth ), opacity );',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

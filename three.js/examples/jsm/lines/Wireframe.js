@@ -7,50 +7,57 @@ import {
 import { LineSegmentsGeometry } from '../lines/LineSegmentsGeometry.js';
 import { LineMaterial } from '../lines/LineMaterial.js';
 
-const _start = new Vector3();
-const _end = new Vector3();
+var Wireframe = function ( geometry, material ) {
 
-class Wireframe extends Mesh {
+	Mesh.call( this );
 
-	constructor( geometry = new LineSegmentsGeometry(), material = new LineMaterial( { color: Math.random() * 0xffffff } ) ) {
+	this.type = 'Wireframe';
 
-		super( geometry, material );
+	this.geometry = geometry !== undefined ? geometry : new LineSegmentsGeometry();
+	this.material = material !== undefined ? material : new LineMaterial( { color: Math.random() * 0xffffff } );
 
-		this.type = 'Wireframe';
+};
 
-	}
+Wireframe.prototype = Object.assign( Object.create( Mesh.prototype ), {
 
-	// for backwards-compatability, but could be a method of LineSegmentsGeometry...
+	constructor: Wireframe,
 
-	computeLineDistances() {
+	isWireframe: true,
 
-		const geometry = this.geometry;
+	computeLineDistances: ( function () { // for backwards-compatability, but could be a method of LineSegmentsGeometry...
 
-		const instanceStart = geometry.attributes.instanceStart;
-		const instanceEnd = geometry.attributes.instanceEnd;
-		const lineDistances = new Float32Array( 2 * instanceStart.count );
+		var start = new Vector3();
+		var end = new Vector3();
 
-		for ( let i = 0, j = 0, l = instanceStart.count; i < l; i ++, j += 2 ) {
+		return function computeLineDistances() {
 
-			_start.fromBufferAttribute( instanceStart, i );
-			_end.fromBufferAttribute( instanceEnd, i );
+			var geometry = this.geometry;
 
-			lineDistances[ j ] = ( j === 0 ) ? 0 : lineDistances[ j - 1 ];
-			lineDistances[ j + 1 ] = lineDistances[ j ] + _start.distanceTo( _end );
+			var instanceStart = geometry.attributes.instanceStart;
+			var instanceEnd = geometry.attributes.instanceEnd;
+			var lineDistances = new Float32Array( 2 * instanceStart.data.count );
 
-		}
+			for ( var i = 0, j = 0, l = instanceStart.data.count; i < l; i ++, j += 2 ) {
 
-		const instanceDistanceBuffer = new InstancedInterleavedBuffer( lineDistances, 2, 1 ); // d0, d1
+				start.fromBufferAttribute( instanceStart, i );
+				end.fromBufferAttribute( instanceEnd, i );
 
-		geometry.setAttribute( 'instanceDistanceStart', new InterleavedBufferAttribute( instanceDistanceBuffer, 1, 0 ) ); // d0
-		geometry.setAttribute( 'instanceDistanceEnd', new InterleavedBufferAttribute( instanceDistanceBuffer, 1, 1 ) ); // d1
+				lineDistances[ j ] = ( j === 0 ) ? 0 : lineDistances[ j - 1 ];
+				lineDistances[ j + 1 ] = lineDistances[ j ] + start.distanceTo( end );
 
-		return this;
+			}
 
-	}
+			var instanceDistanceBuffer = new InstancedInterleavedBuffer( lineDistances, 2, 1 ); // d0, d1
 
-}
+			geometry.setAttribute( 'instanceDistanceStart', new InterleavedBufferAttribute( instanceDistanceBuffer, 1, 0 ) ); // d0
+			geometry.setAttribute( 'instanceDistanceEnd', new InterleavedBufferAttribute( instanceDistanceBuffer, 1, 1 ) ); // d1
 
-Wireframe.prototype.isWireframe = true;
+			return this;
+
+		};
+
+	}() )
+
+} );
 
 export { Wireframe };

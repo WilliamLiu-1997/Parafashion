@@ -10,98 +10,97 @@ import {
 import { MD2Loader } from '../loaders/MD2Loader.js';
 import { MorphBlendMesh } from '../misc/MorphBlendMesh.js';
 
-class MD2CharacterComplex {
+var MD2CharacterComplex = function () {
 
-	constructor() {
+	var scope = this;
 
-		this.scale = 1;
+	this.scale = 1;
 
-		// animation parameters
+	// animation parameters
 
-		this.animationFPS = 6;
-		this.transitionFrames = 15;
+	this.animationFPS = 6;
+	this.transitionFrames = 15;
 
-		// movement model parameters
+	// movement model parameters
 
-		this.maxSpeed = 275;
-		this.maxReverseSpeed = - 275;
+	this.maxSpeed = 275;
+	this.maxReverseSpeed = - 275;
 
-		this.frontAcceleration = 600;
-		this.backAcceleration = 600;
+	this.frontAcceleration = 600;
+	this.backAcceleration = 600;
 
-		this.frontDecceleration = 600;
+	this.frontDecceleration = 600;
 
-		this.angularSpeed = 2.5;
+	this.angularSpeed = 2.5;
 
-		// rig
+	// rig
 
-		this.root = new Object3D();
+	this.root = new Object3D();
 
-		this.meshBody = null;
-		this.meshWeapon = null;
+	this.meshBody = null;
+	this.meshWeapon = null;
 
-		this.controls = null;
+	this.controls = null;
 
-		// skins
+	// skins
 
-		this.skinsBody = [];
-		this.skinsWeapon = [];
+	this.skinsBody = [];
+	this.skinsWeapon = [];
 
-		this.weapons = [];
+	this.weapons = [];
 
-		this.currentSkin = undefined;
+	this.currentSkin = undefined;
 
-		//
+	//
 
-		this.onLoadComplete = function () {};
+	this.onLoadComplete = function () {};
 
-		// internals
+	// internals
 
-		this.meshes = [];
-		this.animations = {};
+	this.meshes = [];
+	this.animations = {};
 
-		this.loadCounter = 0;
+	this.loadCounter = 0;
 
-		// internal movement control variables
+	// internal movement control variables
 
-		this.speed = 0;
-		this.bodyOrientation = 0;
+	this.speed = 0;
+	this.bodyOrientation = 0;
 
-		this.walkSpeed = this.maxSpeed;
-		this.crouchSpeed = this.maxSpeed * 0.5;
+	this.walkSpeed = this.maxSpeed;
+	this.crouchSpeed = this.maxSpeed * 0.5;
 
-		// internal animation parameters
+	// internal animation parameters
 
-		this.activeAnimation = null;
-		this.oldAnimation = null;
+	this.activeAnimation = null;
+	this.oldAnimation = null;
 
-		// API
+	// API
 
-	}
+	this.enableShadows = function ( enable ) {
 
-	enableShadows( enable ) {
-
-		for ( let i = 0; i < this.meshes.length; i ++ ) {
+		for ( var i = 0; i < this.meshes.length; i ++ ) {
 
 			this.meshes[ i ].castShadow = enable;
 			this.meshes[ i ].receiveShadow = enable;
 
 		}
 
-	}
+	};
 
-	setVisible( enable ) {
+	this.setVisible = function ( enable ) {
 
-		for ( let i = 0; i < this.meshes.length; i ++ ) {
+		for ( var i = 0; i < this.meshes.length; i ++ ) {
 
 			this.meshes[ i ].visible = enable;
 			this.meshes[ i ].visible = enable;
 
 		}
 
-	}
+	};
 
-	shareParts( original ) {
+
+	this.shareParts = function ( original ) {
 
 		this.animations = original.animations;
 		this.walkSpeed = original.walkSpeed;
@@ -112,7 +111,7 @@ class MD2CharacterComplex {
 
 		// BODY
 
-		const mesh = this._createPart( original.meshBody.geometry, this.skinsBody[ 0 ] );
+		var mesh = createPart( original.meshBody.geometry, this.skinsBody[ 0 ] );
 		mesh.scale.set( this.scale, this.scale, this.scale );
 
 		this.root.position.y = original.root.position.y;
@@ -124,9 +123,9 @@ class MD2CharacterComplex {
 
 		// WEAPONS
 
-		for ( let i = 0; i < original.weapons.length; i ++ ) {
+		for ( var i = 0; i < original.weapons.length; i ++ ) {
 
-			const meshWeapon = this._createPart( original.weapons[ i ].geometry, this.skinsWeapon[ i ] );
+			var meshWeapon = createPart( original.weapons[ i ].geometry, this.skinsWeapon[ i ] );
 			meshWeapon.scale.set( this.scale, this.scale, this.scale );
 			meshWeapon.visible = false;
 
@@ -141,36 +140,9 @@ class MD2CharacterComplex {
 
 		}
 
-	}
+	};
 
-	loadParts( config ) {
-
-		const scope = this;
-
-		function loadTextures( baseUrl, textureUrls ) {
-
-			const textureLoader = new TextureLoader();
-			const textures = [];
-
-			for ( let i = 0; i < textureUrls.length; i ++ ) {
-
-				textures[ i ] = textureLoader.load( baseUrl + textureUrls[ i ], checkLoadingComplete );
-				textures[ i ].mapping = UVMapping;
-				textures[ i ].name = textureUrls[ i ];
-				textures[ i ].encoding = sRGBEncoding;
-
-			}
-
-			return textures;
-
-		}
-
-		function checkLoadingComplete() {
-
-			scope.loadCounter -= 1;
-			if ( scope.loadCounter === 0 ) 	scope.onLoadComplete();
-
-		}
+	this.loadParts = function ( config ) {
 
 		this.animations = config.animations;
 		this.walkSpeed = config.walkSpeed;
@@ -178,8 +150,8 @@ class MD2CharacterComplex {
 
 		this.loadCounter = config.weapons.length * 2 + config.skins.length + 1;
 
-		const weaponsTextures = [];
-		for ( let i = 0; i < config.weapons.length; i ++ ) weaponsTextures[ i ] = config.weapons[ i ][ 1 ];
+		var weaponsTextures = [];
+		for ( var i = 0; i < config.weapons.length; i ++ ) weaponsTextures[ i ] = config.weapons[ i ][ 1 ];
 
 		// SKINS
 
@@ -188,16 +160,16 @@ class MD2CharacterComplex {
 
 		// BODY
 
-		const loader = new MD2Loader();
+		var loader = new MD2Loader();
 
 		loader.load( config.baseUrl + config.body, function ( geo ) {
 
-			const boundingBox = new Box3();
+			var boundingBox = new Box3();
 			boundingBox.setFromBufferAttribute( geo.attributes.position );
 
 			scope.root.position.y = - scope.scale * boundingBox.min.y;
 
-			const mesh = scope._createPart( geo, scope.skinsBody[ 0 ] );
+			var mesh = createPart( geo, scope.skinsBody[ 0 ] );
 			mesh.scale.set( scope.scale, scope.scale, scope.scale );
 
 			scope.root.add( mesh );
@@ -211,11 +183,11 @@ class MD2CharacterComplex {
 
 		// WEAPONS
 
-		const generateCallback = function ( index, name ) {
+		var generateCallback = function ( index, name ) {
 
 			return function ( geo ) {
 
-				const mesh = scope._createPart( geo, scope.skinsWeapon[ index ] );
+				var mesh = createPart( geo, scope.skinsWeapon[ index ] );
 				mesh.scale.set( scope.scale, scope.scale, scope.scale );
 				mesh.visible = false;
 
@@ -233,22 +205,22 @@ class MD2CharacterComplex {
 
 		};
 
-		for ( let i = 0; i < config.weapons.length; i ++ ) {
+		for ( var i = 0; i < config.weapons.length; i ++ ) {
 
 			loader.load( config.baseUrl + config.weapons[ i ][ 0 ], generateCallback( i, config.weapons[ i ][ 0 ] ) );
 
 		}
 
-	}
+	};
 
-	setPlaybackRate( rate ) {
+	this.setPlaybackRate = function ( rate ) {
 
 		if ( this.meshBody ) this.meshBody.duration = this.meshBody.baseDuration / rate;
 		if ( this.meshWeapon ) this.meshWeapon.duration = this.meshWeapon.baseDuration / rate;
 
-	}
+	};
 
-	setWireframe( wireframeEnabled ) {
+	this.setWireframe = function ( wireframeEnabled ) {
 
 		if ( wireframeEnabled ) {
 
@@ -262,9 +234,9 @@ class MD2CharacterComplex {
 
 		}
 
-	}
+	};
 
-	setSkin( index ) {
+	this.setSkin = function ( index ) {
 
 		if ( this.meshBody && this.meshBody.material.wireframe === false ) {
 
@@ -273,13 +245,13 @@ class MD2CharacterComplex {
 
 		}
 
-	}
+	};
 
-	setWeapon( index ) {
+	this.setWeapon = function ( index ) {
 
-		for ( let i = 0; i < this.weapons.length; i ++ ) this.weapons[ i ].visible = false;
+		for ( var i = 0; i < this.weapons.length; i ++ ) this.weapons[ i ].visible = false;
 
-		const activeWeapon = this.weapons[ index ];
+		var activeWeapon = this.weapons[ index ];
 
 		if ( activeWeapon ) {
 
@@ -295,9 +267,9 @@ class MD2CharacterComplex {
 
 		}
 
-	}
+	};
 
-	setAnimation( animationName ) {
+	this.setAnimation = function ( animationName ) {
 
 		if ( animationName === this.activeAnimation || ! animationName ) return;
 
@@ -321,9 +293,9 @@ class MD2CharacterComplex {
 		}
 
 
-	}
+	};
 
-	update( delta ) {
+	this.update = function ( delta ) {
 
 		if ( this.controls ) this.updateMovementModel( delta );
 
@@ -334,11 +306,11 @@ class MD2CharacterComplex {
 
 		}
 
-	}
+	};
 
-	updateAnimations( delta ) {
+	this.updateAnimations = function ( delta ) {
 
-		let mix = 1;
+		var mix = 1;
 
 		if ( this.blendCounter > 0 ) {
 
@@ -365,14 +337,14 @@ class MD2CharacterComplex {
 
 		}
 
-	}
+	};
 
-	updateBehaviors() {
+	this.updateBehaviors = function () {
 
-		const controls = this.controls;
-		const animations = this.animations;
+		var controls = this.controls;
+		var animations = this.animations;
 
-		let moveAnimation, idleAnimation;
+		var moveAnimation, idleAnimation;
 
 		// crouch vs stand
 
@@ -474,17 +446,11 @@ class MD2CharacterComplex {
 
 		}
 
-	}
+	};
 
-	updateMovementModel( delta ) {
+	this.updateMovementModel = function ( delta ) {
 
-		function exponentialEaseOut( k ) {
-
-			return k === 1 ? 1 : - Math.pow( 2, - 10 * k ) + 1;
-
-		}
-
-		const controls = this.controls;
+		var controls = this.controls;
 
 		// speed based on controls
 
@@ -499,7 +465,7 @@ class MD2CharacterComplex {
 		// orientation based on controls
 		// (don't just stand while turning)
 
-		const dir = 1;
+		var dir = 1;
 
 		if ( controls.moveLeft ) {
 
@@ -521,12 +487,12 @@ class MD2CharacterComplex {
 
 			if ( this.speed > 0 ) {
 
-				const k = exponentialEaseOut( this.speed / this.maxSpeed );
+				var k = exponentialEaseOut( this.speed / this.maxSpeed );
 				this.speed = MathUtils.clamp( this.speed - k * delta * this.frontDecceleration, 0, this.maxSpeed );
 
 			} else {
 
-				const k = exponentialEaseOut( this.speed / this.maxReverseSpeed );
+				var k = exponentialEaseOut( this.speed / this.maxReverseSpeed );
 				this.speed = MathUtils.clamp( this.speed + k * delta * this.backAcceleration, this.maxReverseSpeed, 0 );
 
 			}
@@ -535,7 +501,7 @@ class MD2CharacterComplex {
 
 		// displacement
 
-		const forwardDelta = this.speed * delta;
+		var forwardDelta = this.speed * delta;
 
 		this.root.position.x += Math.sin( this.bodyOrientation ) * forwardDelta;
 		this.root.position.z += Math.cos( this.bodyOrientation ) * forwardDelta;
@@ -544,18 +510,36 @@ class MD2CharacterComplex {
 
 		this.root.rotation.y = this.bodyOrientation;
 
+	};
+
+	// internal helpers
+
+	function loadTextures( baseUrl, textureUrls ) {
+
+		var textureLoader = new TextureLoader();
+		var textures = [];
+
+		for ( var i = 0; i < textureUrls.length; i ++ ) {
+
+			textures[ i ] = textureLoader.load( baseUrl + textureUrls[ i ], checkLoadingComplete );
+			textures[ i ].mapping = UVMapping;
+			textures[ i ].name = textureUrls[ i ];
+			textures[ i ].encoding = sRGBEncoding;
+
+		}
+
+		return textures;
+
 	}
 
-	// internal
+	function createPart( geometry, skinMap ) {
 
-	_createPart( geometry, skinMap ) {
-
-		const materialWireframe = new MeshLambertMaterial( { color: 0xffaa00, wireframe: true } );
-		const materialTexture = new MeshLambertMaterial( { color: 0xffffff, wireframe: false, map: skinMap } );
+		var materialWireframe = new MeshLambertMaterial( { color: 0xffaa00, wireframe: true, morphTargets: true, morphNormals: true } );
+		var materialTexture = new MeshLambertMaterial( { color: 0xffffff, wireframe: false, map: skinMap, morphTargets: true, morphNormals: true } );
 
 		//
 
-		const mesh = new MorphBlendMesh( geometry, materialTexture );
+		var mesh = new MorphBlendMesh( geometry, materialTexture );
 		mesh.rotation.y = - Math.PI / 2;
 
 		//
@@ -565,12 +549,25 @@ class MD2CharacterComplex {
 
 		//
 
-		mesh.autoCreateAnimations( this.animationFPS );
+		mesh.autoCreateAnimations( scope.animationFPS );
 
 		return mesh;
 
 	}
 
-}
+	function checkLoadingComplete() {
+
+		scope.loadCounter -= 1;
+		if ( scope.loadCounter === 0 ) 	scope.onLoadComplete();
+
+	}
+
+	function exponentialEaseOut( k ) {
+
+		return k === 1 ? 1 : - Math.pow( 2, - 10 * k ) + 1;
+
+	}
+
+};
 
 export { MD2CharacterComplex };

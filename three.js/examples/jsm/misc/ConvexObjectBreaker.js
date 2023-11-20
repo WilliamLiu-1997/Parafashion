@@ -35,40 +35,40 @@ import { ConvexGeometry } from '../geometries/ConvexGeometry.js';
  *
 */
 
-const _v1 = new Vector3();
+var ConvexObjectBreaker = function ( minSizeForBreak, smallDelta ) {
 
-class ConvexObjectBreaker {
+	this.minSizeForBreak = minSizeForBreak || 1.4;
+	this.smallDelta = smallDelta || 0.0001;
 
-	constructor( minSizeForBreak = 1.4, smallDelta = 0.0001 ) {
+	this.tempLine1 = new Line3();
+	this.tempPlane1 = new Plane();
+	this.tempPlane2 = new Plane();
+	this.tempPlane_Cut = new Plane();
+	this.tempCM1 = new Vector3();
+	this.tempCM2 = new Vector3();
+	this.tempVector3 = new Vector3();
+	this.tempVector3_2 = new Vector3();
+	this.tempVector3_3 = new Vector3();
+	this.tempVector3_P0 = new Vector3();
+	this.tempVector3_P1 = new Vector3();
+	this.tempVector3_P2 = new Vector3();
+	this.tempVector3_N0 = new Vector3();
+	this.tempVector3_N1 = new Vector3();
+	this.tempVector3_AB = new Vector3();
+	this.tempVector3_CB = new Vector3();
+	this.tempResultObjects = { object1: null, object2: null };
 
-		this.minSizeForBreak = minSizeForBreak;
-		this.smallDelta = smallDelta;
+	this.segments = [];
+	var n = 30 * 30;
+	for ( var i = 0; i < n; i ++ ) this.segments[ i ] = false;
 
-		this.tempLine1 = new Line3();
-		this.tempPlane1 = new Plane();
-		this.tempPlane2 = new Plane();
-		this.tempPlane_Cut = new Plane();
-		this.tempCM1 = new Vector3();
-		this.tempCM2 = new Vector3();
-		this.tempVector3 = new Vector3();
-		this.tempVector3_2 = new Vector3();
-		this.tempVector3_3 = new Vector3();
-		this.tempVector3_P0 = new Vector3();
-		this.tempVector3_P1 = new Vector3();
-		this.tempVector3_P2 = new Vector3();
-		this.tempVector3_N0 = new Vector3();
-		this.tempVector3_N1 = new Vector3();
-		this.tempVector3_AB = new Vector3();
-		this.tempVector3_CB = new Vector3();
-		this.tempResultObjects = { object1: null, object2: null };
+};
 
-		this.segments = [];
-		const n = 30 * 30;
-		for ( let i = 0; i < n; i ++ ) this.segments[ i ] = false;
+ConvexObjectBreaker.prototype = {
 
-	}
+	constructor: ConvexObjectBreaker,
 
-	prepareBreakableObject( object, mass, velocity, angularVelocity, breakable ) {
+	prepareBreakableObject: function ( object, mass, velocity, angularVelocity, breakable ) {
 
 		// object is a Object3d (normally a Mesh), must have a BufferGeometry, and it must be convex.
 		// Its material property is propagated to its children (sub-pieces)
@@ -80,13 +80,13 @@ class ConvexObjectBreaker {
 
 		}
 
-		const userData = object.userData;
+		var userData = object.userData;
 		userData.mass = mass;
 		userData.velocity = velocity.clone();
 		userData.angularVelocity = angularVelocity.clone();
 		userData.breakable = breakable;
 
-	}
+	},
 
 	/*
 	 * @param {int} maxRadialIterations Iterations for radial cuts.
@@ -94,19 +94,19 @@ class ConvexObjectBreaker {
 	 *
 	 * Returns the array of pieces
 	 */
-	subdivideByImpact( object, pointOfImpact, normal, maxRadialIterations, maxRandomIterations ) {
+	subdivideByImpact: function ( object, pointOfImpact, normal, maxRadialIterations, maxRandomIterations ) {
 
-		const debris = [];
+		var debris = [];
 
-		const tempPlane1 = this.tempPlane1;
-		const tempPlane2 = this.tempPlane2;
+		var tempPlane1 = this.tempPlane1;
+		var tempPlane2 = this.tempPlane2;
 
 		this.tempVector3.addVectors( pointOfImpact, normal );
 		tempPlane1.setFromCoplanarPoints( pointOfImpact, object.position, this.tempVector3 );
 
-		const maxTotalIterations = maxRandomIterations + maxRadialIterations;
+		var maxTotalIterations = maxRandomIterations + maxRadialIterations;
 
-		const scope = this;
+		var scope = this;
 
 		function subdivideRadial( subObject, startAngle, endAngle, numIterations ) {
 
@@ -118,7 +118,7 @@ class ConvexObjectBreaker {
 
 			}
 
-			let angle = Math.PI;
+			var angle = Math.PI;
 
 			if ( numIterations === 0 ) {
 
@@ -151,8 +151,8 @@ class ConvexObjectBreaker {
 			// Perform the cut
 			scope.cutByPlane( subObject, tempPlane2, scope.tempResultObjects );
 
-			const obj1 = scope.tempResultObjects.object1;
-			const obj2 = scope.tempResultObjects.object2;
+			var obj1 = scope.tempResultObjects.object1;
+			var obj2 = scope.tempResultObjects.object2;
 
 			if ( obj1 ) {
 
@@ -172,23 +172,23 @@ class ConvexObjectBreaker {
 
 		return debris;
 
-	}
+	},
 
-	cutByPlane( object, plane, output ) {
+	cutByPlane: function ( object, plane, output ) {
 
 		// Returns breakable objects in output.object1 and output.object2 members, the resulting 2 pieces of the cut.
 		// object2 can be null if the plane doesn't cut the object.
 		// object1 can be null only in case of internal error
 		// Returned value is number of pieces, 0 for error.
 
-		const geometry = object.geometry;
-		const coords = geometry.attributes.position.array;
-		const normals = geometry.attributes.normal.array;
+		var geometry = object.geometry;
+		var coords = geometry.attributes.position.array;
+		var normals = geometry.attributes.normal.array;
 
-		const numPoints = coords.length / 3;
-		let numFaces = numPoints / 3;
+		var numPoints = coords.length / 3;
+		var numFaces = numPoints / 3;
 
-		let indices = geometry.getIndex();
+		var indices = geometry.getIndex();
 
 		if ( indices ) {
 
@@ -201,46 +201,46 @@ class ConvexObjectBreaker {
 
 			// vert = 0, 1 or 2.
 
-			const idx = faceIdx * 3 + vert;
+			var idx = faceIdx * 3 + vert;
 
 			return indices ? indices[ idx ] : idx;
 
 		}
 
-		const points1 = [];
-		const points2 = [];
+		var points1 = [];
+		var points2 = [];
 
-		const delta = this.smallDelta;
+		var delta = this.smallDelta;
 
 		// Reset segments mark
-		const numPointPairs = numPoints * numPoints;
-		for ( let i = 0; i < numPointPairs; i ++ ) this.segments[ i ] = false;
+		var numPointPairs = numPoints * numPoints;
+		for ( var i = 0; i < numPointPairs; i ++ ) this.segments[ i ] = false;
 
-		const p0 = this.tempVector3_P0;
-		const p1 = this.tempVector3_P1;
-		const n0 = this.tempVector3_N0;
-		const n1 = this.tempVector3_N1;
+		var p0 = this.tempVector3_P0;
+		var p1 = this.tempVector3_P1;
+		var n0 = this.tempVector3_N0;
+		var n1 = this.tempVector3_N1;
 
 		// Iterate through the faces to mark edges shared by coplanar faces
-		for ( let i = 0; i < numFaces - 1; i ++ ) {
+		for ( var i = 0; i < numFaces - 1; i ++ ) {
 
-			const a1 = getVertexIndex( i, 0 );
-			const b1 = getVertexIndex( i, 1 );
-			const c1 = getVertexIndex( i, 2 );
+			var a1 = getVertexIndex( i, 0 );
+			var b1 = getVertexIndex( i, 1 );
+			var c1 = getVertexIndex( i, 2 );
 
 			// Assuming all 3 vertices have the same normal
 			n0.set( normals[ a1 ], normals[ a1 ] + 1, normals[ a1 ] + 2 );
 
-			for ( let j = i + 1; j < numFaces; j ++ ) {
+			for ( var j = i + 1; j < numFaces; j ++ ) {
 
-				const a2 = getVertexIndex( j, 0 );
-				const b2 = getVertexIndex( j, 1 );
-				const c2 = getVertexIndex( j, 2 );
+				var a2 = getVertexIndex( j, 0 );
+				var b2 = getVertexIndex( j, 1 );
+				var c2 = getVertexIndex( j, 2 );
 
 				// Assuming all 3 vertices have the same normal
 				n1.set( normals[ a2 ], normals[ a2 ] + 1, normals[ a2 ] + 2 );
 
-				const coplanar = 1 - n0.dot( n1 ) < delta;
+				var coplanar = 1 - n0.dot( n1 ) < delta;
 
 				if ( coplanar ) {
 
@@ -272,23 +272,23 @@ class ConvexObjectBreaker {
 		}
 
 		// Transform the plane to object local space
-		const localPlane = this.tempPlane_Cut;
+		var localPlane = this.tempPlane_Cut;
 		object.updateMatrix();
 		ConvexObjectBreaker.transformPlaneToLocalSpace( plane, object.matrix, localPlane );
 
 		// Iterate through the faces adding points to both pieces
-		for ( let i = 0; i < numFaces; i ++ ) {
+		for ( var i = 0; i < numFaces; i ++ ) {
 
-			const va = getVertexIndex( i, 0 );
-			const vb = getVertexIndex( i, 1 );
-			const vc = getVertexIndex( i, 2 );
+			var va = getVertexIndex( i, 0 );
+			var vb = getVertexIndex( i, 1 );
+			var vc = getVertexIndex( i, 2 );
 
-			for ( let segment = 0; segment < 3; segment ++ ) {
+			for ( var segment = 0; segment < 3; segment ++ ) {
 
-				const i0 = segment === 0 ? va : ( segment === 1 ? vb : vc );
-				const i1 = segment === 0 ? vb : ( segment === 1 ? vc : va );
+				var i0 = segment === 0 ? va : ( segment === 1 ? vb : vc );
+				var i1 = segment === 0 ? vb : ( segment === 1 ? vc : va );
 
-				const segmentState = this.segments[ i0 * numPoints + i1 ];
+				var segmentState = this.segments[ i0 * numPoints + i1 ];
 
 				if ( segmentState ) continue; // The segment already has been processed in another face
 
@@ -300,9 +300,9 @@ class ConvexObjectBreaker {
 				p1.set( coords[ 3 * i1 ], coords[ 3 * i1 + 1 ], coords[ 3 * i1 + 2 ] );
 
 				// mark: 1 for negative side, 2 for positive side, 3 for coplanar point
-				let mark0 = 0;
+				var mark0 = 0;
 
-				let d = localPlane.distanceToPoint( p0 );
+				var d = localPlane.distanceToPoint( p0 );
 
 				if ( d > delta ) {
 
@@ -323,9 +323,9 @@ class ConvexObjectBreaker {
 				}
 
 				// mark: 1 for negative side, 2 for positive side, 3 for coplanar point
-				let mark1 = 0;
+				var mark1 = 0;
 
-				d = localPlane.distanceToPoint( p1 );
+				var d = localPlane.distanceToPoint( p1 );
 
 				if ( d > delta ) {
 
@@ -352,10 +352,10 @@ class ConvexObjectBreaker {
 					this.tempLine1.start.copy( p0 );
 					this.tempLine1.end.copy( p1 );
 
-					let intersection = new Vector3();
+					var intersection = new Vector3();
 					intersection = localPlane.intersectLine( this.tempLine1, intersection );
 
-					if ( intersection === null ) {
+					if ( intersection === undefined ) {
 
 						// Shouldn't happen
 						console.error( 'Internal error: segment does not intersect plane.' );
@@ -375,21 +375,21 @@ class ConvexObjectBreaker {
 		}
 
 		// Calculate debris mass (very fast and imprecise):
-		const newMass = object.userData.mass * 0.5;
+		var newMass = object.userData.mass * 0.5;
 
 		// Calculate debris Center of Mass (again fast and imprecise)
 		this.tempCM1.set( 0, 0, 0 );
-		let radius1 = 0;
-		const numPoints1 = points1.length;
+		var radius1 = 0;
+		var numPoints1 = points1.length;
 
 		if ( numPoints1 > 0 ) {
 
-			for ( let i = 0; i < numPoints1; i ++ ) this.tempCM1.add( points1[ i ] );
+			for ( var i = 0; i < numPoints1; i ++ ) this.tempCM1.add( points1[ i ] );
 
 			this.tempCM1.divideScalar( numPoints1 );
-			for ( let i = 0; i < numPoints1; i ++ ) {
+			for ( var i = 0; i < numPoints1; i ++ ) {
 
-				const p = points1[ i ];
+				var p = points1[ i ];
 				p.sub( this.tempCM1 );
 				radius1 = Math.max( radius1, p.x, p.y, p.z );
 
@@ -400,16 +400,16 @@ class ConvexObjectBreaker {
 		}
 
 		this.tempCM2.set( 0, 0, 0 );
-		let radius2 = 0;
-		const numPoints2 = points2.length;
+		var radius2 = 0;
+		var numPoints2 = points2.length;
 		if ( numPoints2 > 0 ) {
 
-			for ( let i = 0; i < numPoints2; i ++ ) this.tempCM2.add( points2[ i ] );
+			for ( var i = 0; i < numPoints2; i ++ ) this.tempCM2.add( points2[ i ] );
 
 			this.tempCM2.divideScalar( numPoints2 );
-			for ( let i = 0; i < numPoints2; i ++ ) {
+			for ( var i = 0; i < numPoints2; i ++ ) {
 
-				const p = points2[ i ];
+				var p = points2[ i ];
 				p.sub( this.tempCM2 );
 				radius2 = Math.max( radius2, p.x, p.y, p.z );
 
@@ -419,10 +419,10 @@ class ConvexObjectBreaker {
 
 		}
 
-		let object1 = null;
-		let object2 = null;
+		var object1 = null;
+		var object2 = null;
 
-		let numObjects = 0;
+		var numObjects = 0;
 
 		if ( numPoints1 > 4 ) {
 
@@ -455,71 +455,78 @@ class ConvexObjectBreaker {
 
 	}
 
-	static transformFreeVector( v, m ) {
+};
 
-		// input:
-		// vector interpreted as a free vector
-		// THREE.Matrix4 orthogonal matrix (matrix without scale)
+ConvexObjectBreaker.transformFreeVector = function ( v, m ) {
 
-		const x = v.x, y = v.y, z = v.z;
-		const e = m.elements;
+	// input:
+	// vector interpreted as a free vector
+	// THREE.Matrix4 orthogonal matrix (matrix without scale)
 
-		v.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z;
-		v.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z;
-		v.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
+	var x = v.x, y = v.y, z = v.z;
+	var e = m.elements;
 
-		return v;
+	v.x = e[ 0 ] * x + e[ 4 ] * y + e[ 8 ] * z;
+	v.y = e[ 1 ] * x + e[ 5 ] * y + e[ 9 ] * z;
+	v.z = e[ 2 ] * x + e[ 6 ] * y + e[ 10 ] * z;
 
-	}
+	return v;
 
-	static transformFreeVectorInverse( v, m ) {
+};
 
-		// input:
-		// vector interpreted as a free vector
-		// THREE.Matrix4 orthogonal matrix (matrix without scale)
+ConvexObjectBreaker.transformFreeVectorInverse = function ( v, m ) {
 
-		const x = v.x, y = v.y, z = v.z;
-		const e = m.elements;
+	// input:
+	// vector interpreted as a free vector
+	// THREE.Matrix4 orthogonal matrix (matrix without scale)
 
-		v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
-		v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z;
-		v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z;
+	var x = v.x, y = v.y, z = v.z;
+	var e = m.elements;
 
-		return v;
+	v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z;
+	v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z;
+	v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z;
 
-	}
+	return v;
 
-	static transformTiedVectorInverse( v, m ) {
+};
 
-		// input:
-		// vector interpreted as a tied (ordinary) vector
-		// THREE.Matrix4 orthogonal matrix (matrix without scale)
+ConvexObjectBreaker.transformTiedVectorInverse = function ( v, m ) {
 
-		const x = v.x, y = v.y, z = v.z;
-		const e = m.elements;
+	// input:
+	// vector interpreted as a tied (ordinary) vector
+	// THREE.Matrix4 orthogonal matrix (matrix without scale)
 
-		v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z - e[ 12 ];
-		v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z - e[ 13 ];
-		v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z - e[ 14 ];
+	var x = v.x, y = v.y, z = v.z;
+	var e = m.elements;
 
-		return v;
+	v.x = e[ 0 ] * x + e[ 1 ] * y + e[ 2 ] * z - e[ 12 ];
+	v.y = e[ 4 ] * x + e[ 5 ] * y + e[ 6 ] * z - e[ 13 ];
+	v.z = e[ 8 ] * x + e[ 9 ] * y + e[ 10 ] * z - e[ 14 ];
 
-	}
+	return v;
 
-	static transformPlaneToLocalSpace( plane, m, resultPlane ) {
+};
+
+ConvexObjectBreaker.transformPlaneToLocalSpace = function () {
+
+	var v1 = new Vector3();
+
+	return function transformPlaneToLocalSpace( plane, m, resultPlane ) {
 
 		resultPlane.normal.copy( plane.normal );
 		resultPlane.constant = plane.constant;
 
-		const referencePoint = ConvexObjectBreaker.transformTiedVectorInverse( plane.coplanarPoint( _v1 ), m );
+		var referencePoint = ConvexObjectBreaker.transformTiedVectorInverse( plane.coplanarPoint( v1 ), m );
 
 		ConvexObjectBreaker.transformFreeVectorInverse( resultPlane.normal, m );
 
 		// recalculate constant (like in setFromNormalAndCoplanarPoint)
 		resultPlane.constant = - referencePoint.dot( resultPlane.normal );
 
-	}
 
-}
+	};
+
+}();
 
 export { ConvexObjectBreaker };

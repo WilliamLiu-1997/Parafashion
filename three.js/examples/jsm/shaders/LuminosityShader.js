@@ -3,7 +3,7 @@
  * http://en.wikipedia.org/wiki/Luminosity
  */
 
-const LuminosityShader = {
+var LuminosityShader = {
 
 	uniforms: {
 
@@ -11,35 +11,39 @@ const LuminosityShader = {
 
 	},
 
-	vertexShader: /* glsl */`
+	vertexShader: [
 
-		varying vec2 vUv;
+		'varying vec2 vUv;',
 
-		void main() {
+		'void main() {',
 
-			vUv = uv;
+		'	vUv = uv;',
 
-			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+		'	gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
 
-		}`,
+		'}'
 
-	fragmentShader: /* glsl */`
+	].join( '\n' ),
 
-		#include <common>
+	fragmentShader: [
 
-		uniform sampler2D tDiffuse;
+		'#include <common>',
 
-		varying vec2 vUv;
+		'uniform sampler2D tDiffuse;',
 
-		void main() {
+		'varying vec2 vUv;',
 
-			vec4 texel = texture2D( tDiffuse, vUv );
+		'void main() {',
 
-			float l = linearToRelativeLuminance( texel.rgb );
+		'	vec4 texel = texture2D( tDiffuse, vUv );',
 
-			gl_FragColor = vec4( l, l, l, texel.w );
+		'	float l = linearToRelativeLuminance( texel.rgb );',
 
-		}`
+		'	gl_FragColor = vec4( l, l, l, texel.w );',
+
+		'}'
+
+	].join( '\n' )
 
 };
 

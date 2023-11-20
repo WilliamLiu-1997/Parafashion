@@ -14,17 +14,13 @@
 
 /* global DracoEncoderModule */
 
-class DRACOExporter {
+var DRACOExporter = function () {};
 
-	parse( object, options = {
-		decodeSpeed: 5,
-		encodeSpeed: 5,
-		encoderMethod: DRACOExporter.MESH_EDGEBREAKER_ENCODING,
-		quantization: [ 16, 8, 8, 8, 8 ],
-		exportUvs: true,
-		exportNormals: true,
-		exportColor: false,
-	} ) {
+DRACOExporter.prototype = {
+
+	constructor: DRACOExporter,
+
+	parse: function ( object, options ) {
 
 		if ( object.isBufferGeometry === true ) {
 
@@ -34,16 +30,32 @@ class DRACOExporter {
 
 		if ( DracoEncoderModule === undefined ) {
 
-			throw new Error( 'THREE.DRACOExporter: required the draco_encoder to work.' );
+			throw new Error( 'THREE.DRACOExporter: required the draco_decoder to work.' );
 
 		}
 
-		const geometry = object.geometry;
+		if ( options === undefined ) {
 
-		const dracoEncoder = DracoEncoderModule();
-		const encoder = new dracoEncoder.Encoder();
-		let builder;
-		let dracoObject;
+			options = {
+
+				decodeSpeed: 5,
+				encodeSpeed: 5,
+				encoderMethod: DRACOExporter.MESH_EDGEBREAKER_ENCODING,
+				quantization: [ 16, 8, 8, 8, 8 ],
+				exportUvs: true,
+				exportNormals: true,
+				exportColor: false,
+
+			};
+
+		}
+
+		var geometry = object.geometry;
+
+		var dracoEncoder = DracoEncoderModule();
+		var encoder = new dracoEncoder.Encoder();
+		var builder;
+		var dracoObject;
 
 
 		if ( geometry.isBufferGeometry !== true ) {
@@ -57,10 +69,10 @@ class DRACOExporter {
 			builder = new dracoEncoder.MeshBuilder();
 			dracoObject = new dracoEncoder.Mesh();
 
-			const vertices = geometry.getAttribute( 'position' );
+			var vertices = geometry.getAttribute( 'position' );
 			builder.AddFloatAttributeToMesh( dracoObject, dracoEncoder.POSITION, vertices.count, vertices.itemSize, vertices.array );
 
-			const faces = geometry.getIndex();
+			var faces = geometry.getIndex();
 
 			if ( faces !== null ) {
 
@@ -68,9 +80,9 @@ class DRACOExporter {
 
 			} else {
 
-				const faces = new ( vertices.count > 65535 ? Uint32Array : Uint16Array )( vertices.count );
+				var faces = new ( vertices.count > 65535 ? Uint32Array : Uint16Array )( vertices.count );
 
-				for ( let i = 0; i < faces.length; i ++ ) {
+				for ( var i = 0; i < faces.length; i ++ ) {
 
 					faces[ i ] = i;
 
@@ -82,7 +94,7 @@ class DRACOExporter {
 
 			if ( options.exportNormals === true ) {
 
-				const normals = geometry.getAttribute( 'normal' );
+				var normals = geometry.getAttribute( 'normal' );
 
 				if ( normals !== undefined ) {
 
@@ -94,7 +106,7 @@ class DRACOExporter {
 
 			if ( options.exportUvs === true ) {
 
-				const uvs = geometry.getAttribute( 'uv' );
+				var uvs = geometry.getAttribute( 'uv' );
 
 				if ( uvs !== undefined ) {
 
@@ -106,7 +118,7 @@ class DRACOExporter {
 
 			if ( options.exportColor === true ) {
 
-				const colors = geometry.getAttribute( 'color' );
+				var colors = geometry.getAttribute( 'color' );
 
 				if ( colors !== undefined ) {
 
@@ -121,12 +133,12 @@ class DRACOExporter {
 			builder = new dracoEncoder.PointCloudBuilder();
 			dracoObject = new dracoEncoder.PointCloud();
 
-			const vertices = geometry.getAttribute( 'position' );
+			var vertices = geometry.getAttribute( 'position' );
 			builder.AddFloatAttribute( dracoObject, dracoEncoder.POSITION, vertices.count, vertices.itemSize, vertices.array );
 
 			if ( options.exportColor === true ) {
 
-				const colors = geometry.getAttribute( 'color' );
+				var colors = geometry.getAttribute( 'color' );
 
 				if ( colors !== undefined ) {
 
@@ -144,12 +156,12 @@ class DRACOExporter {
 
 		//Compress using draco encoder
 
-		const encodedData = new dracoEncoder.DracoInt8Array();
+		var encodedData = new dracoEncoder.DracoInt8Array();
 
 		//Sets the desired encoding and decoding speed for the given options from 0 (slowest speed, but the best compression) to 10 (fastest, but the worst compression).
 
-		const encodeSpeed = ( options.encodeSpeed !== undefined ) ? options.encodeSpeed : 5;
-		const decodeSpeed = ( options.decodeSpeed !== undefined ) ? options.decodeSpeed : 5;
+		var encodeSpeed = ( options.encodeSpeed !== undefined ) ? options.encodeSpeed : 5;
+		var decodeSpeed = ( options.decodeSpeed !== undefined ) ? options.decodeSpeed : 5;
 
 		encoder.SetSpeedOptions( encodeSpeed, decodeSpeed );
 
@@ -165,7 +177,7 @@ class DRACOExporter {
 		// The attribute values will be quantized in a box defined by the maximum extent of the attribute values.
 		if ( options.quantization !== undefined ) {
 
-			for ( let i = 0; i < 5; i ++ ) {
+			for ( var i = 0; i < 5; i ++ ) {
 
 				if ( options.quantization[ i ] !== undefined ) {
 
@@ -177,7 +189,7 @@ class DRACOExporter {
 
 		}
 
-		let length;
+		var length;
 
 		if ( object.isMesh === true ) {
 
@@ -198,9 +210,9 @@ class DRACOExporter {
 		}
 
 		//Copy encoded data to buffer.
-		const outputData = new Int8Array( new ArrayBuffer( length ) );
+		var outputData = new Int8Array( new ArrayBuffer( length ) );
 
-		for ( let i = 0; i < length; i ++ ) {
+		for ( var i = 0; i < length; i ++ ) {
 
 			outputData[ i ] = encodedData.GetValue( i );
 
@@ -214,7 +226,7 @@ class DRACOExporter {
 
 	}
 
-}
+};
 
 // Encoder methods
 

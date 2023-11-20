@@ -4,29 +4,35 @@ import {
 
 /**
  * Usage:
- *  const exporter = new STLExporter();
+ *  var exporter = new STLExporter();
  *
  *  // second argument is a list of options
- *  const data = exporter.parse( mesh, { binary: true } );
+ *  var data = exporter.parse( mesh, { binary: true } );
  *
  */
 
-class STLExporter {
+var STLExporter = function () {};
 
-	parse( scene, options = {} ) {
+STLExporter.prototype = {
 
-		const binary = options.binary !== undefined ? options.binary : false;
+	constructor: STLExporter,
+
+	parse: function ( scene, options ) {
+
+		if ( options === undefined ) options = {};
+
+		var binary = options.binary !== undefined ? options.binary : false;
 
 		//
 
-		const objects = [];
-		let triangles = 0;
+		var objects = [];
+		var triangles = 0;
 
 		scene.traverse( function ( object ) {
 
 			if ( object.isMesh ) {
 
-				const geometry = object.geometry;
+				var geometry = object.geometry;
 
 				if ( geometry.isBufferGeometry !== true ) {
 
@@ -34,8 +40,8 @@ class STLExporter {
 
 				}
 
-				const index = geometry.index;
-				const positionAttribute = geometry.getAttribute( 'position' );
+				var index = geometry.index;
+				var positionAttribute = geometry.getAttribute( 'position' );
 
 				triangles += ( index !== null ) ? ( index.count / 3 ) : ( positionAttribute.count / 3 );
 
@@ -48,13 +54,13 @@ class STLExporter {
 
 		} );
 
-		let output;
-		let offset = 80; // skip header
+		var output;
+		var offset = 80; // skip header
 
 		if ( binary === true ) {
 
-			const bufferLength = triangles * 2 + triangles * 3 * 4 * 4 + 80 + 4;
-			const arrayBuffer = new ArrayBuffer( bufferLength );
+			var bufferLength = triangles * 2 + triangles * 3 * 4 * 4 + 80 + 4;
+			var arrayBuffer = new ArrayBuffer( bufferLength );
 			output = new DataView( arrayBuffer );
 			output.setUint32( offset, triangles, true ); offset += 4;
 
@@ -65,30 +71,30 @@ class STLExporter {
 
 		}
 
-		const vA = new Vector3();
-		const vB = new Vector3();
-		const vC = new Vector3();
-		const cb = new Vector3();
-		const ab = new Vector3();
-		const normal = new Vector3();
+		var vA = new Vector3();
+		var vB = new Vector3();
+		var vC = new Vector3();
+		var cb = new Vector3();
+		var ab = new Vector3();
+		var normal = new Vector3();
 
-		for ( let i = 0, il = objects.length; i < il; i ++ ) {
+		for ( var i = 0, il = objects.length; i < il; i ++ ) {
 
-			const object = objects[ i ].object3d;
-			const geometry = objects[ i ].geometry;
+			var object = objects[ i ].object3d;
+			var geometry = objects[ i ].geometry;
 
-			const index = geometry.index;
-			const positionAttribute = geometry.getAttribute( 'position' );
+			var index = geometry.index;
+			var positionAttribute = geometry.getAttribute( 'position' );
 
 			if ( index !== null ) {
 
 				// indexed geometry
 
-				for ( let j = 0; j < index.count; j += 3 ) {
+				for ( var j = 0; j < index.count; j += 3 ) {
 
-					const a = index.getX( j + 0 );
-					const b = index.getX( j + 1 );
-					const c = index.getX( j + 2 );
+					var a = index.getX( j + 0 );
+					var b = index.getX( j + 1 );
+					var c = index.getX( j + 2 );
 
 					writeFace( a, b, c, positionAttribute, object );
 
@@ -98,11 +104,11 @@ class STLExporter {
 
 				// non-indexed geometry
 
-				for ( let j = 0; j < positionAttribute.count; j += 3 ) {
+				for ( var j = 0; j < positionAttribute.count; j += 3 ) {
 
-					const a = j + 0;
-					const b = j + 1;
-					const c = j + 2;
+					var a = j + 0;
+					var b = j + 1;
+					var c = j + 2;
 
 					writeFace( a, b, c, positionAttribute, object );
 
@@ -198,6 +204,6 @@ class STLExporter {
 
 	}
 
-}
+};
 
 export { STLExporter };

@@ -1,37 +1,36 @@
 import {
-	Box2,
 	BufferGeometry,
 	FileLoader,
 	Float32BufferAttribute,
 	Loader,
 	Matrix3,
 	Path,
-	Shape,
 	ShapePath,
-	ShapeUtils,
 	Vector2,
 	Vector3
 } from '../../../build/three.module.js';
 
-class SVGLoader extends Loader {
+var SVGLoader = function ( manager ) {
 
-	constructor( manager ) {
+	Loader.call( this, manager );
 
-		super( manager );
+	// Default dots per inch
+	this.defaultDPI = 90;
 
-		// Default dots per inch
-		this.defaultDPI = 90;
+	// Accepted units: 'mm', 'cm', 'in', 'pt', 'pc', 'px'
+	this.defaultUnit = 'px';
 
-		// Accepted units: 'mm', 'cm', 'in', 'pt', 'pc', 'px'
-		this.defaultUnit = 'px';
+};
 
-	}
+SVGLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
 
-	load( url, onLoad, onProgress, onError ) {
+	constructor: SVGLoader,
 
-		const scope = this;
+	load: function ( url, onLoad, onProgress, onError ) {
 
-		const loader = new FileLoader( scope.manager );
+		var scope = this;
+
+		var loader = new FileLoader( scope.manager );
 		loader.setPath( scope.path );
 		loader.setRequestHeader( scope.requestHeader );
 		loader.setWithCredentials( scope.withCredentials );
@@ -59,21 +58,21 @@ class SVGLoader extends Loader {
 
 		}, onProgress, onError );
 
-	}
+	},
 
-	parse( text ) {
+	parse: function ( text ) {
 
-		const scope = this;
+		var scope = this;
 
 		function parseNode( node, style ) {
 
 			if ( node.nodeType !== 1 ) return;
 
-			const transform = getNodeTransform( node );
+			var transform = getNodeTransform( node );
 
-			let traverseChildNodes = true;
+			var traverseChildNodes = true;
 
-			let path = null;
+			var path = null;
 
 			switch ( node.nodeName ) {
 
@@ -129,8 +128,8 @@ class SVGLoader extends Loader {
 
 				case 'use':
 					style = parseStyle( node, style );
-					const usedNodeId = node.href.baseVal.substring( 1 );
-					const usedNode = node.viewportElement.getElementById( usedNodeId );
+					var usedNodeId = node.href.baseVal.substring( 1 );
+					var usedNode = node.viewportElement.getElementById( usedNodeId );
 					if ( usedNode ) {
 
 						parseNode( usedNode, style );
@@ -166,9 +165,9 @@ class SVGLoader extends Loader {
 
 			if ( traverseChildNodes ) {
 
-				const nodes = node.childNodes;
+				var nodes = node.childNodes;
 
-				for ( let i = 0; i < nodes.length; i ++ ) {
+				for ( var i = 0; i < nodes.length; i ++ ) {
 
 					parseNode( nodes[ i ], style );
 
@@ -196,27 +195,27 @@ class SVGLoader extends Loader {
 
 		function parsePathNode( node ) {
 
-			const path = new ShapePath();
+			var path = new ShapePath();
 
-			const point = new Vector2();
-			const control = new Vector2();
+			var point = new Vector2();
+			var control = new Vector2();
 
-			const firstPoint = new Vector2();
-			let isFirstPoint = true;
-			let doSetFirstPoint = false;
+			var firstPoint = new Vector2();
+			var isFirstPoint = true;
+			var doSetFirstPoint = false;
 
-			const d = node.getAttribute( 'd' );
+			var d = node.getAttribute( 'd' );
 
 			// console.log( d );
 
-			const commands = d.match( /[a-df-z][^a-df-z]*/ig );
+			var commands = d.match( /[a-df-z][^a-df-z]*/ig );
 
-			for ( let i = 0, l = commands.length; i < l; i ++ ) {
+			for ( var i = 0, l = commands.length; i < l; i ++ ) {
 
-				const command = commands[ i ];
+				var command = commands[ i ];
 
-				const type = command.charAt( 0 );
-				const data = command.substr( 1 ).trim();
+				var type = command.charAt( 0 );
+				var data = command.substr( 1 ).trim();
 
 				if ( isFirstPoint === true ) {
 
@@ -225,13 +224,11 @@ class SVGLoader extends Loader {
 
 				}
 
-				let numbers;
-
 				switch ( type ) {
 
 					case 'M':
-						numbers = parseFloats( data );
-						for ( let j = 0, jl = numbers.length; j < jl; j += 2 ) {
+						var numbers = parseFloats( data );
+						for ( var j = 0, jl = numbers.length; j < jl; j += 2 ) {
 
 							point.x = numbers[ j + 0 ];
 							point.y = numbers[ j + 1 ];
@@ -255,9 +252,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'H':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j ++ ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j ++ ) {
 
 							point.x = numbers[ j ];
 							control.x = point.x;
@@ -271,9 +268,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'V':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j ++ ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j ++ ) {
 
 							point.y = numbers[ j ];
 							control.x = point.x;
@@ -287,9 +284,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'L':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 2 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 2 ) {
 
 							point.x = numbers[ j + 0 ];
 							point.y = numbers[ j + 1 ];
@@ -304,9 +301,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'C':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 6 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 6 ) {
 
 							path.bezierCurveTo(
 								numbers[ j + 0 ],
@@ -328,9 +325,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'S':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 4 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 4 ) {
 
 							path.bezierCurveTo(
 								getReflection( point.x, control.x ),
@@ -352,9 +349,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'Q':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 4 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 4 ) {
 
 							path.quadraticCurveTo(
 								numbers[ j + 0 ],
@@ -374,12 +371,12 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'T':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 2 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 2 ) {
 
-							const rx = getReflection( point.x, control.x );
-							const ry = getReflection( point.y, control.y );
+							var rx = getReflection( point.x, control.x );
+							var ry = getReflection( point.y, control.y );
 							path.quadraticCurveTo(
 								rx,
 								ry,
@@ -398,14 +395,14 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'A':
-						numbers = parseFloats( data, [ 3, 4 ], 7 );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 7 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 7 ) {
 
 							// skip command if start point == end point
 							if ( numbers[ j + 5 ] == point.x && numbers[ j + 6 ] == point.y ) continue;
 
-							const start = point.clone();
+							var start = point.clone();
 							point.x = numbers[ j + 5 ];
 							point.y = numbers[ j + 6 ];
 							control.x = point.x;
@@ -421,9 +418,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'm':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 2 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 2 ) {
 
 							point.x += numbers[ j + 0 ];
 							point.y += numbers[ j + 1 ];
@@ -447,9 +444,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'h':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j ++ ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j ++ ) {
 
 							point.x += numbers[ j ];
 							control.x = point.x;
@@ -463,9 +460,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'v':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j ++ ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j ++ ) {
 
 							point.y += numbers[ j ];
 							control.x = point.x;
@@ -479,9 +476,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'l':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 2 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 2 ) {
 
 							point.x += numbers[ j + 0 ];
 							point.y += numbers[ j + 1 ];
@@ -496,9 +493,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'c':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 6 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 6 ) {
 
 							path.bezierCurveTo(
 								point.x + numbers[ j + 0 ],
@@ -520,9 +517,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 's':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 4 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 4 ) {
 
 							path.bezierCurveTo(
 								getReflection( point.x, control.x ),
@@ -544,9 +541,9 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'q':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 4 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 4 ) {
 
 							path.quadraticCurveTo(
 								point.x + numbers[ j + 0 ],
@@ -566,12 +563,12 @@ class SVGLoader extends Loader {
 						break;
 
 					case 't':
-						numbers = parseFloats( data );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 2 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 2 ) {
 
-							const rx = getReflection( point.x, control.x );
-							const ry = getReflection( point.y, control.y );
+							var rx = getReflection( point.x, control.x );
+							var ry = getReflection( point.y, control.y );
 							path.quadraticCurveTo(
 								rx,
 								ry,
@@ -590,14 +587,14 @@ class SVGLoader extends Loader {
 						break;
 
 					case 'a':
-						numbers = parseFloats( data, [ 3, 4 ], 7 );
+						var numbers = parseFloats( data );
 
-						for ( let j = 0, jl = numbers.length; j < jl; j += 7 ) {
+						for ( var j = 0, jl = numbers.length; j < jl; j += 7 ) {
 
 							// skip command if no displacement
 							if ( numbers[ j + 5 ] == 0 && numbers[ j + 6 ] == 0 ) continue;
 
-							const start = point.clone();
+							var start = point.clone();
 							point.x += numbers[ j + 5 ];
 							point.y += numbers[ j + 6 ];
 							control.x = point.x;
@@ -646,18 +643,18 @@ class SVGLoader extends Loader {
 
 			if ( ! node.sheet || ! node.sheet.cssRules || ! node.sheet.cssRules.length ) return;
 
-			for ( let i = 0; i < node.sheet.cssRules.length; i ++ ) {
+			for ( var i = 0; i < node.sheet.cssRules.length; i ++ ) {
 
-				const stylesheet = node.sheet.cssRules[ i ];
+				var stylesheet = node.sheet.cssRules[ i ];
 
 				if ( stylesheet.type !== 1 ) continue;
 
-				const selectorList = stylesheet.selectorText
+				var selectorList = stylesheet.selectorText
 					.split( /,/gm )
 					.filter( Boolean )
 					.map( i => i.trim() );
 
-				for ( let j = 0; j < selectorList.length; j ++ ) {
+				for ( var j = 0; j < selectorList.length; j ++ ) {
 
 					stylesheets[ selectorList[ j ] ] = Object.assign(
 						stylesheets[ selectorList[ j ] ] || {},
@@ -696,24 +693,24 @@ class SVGLoader extends Loader {
 			ry = Math.abs( ry );
 
 			// Compute (x1', y1')
-			const dx2 = ( start.x - end.x ) / 2.0;
-			const dy2 = ( start.y - end.y ) / 2.0;
-			const x1p = Math.cos( x_axis_rotation ) * dx2 + Math.sin( x_axis_rotation ) * dy2;
-			const y1p = - Math.sin( x_axis_rotation ) * dx2 + Math.cos( x_axis_rotation ) * dy2;
+			var dx2 = ( start.x - end.x ) / 2.0;
+			var dy2 = ( start.y - end.y ) / 2.0;
+			var x1p = Math.cos( x_axis_rotation ) * dx2 + Math.sin( x_axis_rotation ) * dy2;
+			var y1p = - Math.sin( x_axis_rotation ) * dx2 + Math.cos( x_axis_rotation ) * dy2;
 
 			// Compute (cx', cy')
-			let rxs = rx * rx;
-			let rys = ry * ry;
-			const x1ps = x1p * x1p;
-			const y1ps = y1p * y1p;
+			var rxs = rx * rx;
+			var rys = ry * ry;
+			var x1ps = x1p * x1p;
+			var y1ps = y1p * y1p;
 
 			// Ensure radii are large enough
-			const cr = x1ps / rxs + y1ps / rys;
+			var cr = x1ps / rxs + y1ps / rys;
 
 			if ( cr > 1 ) {
 
 				// scale up rx,ry equally so cr == 1
-				const s = Math.sqrt( cr );
+				var s = Math.sqrt( cr );
 				rx = s * rx;
 				ry = s * ry;
 				rxs = rx * rx;
@@ -721,20 +718,20 @@ class SVGLoader extends Loader {
 
 			}
 
-			const dq = ( rxs * y1ps + rys * x1ps );
-			const pq = ( rxs * rys - dq ) / dq;
-			let q = Math.sqrt( Math.max( 0, pq ) );
+			var dq = ( rxs * y1ps + rys * x1ps );
+			var pq = ( rxs * rys - dq ) / dq;
+			var q = Math.sqrt( Math.max( 0, pq ) );
 			if ( large_arc_flag === sweep_flag ) q = - q;
-			const cxp = q * rx * y1p / ry;
-			const cyp = - q * ry * x1p / rx;
+			var cxp = q * rx * y1p / ry;
+			var cyp = - q * ry * x1p / rx;
 
 			// Step 3: Compute (cx, cy) from (cx', cy')
-			const cx = Math.cos( x_axis_rotation ) * cxp - Math.sin( x_axis_rotation ) * cyp + ( start.x + end.x ) / 2;
-			const cy = Math.sin( x_axis_rotation ) * cxp + Math.cos( x_axis_rotation ) * cyp + ( start.y + end.y ) / 2;
+			var cx = Math.cos( x_axis_rotation ) * cxp - Math.sin( x_axis_rotation ) * cyp + ( start.x + end.x ) / 2;
+			var cy = Math.sin( x_axis_rotation ) * cxp + Math.cos( x_axis_rotation ) * cyp + ( start.y + end.y ) / 2;
 
 			// Step 4: Compute θ1 and Δθ
-			const theta = svgAngle( 1, 0, ( x1p - cxp ) / rx, ( y1p - cyp ) / ry );
-			const delta = svgAngle( ( x1p - cxp ) / rx, ( y1p - cyp ) / ry, ( - x1p - cxp ) / rx, ( - y1p - cyp ) / ry ) % ( Math.PI * 2 );
+			var theta = svgAngle( 1, 0, ( x1p - cxp ) / rx, ( y1p - cyp ) / ry );
+			var delta = svgAngle( ( x1p - cxp ) / rx, ( y1p - cyp ) / ry, ( - x1p - cxp ) / rx, ( - y1p - cyp ) / ry ) % ( Math.PI * 2 );
 
 			path.currentPath.absellipse( cx, cy, rx, ry, theta, theta + delta, sweep_flag === 0, x_axis_rotation );
 
@@ -742,9 +739,9 @@ class SVGLoader extends Loader {
 
 		function svgAngle( ux, uy, vx, vy ) {
 
-			const dot = ux * vx + uy * vy;
-			const len = Math.sqrt( ux * ux + uy * uy ) * Math.sqrt( vx * vx + vy * vy );
-			let ang = Math.acos( Math.max( - 1, Math.min( 1, dot / len ) ) ); // floating point precision, slightly over values appear
+			var dot = ux * vx + uy * vy;
+			var len = Math.sqrt( ux * ux + uy * uy ) * Math.sqrt( vx * vx + vy * vy );
+			var ang = Math.acos( Math.max( - 1, Math.min( 1, dot / len ) ) ); // floating point precision, slightly over values appear
 			if ( ( ux * vy - uy * vx ) < 0 ) ang = - ang;
 			return ang;
 
@@ -756,72 +753,32 @@ class SVGLoader extends Loader {
 		*/
 		function parseRectNode( node ) {
 
-			const x = parseFloatWithUnits( node.getAttribute( 'x' ) || 0 );
-			const y = parseFloatWithUnits( node.getAttribute( 'y' ) || 0 );
-			const rx = parseFloatWithUnits( node.getAttribute( 'rx' ) || node.getAttribute( 'ry' ) || 0 );
-			const ry = parseFloatWithUnits( node.getAttribute( 'ry' ) || node.getAttribute( 'rx' ) || 0 );
-			const w = parseFloatWithUnits( node.getAttribute( 'width' ) );
-			const h = parseFloatWithUnits( node.getAttribute( 'height' ) );
+			var x = parseFloatWithUnits( node.getAttribute( 'x' ) || 0 );
+			var y = parseFloatWithUnits( node.getAttribute( 'y' ) || 0 );
+			var rx = parseFloatWithUnits( node.getAttribute( 'rx' ) || 0 );
+			var ry = parseFloatWithUnits( node.getAttribute( 'ry' ) || 0 );
+			var w = parseFloatWithUnits( node.getAttribute( 'width' ) );
+			var h = parseFloatWithUnits( node.getAttribute( 'height' ) );
 
-			// Ellipse arc to Bezier approximation Coefficient (Inversed). See:
-			// https://spencermortensen.com/articles/bezier-circle/
-			const bci = 1 - 0.551915024494;
+			var path = new ShapePath();
+			path.moveTo( x + 2 * rx, y );
+			path.lineTo( x + w - 2 * rx, y );
+			if ( rx !== 0 || ry !== 0 ) path.bezierCurveTo( x + w, y, x + w, y, x + w, y + 2 * ry );
+			path.lineTo( x + w, y + h - 2 * ry );
+			if ( rx !== 0 || ry !== 0 ) path.bezierCurveTo( x + w, y + h, x + w, y + h, x + w - 2 * rx, y + h );
+			path.lineTo( x + 2 * rx, y + h );
 
-			const path = new ShapePath();
-
-			// top left
-			path.moveTo( x + rx, y );
-
-			// top right
-			path.lineTo( x + w - rx, y );
 			if ( rx !== 0 || ry !== 0 ) {
 
-				path.bezierCurveTo(
-					x + w - rx * bci,
-					y,
-					x + w,
-					y + ry * bci,
-					x + w,
-					y + ry
-				);
+				path.bezierCurveTo( x, y + h, x, y + h, x, y + h - 2 * ry );
 
 			}
 
-			// bottom right
-			path.lineTo( x + w, y + h - ry );
+			path.lineTo( x, y + 2 * ry );
+
 			if ( rx !== 0 || ry !== 0 ) {
 
-				path.bezierCurveTo(
-					x + w,
-					y + h - ry * bci,
-					x + w - rx * bci,
-					y + h,
-					x + w - rx,
-					y + h
-				);
-
-			}
-
-			// bottom left
-			path.lineTo( x + rx, y + h );
-			if ( rx !== 0 || ry !== 0 ) {
-
-				path.bezierCurveTo(
-					x + rx * bci,
-					y + h,
-					x,
-					y + h - ry * bci,
-					x,
-					y + h - ry
-				);
-
-			}
-
-			// back to top left
-			path.lineTo( x, y + ry );
-			if ( rx !== 0 || ry !== 0 ) {
-
-				path.bezierCurveTo( x, y + ry * bci, x + rx * bci, y, x + rx, y );
+				path.bezierCurveTo( x, y, x, y, x + 2 * rx, y );
 
 			}
 
@@ -833,8 +790,8 @@ class SVGLoader extends Loader {
 
 			function iterator( match, a, b ) {
 
-				const x = parseFloatWithUnits( a );
-				const y = parseFloatWithUnits( b );
+				var x = parseFloatWithUnits( a );
+				var y = parseFloatWithUnits( b );
 
 				if ( index === 0 ) {
 
@@ -850,11 +807,11 @@ class SVGLoader extends Loader {
 
 			}
 
-			const regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
+			var regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
 
-			const path = new ShapePath();
+			var path = new ShapePath();
 
-			let index = 0;
+			var index = 0;
 
 			node.getAttribute( 'points' ).replace( regex, iterator );
 
@@ -868,8 +825,8 @@ class SVGLoader extends Loader {
 
 			function iterator( match, a, b ) {
 
-				const x = parseFloatWithUnits( a );
-				const y = parseFloatWithUnits( b );
+				var x = parseFloatWithUnits( a );
+				var y = parseFloatWithUnits( b );
 
 				if ( index === 0 ) {
 
@@ -885,11 +842,11 @@ class SVGLoader extends Loader {
 
 			}
 
-			const regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
+			var regex = /(-?[\d\.?]+)[,|\s](-?[\d\.?]+)/g;
 
-			const path = new ShapePath();
+			var path = new ShapePath();
 
-			let index = 0;
+			var index = 0;
 
 			node.getAttribute( 'points' ).replace( regex, iterator );
 
@@ -901,14 +858,14 @@ class SVGLoader extends Loader {
 
 		function parseCircleNode( node ) {
 
-			const x = parseFloatWithUnits( node.getAttribute( 'cx' ) || 0 );
-			const y = parseFloatWithUnits( node.getAttribute( 'cy' ) || 0 );
-			const r = parseFloatWithUnits( node.getAttribute( 'r' ) || 0 );
+			var x = parseFloatWithUnits( node.getAttribute( 'cx' ) );
+			var y = parseFloatWithUnits( node.getAttribute( 'cy' ) );
+			var r = parseFloatWithUnits( node.getAttribute( 'r' ) );
 
-			const subpath = new Path();
+			var subpath = new Path();
 			subpath.absarc( x, y, r, 0, Math.PI * 2 );
 
-			const path = new ShapePath();
+			var path = new ShapePath();
 			path.subPaths.push( subpath );
 
 			return path;
@@ -917,15 +874,15 @@ class SVGLoader extends Loader {
 
 		function parseEllipseNode( node ) {
 
-			const x = parseFloatWithUnits( node.getAttribute( 'cx' ) || 0 );
-			const y = parseFloatWithUnits( node.getAttribute( 'cy' ) || 0 );
-			const rx = parseFloatWithUnits( node.getAttribute( 'rx' ) || 0 );
-			const ry = parseFloatWithUnits( node.getAttribute( 'ry' ) || 0 );
+			var x = parseFloatWithUnits( node.getAttribute( 'cx' ) );
+			var y = parseFloatWithUnits( node.getAttribute( 'cy' ) );
+			var rx = parseFloatWithUnits( node.getAttribute( 'rx' ) );
+			var ry = parseFloatWithUnits( node.getAttribute( 'ry' ) );
 
-			const subpath = new Path();
+			var subpath = new Path();
 			subpath.absellipse( x, y, rx, ry, 0, Math.PI * 2 );
 
-			const path = new ShapePath();
+			var path = new ShapePath();
 			path.subPaths.push( subpath );
 
 			return path;
@@ -934,12 +891,12 @@ class SVGLoader extends Loader {
 
 		function parseLineNode( node ) {
 
-			const x1 = parseFloatWithUnits( node.getAttribute( 'x1' ) || 0 );
-			const y1 = parseFloatWithUnits( node.getAttribute( 'y1' ) || 0 );
-			const x2 = parseFloatWithUnits( node.getAttribute( 'x2' ) || 0 );
-			const y2 = parseFloatWithUnits( node.getAttribute( 'y2' ) || 0 );
+			var x1 = parseFloatWithUnits( node.getAttribute( 'x1' ) );
+			var y1 = parseFloatWithUnits( node.getAttribute( 'y1' ) );
+			var x2 = parseFloatWithUnits( node.getAttribute( 'x2' ) );
+			var y2 = parseFloatWithUnits( node.getAttribute( 'y2' ) );
 
-			const path = new ShapePath();
+			var path = new ShapePath();
 			path.moveTo( x1, y1 );
 			path.lineTo( x2, y2 );
 			path.currentPath.autoClose = false;
@@ -954,16 +911,16 @@ class SVGLoader extends Loader {
 
 			style = Object.assign( {}, style ); // clone style
 
-			let stylesheetStyles = {};
+			var stylesheetStyles = {};
 
 			if ( node.hasAttribute( 'class' ) ) {
 
-				const classSelectors = node.getAttribute( 'class' )
+				var classSelectors = node.getAttribute( 'class' )
 					.split( /\s/ )
 					.filter( Boolean )
 					.map( i => i.trim() );
 
-				for ( let i = 0; i < classSelectors.length; i ++ ) {
+				for ( var i = 0; i < classSelectors.length; i ++ ) {
 
 					stylesheetStyles = Object.assign( stylesheetStyles, stylesheets[ '.' + classSelectors[ i ] ] );
 
@@ -1030,7 +987,7 @@ class SVGLoader extends Loader {
 
 		// from https://github.com/ppvg/svg-numbers (MIT License)
 
-		function parseFloats( input, flags, stride ) {
+		function parseFloats( input ) {
 
 			if ( typeof input !== 'string' ) {
 
@@ -1039,31 +996,29 @@ class SVGLoader extends Loader {
 			}
 
 			// Character groups
-			const RE = {
+			var RE = {
 				SEPARATOR: /[ \t\r\n\,.\-+]/,
 				WHITESPACE: /[ \t\r\n]/,
 				DIGIT: /[\d]/,
 				SIGN: /[-+]/,
 				POINT: /\./,
 				COMMA: /,/,
-				EXP: /e/i,
-				FLAGS: /[01]/
+				EXP: /e/i
 			};
 
 			// States
-			const SEP = 0;
-			const INT = 1;
-			const FLOAT = 2;
-			const EXP = 3;
+			var SEP = 0;
+			var INT = 1;
+			var FLOAT = 2;
+			var EXP = 3;
 
-			let state = SEP;
-			let seenComma = true;
-			let number = '', exponent = '';
-			const result = [];
+			var state = SEP;
+			var seenComma = true;
+			var result = [], number = '', exponent = '';
 
 			function throwSyntaxError( current, i, partial ) {
 
-				const error = new SyntaxError( 'Unexpected character "' + current + '" at index ' + i + '.' );
+				var error = new SyntaxError( 'Unexpected character "' + current + '" at index ' + i + '.' );
 				error.partial = partial;
 				throw error;
 
@@ -1083,22 +1038,10 @@ class SVGLoader extends Loader {
 
 			}
 
-			let current;
-			const length = input.length;
-
-			for ( let i = 0; i < length; i ++ ) {
+			var current, i = 0, length = input.length;
+			for ( i = 0; i < length; i ++ ) {
 
 				current = input[ i ];
-
-				// check for flags
-				if ( Array.isArray( flags ) && flags.includes( result.length % stride ) && RE.FLAGS.test( current ) ) {
-
-					state = INT;
-					number = current;
-					newNumber();
-					continue;
-
-				}
 
 				// parse until next number
 				if ( state === SEP ) {
@@ -1205,7 +1148,7 @@ class SVGLoader extends Loader {
 				}
 
 				// parse exponent part
-				if ( state === EXP ) {
+				if ( state == EXP ) {
 
 					if ( RE.DIGIT.test( current ) ) {
 
@@ -1276,10 +1219,10 @@ class SVGLoader extends Loader {
 
 		// Units
 
-		const units = [ 'mm', 'cm', 'in', 'pt', 'pc', 'px' ];
+		var units = [ 'mm', 'cm', 'in', 'pt', 'pc', 'px' ];
 
 		// Conversion: [ fromUnit ][ toUnit ] (-1 means dpi dependent)
-		const unitConversion = {
+		var unitConversion = {
 
 			'mm': {
 				'mm': 1,
@@ -1329,13 +1272,13 @@ class SVGLoader extends Loader {
 
 		function parseFloatWithUnits( string ) {
 
-			let theUnit = 'px';
+			var theUnit = 'px';
 
 			if ( typeof string === 'string' || string instanceof String ) {
 
-				for ( let i = 0, n = units.length; i < n; i ++ ) {
+				for ( var i = 0, n = units.length; i < n; i ++ ) {
 
-					const u = units[ i ];
+					var u = units[ i ];
 
 					if ( string.endsWith( u ) ) {
 
@@ -1349,7 +1292,7 @@ class SVGLoader extends Loader {
 
 			}
 
-			let scale = undefined;
+			var scale = undefined;
 
 			if ( theUnit === 'px' && scope.defaultUnit !== 'px' ) {
 
@@ -1385,7 +1328,7 @@ class SVGLoader extends Loader {
 
 			}
 
-			const transform = parseNodeTransform( node );
+			var transform = parseNodeTransform( node );
 
 			if ( transformStack.length > 0 ) {
 
@@ -1402,13 +1345,13 @@ class SVGLoader extends Loader {
 
 		function parseNodeTransform( node ) {
 
-			const transform = new Matrix3();
-			const currentTransform = tempTransform0;
+			var transform = new Matrix3();
+			var currentTransform = tempTransform0;
 
 			if ( node.nodeName === 'use' && ( node.hasAttribute( 'x' ) || node.hasAttribute( 'y' ) ) ) {
 
-				const tx = parseFloatWithUnits( node.getAttribute( 'x' ) );
-				const ty = parseFloatWithUnits( node.getAttribute( 'y' ) );
+				var tx = parseFloatWithUnits( node.getAttribute( 'x' ) );
+				var ty = parseFloatWithUnits( node.getAttribute( 'y' ) );
 
 				transform.translate( tx, ty );
 
@@ -1416,22 +1359,22 @@ class SVGLoader extends Loader {
 
 			if ( node.hasAttribute( 'transform' ) ) {
 
-				const transformsTexts = node.getAttribute( 'transform' ).split( ')' );
+				var transformsTexts = node.getAttribute( 'transform' ).split( ')' );
 
-				for ( let tIndex = transformsTexts.length - 1; tIndex >= 0; tIndex -- ) {
+				for ( var tIndex = transformsTexts.length - 1; tIndex >= 0; tIndex -- ) {
 
-					const transformText = transformsTexts[ tIndex ].trim();
+					var transformText = transformsTexts[ tIndex ].trim();
 
 					if ( transformText === '' ) continue;
 
-					const openParPos = transformText.indexOf( '(' );
-					const closeParPos = transformText.length;
+					var openParPos = transformText.indexOf( '(' );
+					var closeParPos = transformText.length;
 
 					if ( openParPos > 0 && openParPos < closeParPos ) {
 
-						const transformType = transformText.substr( 0, openParPos );
+						var transformType = transformText.substr( 0, openParPos );
 
-						const array = parseFloats( transformText.substr( openParPos + 1, closeParPos - openParPos - 1 ) );
+						var array = parseFloats( transformText.substr( openParPos + 1, closeParPos - openParPos - 1 ) );
 
 						currentTransform.identity();
 
@@ -1441,8 +1384,8 @@ class SVGLoader extends Loader {
 
 								if ( array.length >= 1 ) {
 
-									const tx = array[ 0 ];
-									let ty = tx;
+									var tx = array[ 0 ];
+									var ty = tx;
 
 									if ( array.length >= 2 ) {
 
@@ -1460,9 +1403,9 @@ class SVGLoader extends Loader {
 
 								if ( array.length >= 1 ) {
 
-									let angle = 0;
-									let cx = 0;
-									let cy = 0;
+									var angle = 0;
+									var cx = 0;
+									var cy = 0;
 
 									// Angle
 									angle = - array[ 0 ] * Math.PI / 180;
@@ -1490,8 +1433,8 @@ class SVGLoader extends Loader {
 
 								if ( array.length >= 1 ) {
 
-									const scaleX = array[ 0 ];
-									let scaleY = scaleX;
+									var scaleX = array[ 0 ];
+									var scaleY = scaleX;
 
 									if ( array.length >= 2 ) {
 
@@ -1571,18 +1514,18 @@ class SVGLoader extends Loader {
 
 			}
 
-			const isRotated = isTransformRotated( m );
+			var isRotated = isTransformRotated( m );
 
-			const subPaths = path.subPaths;
+			var subPaths = path.subPaths;
 
-			for ( let i = 0, n = subPaths.length; i < n; i ++ ) {
+			for ( var i = 0, n = subPaths.length; i < n; i ++ ) {
 
-				const subPath = subPaths[ i ];
-				const curves = subPath.curves;
+				var subPath = subPaths[ i ];
+				var curves = subPath.curves;
 
-				for ( let j = 0; j < curves.length; j ++ ) {
+				for ( var j = 0; j < curves.length; j ++ ) {
 
-					const curve = curves[ j ];
+					var curve = curves[ j ];
 
 					if ( curve.isLineCurve ) {
 
@@ -1634,35 +1577,35 @@ class SVGLoader extends Loader {
 
 		function getTransformScaleX( m ) {
 
-			const te = m.elements;
+			var te = m.elements;
 			return Math.sqrt( te[ 0 ] * te[ 0 ] + te[ 1 ] * te[ 1 ] );
 
 		}
 
 		function getTransformScaleY( m ) {
 
-			const te = m.elements;
+			var te = m.elements;
 			return Math.sqrt( te[ 3 ] * te[ 3 ] + te[ 4 ] * te[ 4 ] );
 
 		}
 
 		//
 
-		const paths = [];
-		const stylesheets = {};
+		var paths = [];
+		var stylesheets = {};
 
-		const transformStack = [];
+		var transformStack = [];
 
-		const tempTransform0 = new Matrix3();
-		const tempTransform1 = new Matrix3();
-		const tempTransform2 = new Matrix3();
-		const tempTransform3 = new Matrix3();
-		const tempV2 = new Vector2();
-		const tempV3 = new Vector3();
+		var tempTransform0 = new Matrix3();
+		var tempTransform1 = new Matrix3();
+		var tempTransform2 = new Matrix3();
+		var tempTransform3 = new Matrix3();
+		var tempV2 = new Vector2();
+		var tempV3 = new Vector3();
 
-		const currentTransform = new Matrix3();
+		var currentTransform = new Matrix3();
 
-		const xml = new DOMParser().parseFromString( text, 'image/svg+xml' ); // application/xml
+		var xml = new DOMParser().parseFromString( text, 'image/svg+xml' ); // application/xml
 
 		parseNode( xml.documentElement, {
 			fill: '#000',
@@ -1674,505 +1617,90 @@ class SVGLoader extends Loader {
 			strokeMiterLimit: 4
 		} );
 
-		const data = { paths: paths, xml: xml.documentElement };
+		var data = { paths: paths, xml: xml.documentElement };
 
 		// console.log( paths );
 		return data;
 
 	}
 
-	static createShapes( shapePath ) {
-
-		// Param shapePath: a shapepath as returned by the parse function of this class
-		// Returns Shape object
-
-		const BIGNUMBER = 999999999;
-
-		const IntersectionLocationType = {
-			ORIGIN: 0,
-			DESTINATION: 1,
-			BETWEEN: 2,
-			LEFT: 3,
-			RIGHT: 4,
-			BEHIND: 5,
-			BEYOND: 6
-		};
-
-		const classifyResult = {
-			loc: IntersectionLocationType.ORIGIN,
-			t: 0
-		};
-
-		function findEdgeIntersection( a0, a1, b0, b1 ) {
-
-			const x1 = a0.x;
-			const x2 = a1.x;
-			const x3 = b0.x;
-			const x4 = b1.x;
-			const y1 = a0.y;
-			const y2 = a1.y;
-			const y3 = b0.y;
-			const y4 = b1.y;
-			const nom1 = ( x4 - x3 ) * ( y1 - y3 ) - ( y4 - y3 ) * ( x1 - x3 );
-			const nom2 = ( x2 - x1 ) * ( y1 - y3 ) - ( y2 - y1 ) * ( x1 - x3 );
-			const denom = ( y4 - y3 ) * ( x2 - x1 ) - ( x4 - x3 ) * ( y2 - y1 );
-			const t1 = nom1 / denom;
-			const t2 = nom2 / denom;
-
-			if ( ( ( denom === 0 ) && ( nom1 !== 0 ) ) || ( t1 <= 0 ) || ( t1 >= 1 ) || ( t2 < 0 ) || ( t2 > 1 ) ) {
-
-				//1. lines are parallel or edges don't intersect
-
-				return null;
-
-			} else if ( ( nom1 === 0 ) && ( denom === 0 ) ) {
-
-				//2. lines are colinear
-
-				//check if endpoints of edge2 (b0-b1) lies on edge1 (a0-a1)
-				for ( let i = 0; i < 2; i ++ ) {
-
-					classifyPoint( i === 0 ? b0 : b1, a0, a1 );
-					//find position of this endpoints relatively to edge1
-					if ( classifyResult.loc == IntersectionLocationType.ORIGIN ) {
-
-						const point = ( i === 0 ? b0 : b1 );
-						return { x: point.x, y: point.y, t: classifyResult.t };
-
-					} else if ( classifyResult.loc == IntersectionLocationType.BETWEEN ) {
-
-						const x = + ( ( x1 + classifyResult.t * ( x2 - x1 ) ).toPrecision( 10 ) );
-						const y = + ( ( y1 + classifyResult.t * ( y2 - y1 ) ).toPrecision( 10 ) );
-						return { x: x, y: y, t: classifyResult.t, };
-
-					}
-
-				}
-
-				return null;
-
-			} else {
-
-				//3. edges intersect
-
-				for ( let i = 0; i < 2; i ++ ) {
-
-					classifyPoint( i === 0 ? b0 : b1, a0, a1 );
-
-					if ( classifyResult.loc == IntersectionLocationType.ORIGIN ) {
-
-						const point = ( i === 0 ? b0 : b1 );
-						return { x: point.x, y: point.y, t: classifyResult.t };
-
-					}
-
-				}
-
-				const x = + ( ( x1 + t1 * ( x2 - x1 ) ).toPrecision( 10 ) );
-				const y = + ( ( y1 + t1 * ( y2 - y1 ) ).toPrecision( 10 ) );
-				return { x: x, y: y, t: t1 };
-
-			}
-
-		}
-
-		function classifyPoint( p, edgeStart, edgeEnd ) {
-
-			const ax = edgeEnd.x - edgeStart.x;
-			const ay = edgeEnd.y - edgeStart.y;
-			const bx = p.x - edgeStart.x;
-			const by = p.y - edgeStart.y;
-			const sa = ax * by - bx * ay;
-
-			if ( ( p.x === edgeStart.x ) && ( p.y === edgeStart.y ) ) {
-
-				classifyResult.loc = IntersectionLocationType.ORIGIN;
-				classifyResult.t = 0;
-				return;
-
-			}
-
-			if ( ( p.x === edgeEnd.x ) && ( p.y === edgeEnd.y ) ) {
-
-				classifyResult.loc = IntersectionLocationType.DESTINATION;
-				classifyResult.t = 1;
-				return;
-
-			}
-
-			if ( sa < - Number.EPSILON ) {
-
-				classifyResult.loc = IntersectionLocationType.LEFT;
-				return;
-
-			}
-
-			if ( sa > Number.EPSILON ) {
-
-				classifyResult.loc = IntersectionLocationType.RIGHT;
-				return;
-
-
-			}
-
-			if ( ( ( ax * bx ) < 0 ) || ( ( ay * by ) < 0 ) ) {
-
-				classifyResult.loc = IntersectionLocationType.BEHIND;
-				return;
-
-			}
-
-			if ( ( Math.sqrt( ax * ax + ay * ay ) ) < ( Math.sqrt( bx * bx + by * by ) ) ) {
-
-				classifyResult.loc = IntersectionLocationType.BEYOND;
-				return;
-
-			}
-
-			let t;
-
-			if ( ax !== 0 ) {
-
-				t = bx / ax;
-
-			} else {
-
-				t = by / ay;
-
-			}
-
-			classifyResult.loc = IntersectionLocationType.BETWEEN;
-			classifyResult.t = t;
-
-		}
-
-		function getIntersections( path1, path2 ) {
-
-			const intersectionsRaw = [];
-			const intersections = [];
-
-			for ( let index = 1; index < path1.length; index ++ ) {
-
-				const path1EdgeStart = path1[ index - 1 ];
-				const path1EdgeEnd = path1[ index ];
-
-				for ( let index2 = 1; index2 < path2.length; index2 ++ ) {
-
-					const path2EdgeStart = path2[ index2 - 1 ];
-					const path2EdgeEnd = path2[ index2 ];
-
-					const intersection = findEdgeIntersection( path1EdgeStart, path1EdgeEnd, path2EdgeStart, path2EdgeEnd );
-
-					if ( intersection !== null && intersectionsRaw.find( i => i.t <= intersection.t + Number.EPSILON && i.t >= intersection.t - Number.EPSILON ) === undefined ) {
-
-						intersectionsRaw.push( intersection );
-						intersections.push( new Vector2( intersection.x, intersection.y ) );
-
-					}
-
-				}
-
-			}
-
-			return intersections;
-
-		}
-
-		function getScanlineIntersections( scanline, boundingBox, paths ) {
-
-			const center = new Vector2();
-			boundingBox.getCenter( center );
-
-			const allIntersections = [];
-
-			paths.forEach( path => {
-
-				// check if the center of the bounding box is in the bounding box of the paths.
-				// this is a pruning method to limit the search of intersections in paths that can't envelop of the current path.
-				// if a path envelops another path. The center of that oter path, has to be inside the bounding box of the enveloping path.
-				if ( path.boundingBox.containsPoint( center ) ) {
-
-					const intersections = getIntersections( scanline, path.points );
-
-					intersections.forEach( p => {
-
-						allIntersections.push( { identifier: path.identifier, isCW: path.isCW, point: p } );
-
-					} );
-
-				}
-
-			} );
-
-			allIntersections.sort( ( i1, i2 ) => {
-
-				return i1.point.x - i2.point.x;
-
-			} );
-
-			return allIntersections;
-
-		}
-
-		function isHoleTo( simplePath, allPaths, scanlineMinX, scanlineMaxX, _fillRule ) {
-
-			if ( _fillRule === null || _fillRule === undefined || _fillRule === '' ) {
-
-				_fillRule = 'nonzero';
-
-			}
-
-			const centerBoundingBox = new Vector2();
-			simplePath.boundingBox.getCenter( centerBoundingBox );
-
-			const scanline = [ new Vector2( scanlineMinX, centerBoundingBox.y ), new Vector2( scanlineMaxX, centerBoundingBox.y ) ];
-
-			const scanlineIntersections = getScanlineIntersections( scanline, simplePath.boundingBox, allPaths );
-
-			scanlineIntersections.sort( ( i1, i2 ) => {
-
-				return i1.point.x - i2.point.x;
-
-			} );
-
-			const baseIntersections = [];
-			const otherIntersections = [];
-
-			scanlineIntersections.forEach( i => {
-
-				if ( i.identifier === simplePath.identifier ) {
-
-					baseIntersections.push( i );
-
-				} else {
-
-					otherIntersections.push( i );
-
-				}
-
-			} );
-
-			const firstXOfPath = baseIntersections[ 0 ].point.x;
-
-			// build up the path hierarchy
-			const stack = [];
-			let i = 0;
-
-			while ( i < otherIntersections.length && otherIntersections[ i ].point.x < firstXOfPath ) {
-
-				if ( stack.length > 0 && stack[ stack.length - 1 ] === otherIntersections[ i ].identifier ) {
-
-					stack.pop();
-
-				} else {
-
-					stack.push( otherIntersections[ i ].identifier );
-
-				}
-
-				i ++;
-
-			}
-
-			stack.push( simplePath.identifier );
-
-			if ( _fillRule === 'evenodd' ) {
-
-				const isHole = stack.length % 2 === 0 ? true : false;
-				const isHoleFor = stack[ stack.length - 2 ];
-
-				return { identifier: simplePath.identifier, isHole: isHole, for: isHoleFor };
-
-			} else if ( _fillRule === 'nonzero' ) {
-
-				// check if path is a hole by counting the amount of paths with alternating rotations it has to cross.
-				let isHole = true;
-				let isHoleFor = null;
-				let lastCWValue = null;
-
-				for ( let i = 0; i < stack.length; i ++ ) {
-
-					const identifier = stack[ i ];
-					if ( isHole ) {
-
-						lastCWValue = allPaths[ identifier ].isCW;
-						isHole = false;
-						isHoleFor = identifier;
-
-					} else if ( lastCWValue !== allPaths[ identifier ].isCW ) {
-
-						lastCWValue = allPaths[ identifier ].isCW;
-						isHole = true;
-
-					}
-
-				}
-
-				return { identifier: simplePath.identifier, isHole: isHole, for: isHoleFor };
-
-			} else {
-
-				console.warn( 'fill-rule: "' + _fillRule + '" is currently not implemented.' );
-
-			}
-
-		}
-
-		// check for self intersecting paths
-		// TODO
-
-		// check intersecting paths
-		// TODO
-
-		// prepare paths for hole detection
-		let identifier = 0;
-
-		let scanlineMinX = BIGNUMBER;
-		let scanlineMaxX = - BIGNUMBER;
-
-		let simplePaths = shapePath.subPaths.map( p => {
-
-			const points = p.getPoints();
-			let maxY = - BIGNUMBER;
-			let minY = BIGNUMBER;
-			let maxX = - BIGNUMBER;
-			let minX = BIGNUMBER;
-
-	      	//points.forEach(p => p.y *= -1);
-
-			for ( let i = 0; i < points.length; i ++ ) {
-
-				const p = points[ i ];
-
-				if ( p.y > maxY ) {
-
-					maxY = p.y;
-
-				}
-
-				if ( p.y < minY ) {
-
-					minY = p.y;
-
-				}
-
-				if ( p.x > maxX ) {
-
-					maxX = p.x;
-
-				}
-
-				if ( p.x < minX ) {
-
-					minX = p.x;
-
-				}
-
-			}
-
-			//
-			if ( scanlineMaxX <= maxX ) {
-
-				scanlineMaxX = maxX + 1;
-
-			}
-
-			if ( scanlineMinX >= minX ) {
-
-				scanlineMinX = minX - 1;
-
-			}
-
-			return { points: points, isCW: ShapeUtils.isClockWise( points ), identifier: identifier ++, boundingBox: new Box2( new Vector2( minX, minY ), new Vector2( maxX, maxY ) ) };
-
-		} );
-
-		simplePaths = simplePaths.filter( sp => sp.points.length > 1 );
-
-		// check if path is solid or a hole
-		const isAHole = simplePaths.map( p => isHoleTo( p, simplePaths, scanlineMinX, scanlineMaxX, shapePath.userData.style.fillRule ) );
-
-
-		const shapesToReturn = [];
-		simplePaths.forEach( p => {
-
-			const amIAHole = isAHole[ p.identifier ];
-
-			if ( ! amIAHole.isHole ) {
-
-				const shape = new Shape( p.points );
-				const holes = isAHole.filter( h => h.isHole && h.for === p.identifier );
-				holes.forEach( h => {
-
-					const path = simplePaths[ h.identifier ];
-					shape.holes.push( new Path( path.points ) );
-
-				} );
-				shapesToReturn.push( shape );
-
-			}
-
-		} );
-
-		return shapesToReturn;
+} );
+
+SVGLoader.getStrokeStyle = function ( width, color, lineJoin, lineCap, miterLimit ) {
+
+	// Param width: Stroke width
+	// Param color: As returned by THREE.Color.getStyle()
+	// Param lineJoin: One of "round", "bevel", "miter" or "miter-limit"
+	// Param lineCap: One of "round", "square" or "butt"
+	// Param miterLimit: Maximum join length, in multiples of the "width" parameter (join is truncated if it exceeds that distance)
+	// Returns style object
+
+	width = width !== undefined ? width : 1;
+	color = color !== undefined ? color : '#000';
+	lineJoin = lineJoin !== undefined ? lineJoin : 'miter';
+	lineCap = lineCap !== undefined ? lineCap : 'butt';
+	miterLimit = miterLimit !== undefined ? miterLimit : 4;
+
+	return {
+		strokeColor: color,
+		strokeWidth: width,
+		strokeLineJoin: lineJoin,
+		strokeLineCap: lineCap,
+		strokeMiterLimit: miterLimit
+	};
+
+};
+
+SVGLoader.pointsToStroke = function ( points, style, arcDivisions, minDistance ) {
+
+	// Generates a stroke with some witdh around the given path.
+	// The path can be open or closed (last point equals to first point)
+	// Param points: Array of Vector2D (the path). Minimum 2 points.
+	// Param style: Object with SVG properties as returned by SVGLoader.getStrokeStyle(), or SVGLoader.parse() in the path.userData.style object
+	// Params arcDivisions: Arc divisions for round joins and endcaps. (Optional)
+	// Param minDistance: Points closer to this distance will be merged. (Optional)
+	// Returns BufferGeometry with stroke triangles (In plane z = 0). UV coordinates are generated ('u' along path. 'v' across it, from left to right)
+
+	var vertices = [];
+	var normals = [];
+	var uvs = [];
+
+	if ( SVGLoader.pointsToStrokeWithBuffers( points, style, arcDivisions, minDistance, vertices, normals, uvs ) === 0 ) {
+
+		return null;
 
 	}
 
-	static getStrokeStyle( width, color, lineJoin, lineCap, miterLimit ) {
+	var geometry = new BufferGeometry();
+	geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
+	geometry.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
+	geometry.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
 
-		// Param width: Stroke width
-		// Param color: As returned by THREE.Color.getStyle()
-		// Param lineJoin: One of "round", "bevel", "miter" or "miter-limit"
-		// Param lineCap: One of "round", "square" or "butt"
-		// Param miterLimit: Maximum join length, in multiples of the "width" parameter (join is truncated if it exceeds that distance)
-		// Returns style object
+	return geometry;
 
-		width = width !== undefined ? width : 1;
-		color = color !== undefined ? color : '#000';
-		lineJoin = lineJoin !== undefined ? lineJoin : 'miter';
-		lineCap = lineCap !== undefined ? lineCap : 'butt';
-		miterLimit = miterLimit !== undefined ? miterLimit : 4;
+};
 
-		return {
-			strokeColor: color,
-			strokeWidth: width,
-			strokeLineJoin: lineJoin,
-			strokeLineCap: lineCap,
-			strokeMiterLimit: miterLimit
-		};
+SVGLoader.pointsToStrokeWithBuffers = function () {
 
-	}
+	var tempV2_1 = new Vector2();
+	var tempV2_2 = new Vector2();
+	var tempV2_3 = new Vector2();
+	var tempV2_4 = new Vector2();
+	var tempV2_5 = new Vector2();
+	var tempV2_6 = new Vector2();
+	var tempV2_7 = new Vector2();
+	var lastPointL = new Vector2();
+	var lastPointR = new Vector2();
+	var point0L = new Vector2();
+	var point0R = new Vector2();
+	var currentPointL = new Vector2();
+	var currentPointR = new Vector2();
+	var nextPointL = new Vector2();
+	var nextPointR = new Vector2();
+	var innerPoint = new Vector2();
+	var outerPoint = new Vector2();
 
-	static pointsToStroke( points, style, arcDivisions, minDistance ) {
-
-		// Generates a stroke with some witdh around the given path.
-		// The path can be open or closed (last point equals to first point)
-		// Param points: Array of Vector2D (the path). Minimum 2 points.
-		// Param style: Object with SVG properties as returned by SVGLoader.getStrokeStyle(), or SVGLoader.parse() in the path.userData.style object
-		// Params arcDivisions: Arc divisions for round joins and endcaps. (Optional)
-		// Param minDistance: Points closer to this distance will be merged. (Optional)
-		// Returns BufferGeometry with stroke triangles (In plane z = 0). UV coordinates are generated ('u' along path. 'v' across it, from left to right)
-
-		const vertices = [];
-		const normals = [];
-		const uvs = [];
-
-		if ( SVGLoader.pointsToStrokeWithBuffers( points, style, arcDivisions, minDistance, vertices, normals, uvs ) === 0 ) {
-
-			return null;
-
-		}
-
-		const geometry = new BufferGeometry();
-		geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
-		geometry.setAttribute( 'normal', new Float32BufferAttribute( normals, 3 ) );
-		geometry.setAttribute( 'uv', new Float32BufferAttribute( uvs, 2 ) );
-
-		return geometry;
-
-	}
-
-	static pointsToStrokeWithBuffers( points, style, arcDivisions, minDistance, vertices, normals, uvs, vertexOffset ) {
+	return function ( points, style, arcDivisions, minDistance, vertices, normals, uvs, vertexOffset ) {
 
 		// This function can be called to update existing arrays or buffers.
 		// Accepts same parameters as pointsToStroke, plus the buffers and optional offset.
@@ -2181,24 +1709,6 @@ class SVGLoader extends Loader {
 		// if 'vertices' parameter is undefined no triangles will be generated, but the returned vertices count will still be valid (useful to preallocate the buffers)
 		// 'normals' and 'uvs' buffers are optional
 
-		const tempV2_1 = new Vector2();
-		const tempV2_2 = new Vector2();
-		const tempV2_3 = new Vector2();
-		const tempV2_4 = new Vector2();
-		const tempV2_5 = new Vector2();
-		const tempV2_6 = new Vector2();
-		const tempV2_7 = new Vector2();
-		const lastPointL = new Vector2();
-		const lastPointR = new Vector2();
-		const point0L = new Vector2();
-		const point0R = new Vector2();
-		const currentPointL = new Vector2();
-		const currentPointR = new Vector2();
-		const nextPointL = new Vector2();
-		const nextPointR = new Vector2();
-		const innerPoint = new Vector2();
-		const outerPoint = new Vector2();
-
 		arcDivisions = arcDivisions !== undefined ? arcDivisions : 12;
 		minDistance = minDistance !== undefined ? minDistance : 0.001;
 		vertexOffset = vertexOffset !== undefined ? vertexOffset : 0;
@@ -2206,29 +1716,29 @@ class SVGLoader extends Loader {
 		// First ensure there are no duplicated points
 		points = removeDuplicatedPoints( points );
 
-		const numPoints = points.length;
+		var numPoints = points.length;
 
 		if ( numPoints < 2 ) return 0;
 
-		const isClosed = points[ 0 ].equals( points[ numPoints - 1 ] );
+		var isClosed = points[ 0 ].equals( points[ numPoints - 1 ] );
 
-		let currentPoint;
-		let previousPoint = points[ 0 ];
-		let nextPoint;
+		var currentPoint;
+		var previousPoint = points[ 0 ];
+		var nextPoint;
 
-		const strokeWidth2 = style.strokeWidth / 2;
+		var strokeWidth2 = style.strokeWidth / 2;
 
-		const deltaU = 1 / ( numPoints - 1 );
-		let u0 = 0, u1;
+		var deltaU = 1 / ( numPoints - 1 );
+		var u0 = 0;
 
-		let innerSideModified;
-		let joinIsOnLeftSide;
-		let isMiter;
-		let initialJoinIsOnLeftSide = false;
+		var innerSideModified;
+		var joinIsOnLeftSide;
+		var isMiter;
+		var initialJoinIsOnLeftSide = false;
 
-		let numVertices = 0;
-		let currentCoordinate = vertexOffset * 3;
-		let currentCoordinateUV = vertexOffset * 2;
+		var numVertices = 0;
+		var currentCoordinate = vertexOffset * 3;
+		var currentCoordinateUV = vertexOffset * 2;
 
 		// Get initial left and right stroke points
 		getNormal( points[ 0 ], points[ 1 ], tempV2_1 ).multiplyScalar( strokeWidth2 );
@@ -2237,7 +1747,7 @@ class SVGLoader extends Loader {
 		point0L.copy( lastPointL );
 		point0R.copy( lastPointR );
 
-		for ( let iPoint = 1; iPoint < numPoints; iPoint ++ ) {
+		for ( var iPoint = 1; iPoint < numPoints; iPoint ++ ) {
 
 			currentPoint = points[ iPoint ];
 
@@ -2258,14 +1768,14 @@ class SVGLoader extends Loader {
 			}
 
 			// Normal of previous segment in tempV2_1
-			const normal1 = tempV2_1;
+			var normal1 = tempV2_1;
 			getNormal( previousPoint, currentPoint, normal1 );
 
 			tempV2_3.copy( normal1 ).multiplyScalar( strokeWidth2 );
 			currentPointL.copy( currentPoint ).sub( tempV2_3 );
 			currentPointR.copy( currentPoint ).add( tempV2_3 );
 
-			u1 = u0 + deltaU;
+			var u1 = u0 + deltaU;
 
 			innerSideModified = false;
 
@@ -2290,22 +1800,22 @@ class SVGLoader extends Loader {
 
 				tempV2_3.subVectors( nextPoint, currentPoint );
 				tempV2_3.normalize();
-				const dot = Math.abs( normal1.dot( tempV2_3 ) );
+				var dot = Math.abs( normal1.dot( tempV2_3 ) );
 
 				// If path is straight, don't create join
 				if ( dot !== 0 ) {
 
 					// Compute inner and outer segment intersections
-					const miterSide = strokeWidth2 / dot;
+					var miterSide = strokeWidth2 / dot;
 					tempV2_3.multiplyScalar( - miterSide );
 					tempV2_4.subVectors( currentPoint, previousPoint );
 					tempV2_5.copy( tempV2_4 ).setLength( miterSide ).add( tempV2_3 );
 					innerPoint.copy( tempV2_5 ).negate();
-					const miterLength2 = tempV2_5.length();
-					const segmentLengthPrev = tempV2_4.length();
+					var miterLength2 = tempV2_5.length();
+					var segmentLengthPrev = tempV2_4.length();
 					tempV2_4.divideScalar( segmentLengthPrev );
 					tempV2_6.subVectors( nextPoint, currentPoint );
-					const segmentLengthNext = tempV2_6.length();
+					var segmentLengthNext = tempV2_6.length();
 					tempV2_6.divideScalar( segmentLengthNext );
 					// Check that previous and next segments doesn't overlap with the innerPoint of intersection
 					if ( tempV2_4.dot( innerPoint ) < segmentLengthPrev && tempV2_6.dot( innerPoint ) < segmentLengthNext ) {
@@ -2373,7 +1883,7 @@ class SVGLoader extends Loader {
 						case 'miter-clip':
 						default:
 
-							const miterFraction = ( strokeWidth2 * style.strokeMiterLimit ) / miterLength2;
+							var miterFraction = ( strokeWidth2 * style.strokeMiterLimit ) / miterLength2;
 
 							if ( miterFraction < 1 ) {
 
@@ -2551,8 +2061,8 @@ class SVGLoader extends Loader {
 
 			// Modify path first segment vertices to adjust to the segments inner and outer intersections
 
-			let lastOuter = outerPoint;
-			let lastInner = innerPoint;
+			var lastOuter = outerPoint;
+			var lastInner = innerPoint;
 
 			if ( initialJoinIsOnLeftSide !== joinIsOnLeftSide ) {
 
@@ -2649,15 +2159,15 @@ class SVGLoader extends Loader {
 			tempV2_1.copy( p1 ).sub( center ).normalize();
 			tempV2_2.copy( p2 ).sub( center ).normalize();
 
-			let angle = Math.PI;
-			const dot = tempV2_1.dot( tempV2_2 );
+			var angle = Math.PI;
+			var dot = tempV2_1.dot( tempV2_2 );
 			if ( Math.abs( dot ) < 1 ) angle = Math.abs( Math.acos( dot ) );
 
 			angle /= arcDivisions;
 
 			tempV2_3.copy( p1 );
 
-			for ( let i = 0, il = arcDivisions - 1; i < il; i ++ ) {
+			for ( var i = 0, il = arcDivisions - 1; i < il; i ++ ) {
 
 				tempV2_4.copy( tempV2_3 ).rotateAround( center, angle );
 
@@ -2853,7 +2363,7 @@ class SVGLoader extends Loader {
 						tempV2_3.addVectors( tempV2_1, tempV2_2 ).add( center );
 						tempV2_4.subVectors( tempV2_2, tempV2_1 ).add( center );
 
-						const vl = vertices.length;
+						var vl = vertices.length;
 
 						// Modify already existing vertices
 						if ( joinIsOnLeftSide ) {
@@ -2889,8 +2399,8 @@ class SVGLoader extends Loader {
 			// Creates a new array if necessary with duplicated points removed.
 			// This does not remove duplicated initial and ending points of a closed path.
 
-			let dupPoints = false;
-			for ( let i = 1, n = points.length - 1; i < n; i ++ ) {
+			var dupPoints = false;
+			for ( var i = 1, n = points.length - 1; i < n; i ++ ) {
 
 				if ( points[ i ].distanceTo( points[ i + 1 ] ) < minDistance ) {
 
@@ -2903,10 +2413,10 @@ class SVGLoader extends Loader {
 
 			if ( ! dupPoints ) return points;
 
-			const newPoints = [];
+			var newPoints = [];
 			newPoints.push( points[ 0 ] );
 
-			for ( let i = 1, n = points.length - 1; i < n; i ++ ) {
+			for ( var i = 1, n = points.length - 1; i < n; i ++ ) {
 
 				if ( points[ i ].distanceTo( points[ i + 1 ] ) >= minDistance ) {
 
@@ -2922,9 +2432,8 @@ class SVGLoader extends Loader {
 
 		}
 
-	}
+	};
 
-
-}
+}();
 
 export { SVGLoader };

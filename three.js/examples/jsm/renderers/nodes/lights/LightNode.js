@@ -6,7 +6,7 @@ import FloatNode from '../inputs/FloatNode.js';
 import OperatorNode from '../math/OperatorNode.js';
 import MathNode from '../math/MathNode.js';
 import { NodeUpdateType } from '../core/constants.js';
-import { getDistanceAttenuation } from '../functions/BSDFs.js';
+import { punctualLightIntensityToIrradianceFactor } from '../functions/BSDFs.js';
 
 import { Color } from 'three';
 
@@ -34,13 +34,13 @@ class LightNode extends Node {
 
 		this.lightDistance = new MathNode( MathNode.LENGTH, this.lVector );
 
-		this.lightAttenuation = getDistanceAttenuation.call( {
+		this.lightIntensity = punctualLightIntensityToIrradianceFactor.call( {
 			lightDistance: this.lightDistance,
 			cutoffDistance: this.lightCutoffDistance,
 			decayExponent: this.lightDecayExponent
 		} );
 
-		this.lightColor = new OperatorNode( '*', this.color, this.lightAttenuation );
+		this.lightColor = new OperatorNode( '*', this.color, this.lightIntensity );
 
 	}
 
@@ -56,21 +56,22 @@ class LightNode extends Node {
 
 		this.lightPositionView.object3d = this.light;
 
-		const lightingModelFunctionNode = builder.getContextValue( 'lightingModel' );
+		const directFunctionNode = builder.getContextParameter( 'RE_Direct' );
+		const indirectDiffuseFunctionNode = builder.getContextParameter( 'RE_IndirectDiffuse' );
 
-		if ( lightingModelFunctionNode !== undefined ) {
+		const directFunctionCallNode = directFunctionNode.call( {
+			lightDirection: this.lightDirection,
+			lightColor: this.lightColor
+		} );
 
-			const reflectedLightStructNode = builder.getContextValue( 'reflectedLight' );
+		const indirectDiffuseFunctionCallNode = indirectDiffuseFunctionNode.call( {
+			lightDirection: this.lightDirection,
+			lightColor: this.lightColor
+		} );
 
-			const lightingModelCallNode = lightingModelFunctionNode.call( {
-				lightDirection: this.lightDirection,
-				lightColor: this.lightColor,
-				reflectedLight:	reflectedLightStructNode
-			} );
+		builder.addFlowCode( directFunctionCallNode.build( builder ) );
 
-			builder.addFlowCode( lightingModelCallNode.build( builder ) );
-
-		}
+		builder.addFlowCode( indirectDiffuseFunctionCallNode.build( builder ) );
 
 		return this.color.build( builder, output );
 

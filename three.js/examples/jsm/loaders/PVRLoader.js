@@ -12,20 +12,22 @@ import {
  *   TODO : implement loadMipmaps option
  */
 
-class PVRLoader extends CompressedTextureLoader {
+var PVRLoader = function ( manager ) {
 
-	constructor( manager ) {
+	CompressedTextureLoader.call( this, manager );
 
-		super( manager );
+};
 
-	}
+PVRLoader.prototype = Object.assign( Object.create( CompressedTextureLoader.prototype ), {
 
-	parse( buffer, loadMipmaps ) {
+	constructor: PVRLoader,
 
-		const headerLengthInt = 13;
-		const header = new Uint32Array( buffer, 0, headerLengthInt );
+	parse: function ( buffer, loadMipmaps ) {
 
-		const pvrDatas = {
+		var headerLengthInt = 13;
+		var header = new Uint32Array( buffer, 0, headerLengthInt );
+
+		var pvrDatas = {
 			buffer: buffer,
 			header: header,
 			loadMipmaps: loadMipmaps
@@ -35,13 +37,13 @@ class PVRLoader extends CompressedTextureLoader {
 
 			// PVR v3
 
-			return _parseV3( pvrDatas );
+			return PVRLoader._parseV3( pvrDatas );
 
 		} else if ( header[ 11 ] === 0x21525650 ) {
 
 			// PVR v2
 
-			return _parseV2( pvrDatas );
+			return PVRLoader._parseV2( pvrDatas );
 
 		} else {
 
@@ -51,15 +53,15 @@ class PVRLoader extends CompressedTextureLoader {
 
 	}
 
-}
+} );
 
-function _parseV3( pvrDatas ) {
+PVRLoader._parseV3 = function ( pvrDatas ) {
 
-	const header = pvrDatas.header;
-	let bpp, format;
+	var header = pvrDatas.header;
+	var bpp, format;
 
 
-	const metaLen = header[ 12 ],
+	var metaLen = header[ 12 ],
 		pixelFormat = header[ 2 ],
 		height = header[ 6 ],
 		width = header[ 7 ],
@@ -103,15 +105,15 @@ function _parseV3( pvrDatas ) {
 	pvrDatas.numMipmaps = numMipmaps;
 	pvrDatas.isCubemap 	= ( numFaces === 6 );
 
-	return _extract( pvrDatas );
+	return PVRLoader._extract( pvrDatas );
 
-}
+};
 
-function _parseV2( pvrDatas ) {
+PVRLoader._parseV2 = function ( pvrDatas ) {
 
-	const header = pvrDatas.header;
+	var header = pvrDatas.header;
 
-	const headerLength = header[ 0 ],
+	var headerLength = header[ 0 ],
 		height = header[ 1 ],
 		width = header[ 2 ],
 		numMipmaps = header[ 3 ],
@@ -126,14 +128,14 @@ function _parseV2( pvrDatas ) {
 		numSurfs = header[ 12 ];
 
 
-	const TYPE_MASK = 0xff;
-	const PVRTC_2 = 24,
+	var TYPE_MASK = 0xff;
+	var PVRTC_2 = 24,
 		PVRTC_4 = 25;
 
-	const formatFlags = flags & TYPE_MASK;
+	var formatFlags = flags & TYPE_MASK;
 
-	let bpp, format;
-	const _hasAlpha = bitmaskAlpha > 0;
+	var bpp, format;
+	var _hasAlpha = bitmaskAlpha > 0;
 
 	if ( formatFlags === PVRTC_4 ) {
 
@@ -163,14 +165,14 @@ function _parseV2( pvrDatas ) {
 	// it juste a pvr containing 6 surface (no explicit cubemap type)
 	pvrDatas.isCubemap 	= ( numSurfs === 6 );
 
-	return _extract( pvrDatas );
+	return PVRLoader._extract( pvrDatas );
 
-}
+};
 
 
-function _extract( pvrDatas ) {
+PVRLoader._extract = function ( pvrDatas ) {
 
-	const pvr = {
+	var pvr = {
 		mipmaps: [],
 		width: pvrDatas.width,
 		height: pvrDatas.height,
@@ -179,18 +181,17 @@ function _extract( pvrDatas ) {
 		isCubemap: pvrDatas.isCubemap
 	};
 
-	const buffer = pvrDatas.buffer;
+	var buffer = pvrDatas.buffer;
 
-	let dataOffset = pvrDatas.dataPtr,
+	var dataOffset = pvrDatas.dataPtr,
+		bpp = pvrDatas.bpp,
+		numSurfs = pvrDatas.numSurfaces,
 		dataSize = 0,
 		blockSize = 0,
 		blockWidth = 0,
 		blockHeight = 0,
 		widthBlocks = 0,
 		heightBlocks = 0;
-
-	const bpp = pvrDatas.bpp,
-		numSurfs = pvrDatas.numSurfaces;
 
 	if ( bpp === 2 ) {
 
@@ -208,11 +209,11 @@ function _extract( pvrDatas ) {
 
 	pvr.mipmaps.length = pvrDatas.numMipmaps * numSurfs;
 
-	let mipLevel = 0;
+	var mipLevel = 0;
 
 	while ( mipLevel < pvrDatas.numMipmaps ) {
 
-		const sWidth = pvrDatas.width >> mipLevel,
+		var sWidth = pvrDatas.width >> mipLevel,
 			sHeight = pvrDatas.height >> mipLevel;
 
 		widthBlocks = sWidth / blockWidth;
@@ -224,11 +225,11 @@ function _extract( pvrDatas ) {
 
 		dataSize = widthBlocks * heightBlocks * blockSize;
 
-		for ( let surfIndex = 0; surfIndex < numSurfs; surfIndex ++ ) {
+		for ( var surfIndex = 0; surfIndex < numSurfs; surfIndex ++ ) {
 
-			const byteArray = new Uint8Array( buffer, dataOffset, dataSize );
+			var byteArray = new Uint8Array( buffer, dataOffset, dataSize );
 
-			const mipmap = {
+			var mipmap = {
 				data: byteArray,
 				width: sWidth,
 				height: sHeight
@@ -246,6 +247,6 @@ function _extract( pvrDatas ) {
 
 	return pvr;
 
-}
+};
 
 export { PVRLoader };
