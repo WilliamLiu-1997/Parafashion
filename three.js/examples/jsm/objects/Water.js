@@ -174,7 +174,7 @@ var Water = function ( geometry, options, water_size=1.0 ) {
 
 			'#include <logdepthbuf_fragment>',
 			'	vec4 noise = getNoise( worldPosition.xz * size );',
-			'	vec3 surfaceNormal = normalize( noise.xzy * vec3( 1.5, 1.0, 1.5 ) );',
+			'	vec3 surfaceNormal = normalize( noise.xzy * vec3( 2, 1, 2 ) );',
 
 			'	vec3 diffuseLight = vec3(0.0);',
 			'	vec3 specularLight = vec3(0.0);',

@@ -582,7 +582,7 @@ function init() {
         45,
         window.innerWidth / window.innerHeight,
         0.01,
-        200
+        10000
     );
     camera.position.set(0, 0.5, 2);
 
@@ -650,8 +650,8 @@ function init() {
     MeshWater = new Water(
       waterGeometry,
       {
-        textureWidth: 2048,
-        textureHeight: 2048,
+        textureWidth: 4096,
+        textureHeight: 4096,
         waterNormals: new THREE.TextureLoader().load(
           "./three.js/examples/textures/waternormals.jpg",
           function (texture) {
@@ -659,21 +659,21 @@ function init() {
           }
         ),
         sunDirection: new THREE.Vector3(),
-        sunColor: 0xffffff,
-        waterColor: 0x001e1f,
-        distortionScale: 1,
+        sunColor: 0xfff9c2,
+        waterColor: 0x043253,
+        distortionScale: 10,
         fog: scene.fog !== undefined,
       },
-      10
+      0.5
     );
     MeshWater.name = "Water";
     MeshWater.rotation.x = -Math.PI / 2;
     scene.add(MeshWater);
 
-    directional_light = new THREE.DirectionalLight(0xffffff, 0.8);
+    directional_light = new THREE.DirectionalLight(0xfffce2, 1);
     directional_light.castShadow = true;
     directional_light.shadow.camera.near = 0.1;
-    directional_light.shadow.camera.far = 9;
+    directional_light.shadow.camera.far = 10000;
     directional_light.shadow.bias = -0.001;
     directional_light.position.set(0, 3, 0);
 
@@ -829,7 +829,6 @@ function animate() {
             camera_patch.near = 0.01;
             controls_patch.maxZ = 50;
             controls_patch.minZ = 0.02;
-            controls.maxDistance = 5;
             directional_light.shadow.mapSize.width = 4096;
             directional_light.shadow.mapSize.height = 4096;
 
@@ -903,7 +902,7 @@ function animate() {
         $("#gui_container_gui").css({ "max-height": window.innerHeight * 0.80 - 15 })
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(450, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
-        MeshWater.material.uniforms["time"].value += 0.5 / 180.0;
+        MeshWater.material.uniforms["time"].value += 0.8 / 180.0;
         render();
         timeStamp = timeStamp % singleFrameTime;
     }
@@ -1052,7 +1051,6 @@ function onmouseDown(event) {
                     Wireframe(false, true)
                 }
                 set_cursor(4)
-                controls.maxDistance = 2;
             }
             if (controls !== undefined) {
                 if (cut_obj.length === 1) {
@@ -1610,7 +1608,6 @@ function select_recovery() {
     draw_line_show_back = [];
     draw_line_show_left = [];
     draw_line_show_back_left = [];
-    controls.maxDistance = 5;
     set_cursor(0)
     if (controls !== undefined) {
         controls.target = O;
@@ -2751,10 +2748,7 @@ function obj_loader(url_obj, scale) {
                 passed_time += 1
                 $("#small_info").html("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.<br>This may be longer for the first time.");
             }, 1000)
-            let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
             obj_size = 1
-            root.position.set(-(x_min + x_max) / 2 / scale_value, -y_min / scale_value-0.006, -(z_min + z_max) / 2 / scale_value);
-            root.scale.set(scale / scale_value, scale / scale_value, scale / scale_value);
             newobj.add(root);
         },
         onProgress_obj
