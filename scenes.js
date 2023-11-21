@@ -672,10 +672,6 @@ function init() {
 
     directional_light = new THREE.DirectionalLight(0xfffce2, 1);
     directional_light.castShadow = true;
-    directional_light.shadow.camera.near = 0.1;
-    directional_light.shadow.camera.far = 10000;
-    directional_light.shadow.bias = -0.001;
-    directional_light.position.set(0, 3, 0);
 
 
     window.addEventListener("resize", onWindowResize);
@@ -829,13 +825,6 @@ function animate() {
             camera_patch.near = 0.01;
             controls_patch.maxZ = 50;
             controls_patch.minZ = 0.02;
-            directional_light.shadow.mapSize.width = 4096;
-            directional_light.shadow.mapSize.height = 4096;
-
-            directional_light.shadow.camera.left = -obj_size * 1.5;
-            directional_light.shadow.camera.right = obj_size * 1.5;
-            directional_light.shadow.camera.top = obj_size * 1.5;
-            directional_light.shadow.camera.bottom = -obj_size * 1.5;
             for (var i = 0; i < original.length; i++) {
                 if (original[i].geometry.groups.length > 0) {
                     original[i].material = original[i].material.slice(0)
@@ -887,7 +876,7 @@ function animate() {
         }
         else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
             gui.updateDisplay();
-            directional_light.position.copy(new THREE.Vector3(0, 3, 0).applyEuler(arrow.rotation));
+            directional_light.position.copy(new THREE.Vector3(0, obj_size, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
             camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
             MeshWater.material.uniforms[ 'sunDirection' ].value.copy( directional_light.position.clone().addScalar(-1) ).normalize();
@@ -2688,7 +2677,7 @@ function Display(show_env, patch_env, light) {
 }
 
 
-function obj_loader(url_obj, scale) {
+function obj_loader(url_obj) {
     let default_material = new THREE.MeshPhongMaterial({ color: 0xcccccc, reflectivity: 0.1, side: THREE.DoubleSide })
     original = []
     let onProgress_obj = function (xhr) {
@@ -2748,7 +2737,20 @@ function obj_loader(url_obj, scale) {
                 passed_time += 1
                 $("#small_info").html("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.<br>This may be longer for the first time.");
             }, 1000)
-            obj_size = 1
+            obj_size = Math.sqrt((x_max-x_min)**2+(y_max-y_min)**2+(z_max-z_min)**2)
+            directional_light.shadow.camera.near = 1;
+            directional_light.shadow.camera.far = obj_size*2;
+            directional_light.shadow.bias = -0.001;
+            directional_light.position.set(0, obj_size, 0);
+            
+            directional_light.shadow.mapSize.width = 1024*1024;
+            directional_light.shadow.mapSize.height = 1024*1024;
+
+            directional_light.shadow.camera.left = -obj_size;
+            directional_light.shadow.camera.right = obj_size;
+            directional_light.shadow.camera.top = obj_size;
+            directional_light.shadow.camera.bottom = -obj_size;
+            directional_light.shadow.normalBias=0.001
             newobj.add(root);
         },
         onProgress_obj
