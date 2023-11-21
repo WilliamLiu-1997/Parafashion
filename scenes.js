@@ -3,13 +3,13 @@ import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
 import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
-import { OBJExporter } from './three.js/examples/jsm/exporters/OBJExporter.js';
-import { PLYExporter } from './three.js/examples/jsm/exporters/PLYExporter.js';
 import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
+import { ShaderPass } from './three.js/examples/jsm/postprocessing/ShaderPass.js';
 import { Water } from './three.js/examples/jsm/objects/Water.js';
 import { Sky } from './three.js/examples/jsm/objects/Sky.js';
+
 
 var continue_start_flag = false;
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light,sky;
@@ -176,7 +176,7 @@ var gui_options = {
     Mode: "Customizing Material",
     focus: false,
     Straight: false,
-    light: "Camera Light",
+    controlSun: true,
     Wireframe: false,
     Stress: false,
     Stress_Sensitivity: 3,
@@ -358,7 +358,7 @@ var Material = {
 
 var TextureParams = {
     current: "map",
-    wrap: "mirror",
+    wrap: "repeat",
     reset_position: function () {
         reset_position = true;
         set_cursor(4);
@@ -474,12 +474,12 @@ function init() {
     camera = new THREE.PerspectiveCamera(
         45,
         window.innerWidth / window.innerHeight,
-        0.1,
+        1,
         20000
     );
     camera.position.set(0, 0.5, 2);
 
-    cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 0.8);
+    cameralight = new THREE.PointLight(new THREE.Color(1, 1, 1), 1);
 
     camera.add(cameralight);
     scene.add(camera);
@@ -491,6 +491,45 @@ function init() {
     composer = new EffectComposer(renderer);
     var renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
+
+    var tonemapping_pars_fragment = "#ifndef saturate\n#define saturate(a) clamp( a, 0.0, 1.0 )\n#endif\nuniform float toneMappingExposure;\nvec3 LinearToneMapping( vec3 color ) {\n\treturn toneMappingExposure * color;\n}\nvec3 ReinhardToneMapping( vec3 color ) {\n\tcolor *= toneMappingExposure;\n\treturn saturate( color / ( vec3( 1.0 ) + color ) );\n}\nvec3 OptimizedCineonToneMapping( vec3 color ) {\n\tcolor *= toneMappingExposure;\n\tcolor = max( vec3( 0.0 ), color - 0.004 );\n\treturn pow( ( color * ( 6.2 * color + 0.5 ) ) / ( color * ( 6.2 * color + 1.7 ) + 0.06 ), vec3( 2.2 ) );\n}\nvec3 RRTAndODTFit( vec3 v ) {\n\tvec3 a = v * ( v + 0.0245786 ) - 0.000090537;\n\tvec3 b = v * ( 0.983729 * v + 0.4329510 ) + 0.238081;\n\treturn a / b;\n}\nvec3 ACESFilmicToneMapping( vec3 color ) {\n\tconst mat3 ACESInputMat = mat3(\n\t\tvec3( 0.59719, 0.07600, 0.02840 ),\t\tvec3( 0.35458, 0.90834, 0.13383 ),\n\t\tvec3( 0.04823, 0.01566, 0.83777 )\n\t);\n\tconst mat3 ACESOutputMat = mat3(\n\t\tvec3(	1.60475, -0.10208, -0.00327 ),\t\tvec3( -0.53108,	1.10813, -0.07276 ),\n\t\tvec3( -0.07367, -0.00605,	1.07602 )\n\t);\n\tcolor *= toneMappingExposure / 0.6;\n\tcolor = ACESInputMat * color;\n\tcolor = RRTAndODTFit( color );\n\tcolor = ACESOutputMat * color;\n\treturn saturate( color );\n}\nvec3 CustomToneMapping( vec3 color ) { return color; }";
+    const toneMappingShader = {
+        uniforms: {
+            tDiffuse: { value: null },
+            toneMappingExposure: { value: 1.0 }
+        },
+        vertexShader: `
+            varying vec2 vUv;
+    
+            void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D tDiffuse;
+    
+            varying vec2 vUv;
+    
+            ${tonemapping_pars_fragment} // Insert your tone mapping code here
+    
+            void main() {
+                vec4 texel = texture2D(tDiffuse, vUv);
+                // Apply custom tone mapping
+                texel.rgb = ACESFilmicToneMapping(texel.rgb); // Replace with your desired tone mapping function
+                gl_FragColor = texel;
+            }
+        `
+    };
+    
+    // Create and add the ShaderPass to the composer
+    const toneMappingPass = new ShaderPass(toneMappingShader);
+    composer.addPass(toneMappingPass);
+    
+    // Update the exposure uniform if needed
+    toneMappingPass.uniforms.toneMappingExposure.value = renderer.toneMappingExposure;
+
+
 
     outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
     composer.addPass(outlinePass);
@@ -539,13 +578,13 @@ function init() {
     scene.add(line_left);
     scene.add(line_back_left);
 
-    const waterGeometry = new THREE.CircleGeometry(5000, 100);
+    const waterGeometry = new THREE.PlaneGeometry( 20000, 20000 );
 
     MeshWater = new Water(
       waterGeometry,
       {
-        textureWidth: 4096,
-        textureHeight: 4096,
+        textureWidth: 512,
+        textureHeight: 512,
         waterNormals: new THREE.TextureLoader().load(
           "./three.js/examples/textures/waternormals.jpg",
           function (texture) {
@@ -570,16 +609,20 @@ function init() {
 
     const skyUniforms = sky.material.uniforms;
 
-    skyUniforms[ 'turbidity' ].value = 10;
-    skyUniforms[ 'rayleigh' ].value = 2;
+    skyUniforms[ 'turbidity' ].value = 2;
+    skyUniforms[ 'rayleigh' ].value = 1;
     skyUniforms[ 'mieCoefficient' ].value = 0.005;
     skyUniforms[ 'mieDirectionalG' ].value = 0.8;
 
     pmremGenerator = new THREE.PMREMGenerator( renderer );
     sceneEnv = new THREE.Scene();
 
-    directional_light = new THREE.DirectionalLight(0xfffce2, 1);
+    directional_light = new THREE.DirectionalLight(0xffffcc, 10);
     directional_light.castShadow = true;
+    scene.remove(directional_light);
+    scene.add(directional_light);
+    env_light = new THREE.AmbientLight(0xffffff, 1);
+    scene.add(env_light);
     updateSun()
 
     window.addEventListener("resize", onWindowResize);
@@ -591,16 +634,15 @@ function init() {
     window.addEventListener("keyup", onKeyUp, false);
     document.getElementById("container").addEventListener("wheel", onMouseWheel, false);
     document.getElementById("container_patch").addEventListener("wheel", onMouseWheel_patch, false);
-
+    $("#transform").fadeIn()
 }
 
 let renderTarget;
 let pmremGenerator
 
 function updateSun() {
-
-    sky.material.uniforms[ 'sunPosition' ].value.copy( directional_light.position );
-    MeshWater.material.uniforms[ 'sunDirection' ].value.copy( directional_light.position.clone().addScalar(-1) ).normalize();
+    sky.material.uniforms[ 'sunPosition' ].value.copy( directional_light.position.clone() );
+    MeshWater.material.uniforms[ 'sunDirection' ].value.copy( directional_light.position.clone() ).normalize();
 
     if ( renderTarget !== undefined ) renderTarget.dispose();
 
@@ -826,10 +868,6 @@ function render() {
     renderer_transform.render(scene_transform, camera_transform);
     controls.update();
     composer.render();
-    if (render_patch_flag) {
-        controls_patch.update();
-        composer_patch.render();
-    }
 }
 
 
@@ -1503,7 +1541,6 @@ function select_recovery() {
         }
     })
     scene.remove(selected_obj_sym);
-    show_all(garment);
     gui_options.focus = false;
     material_folder.hide()
     outlinePass_select.selectedObjects = []
@@ -2497,7 +2534,7 @@ function init_produce_geo(position, child) {
 
 
 function obj_loader(url_obj) {
-    let default_material = new THREE.MeshPhongMaterial({ color: 0xcccccc, reflectivity: 0.1, side: THREE.DoubleSide })
+    let default_material =  new THREE.MeshStandardMaterial( { color: 0xcccccc, roughness: 0, side: THREE.DoubleSide  } );
     original = []
     let onProgress_obj = function (xhr) {
         if (xhr.lengthComputable) {
@@ -2698,8 +2735,7 @@ function GUI_init() {
     document.getElementById('gui_container_gui').insertBefore(gui.domElement, document.getElementById('gui_container_gui').childNodes[0]);
 
     folder_basic = gui.addFolder("Basic")
-    folder_basic.add(gui_options, 'Mode', ["Customizing Material"]).name("Mode").onChange(() => Change_Mode());
-    folder_basic.add(gui_options, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(gui_options.light));
+    folder_basic.add(gui_options, 'controlSun').onChange(() => Change_Light(gui_options.controlSun));
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
     cut_component = folder_basic.addFolder("Cutting Control");
     cut_component.add(gui_options, 'Unselect');
@@ -2735,8 +2771,8 @@ function GUI_init() {
     folder_env = gui.addFolder("Environment")
     folder_env.add(controls, 'autoRotate').name("Auto Rotate");
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
-    folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe(true, true, true)).name('Show Wireframe');
-    folder_env.add(gui_options, 'Stress').onChange(() => Stress(true, true, true)).name('Show Stress');
+    // folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe(true, true, true)).name('Show Wireframe');
+    // folder_env.add(gui_options, 'Stress').onChange(() => Stress(true, true, true)).name('Show Stress');
     folder_sen = folder_env.addFolder("Stress Sensitivity")
     folder_sen.add(gui_options, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false, false)).name('Stress Sensitivity');
     folder_sen.open();
@@ -2749,8 +2785,8 @@ function GUI_init() {
     // material_folder.add(Material, "save").name('Save Material')
     material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
     //material_folder.add(Material, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
-    //material_folder.add(Material, "visible").onChange(() => Material_Update_Param())
+    material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
+    material_folder.add(Material, "visible").onChange(() => Material_Update_Param())
     material_folder.open()
     material_folder.hide()
 
@@ -2762,7 +2798,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update_Param())
     basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
     basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
-    // basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     basic_texture.add(TextureParams, "reset_position").name("Reset Position")
     basic_texture.add(TextureParams, "remove").name("Remove Texture")
     basic_texture.open()
@@ -2779,7 +2815,7 @@ function GUI_init() {
     //Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
     lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     lambert_texture.add(TextureParams, "reset_position").name("Reset Position")
     lambert_texture.add(TextureParams, "remove").name("Remove Texture")
     lambert_texture.open()
@@ -2797,12 +2833,12 @@ function GUI_init() {
     Material_Type_Folder.MeshPhongMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", 0, 10, 0.1).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", 0, 10, 0.1).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", 0, 10, 0.1).onChange(() => Material_Update_Param())
     phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
     phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     phong_texture.add(TextureParams, "reset_position").name("Reset Position")
     phong_texture.add(TextureParams, "remove").name("Remove Texture")
     phong_texture.open()
@@ -2816,12 +2852,12 @@ function GUI_init() {
     Material_Type_Folder.MeshToonMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", 0, 10, 0.1).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", 0, 10, 0.1).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", 0, 10, 0.1).onChange(() => Material_Update_Param())
     toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
     toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     toon_texture.add(TextureParams, "reset_position").name("Reset Position")
     toon_texture.add(TextureParams, "remove").name("Remove Texture")
     toon_texture.open()
@@ -2838,12 +2874,12 @@ function GUI_init() {
     Material_Type_Folder.MeshStandardMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", 0, 10, 0.1).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", 0, 10, 0.1).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", 0, 10, 0.1).onChange(() => Material_Update_Param())
     standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
     standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     standard_texture.add(TextureParams, "reset_position").name("Reset Position")
     standard_texture.add(TextureParams, "remove").name("Remove Texture")
     standard_texture.open()
@@ -2866,12 +2902,12 @@ function GUI_init() {
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update_Param())
     //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", 0, 10, 0.1).name("normalScale.x").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", 0, 10, 0.1).name("normalScale.y").onChange(() => Material_Update_Param())
+    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", 0, 10, 0.1).onChange(() => Material_Update_Param())
     physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
     physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
     physical_texture.add(TextureParams, "reset_position").name("Reset Position")
     physical_texture.add(TextureParams, "remove").name("Remove Texture")
     physical_texture.open()
@@ -2884,19 +2920,20 @@ function GUI_init() {
 }
 
 
-function Change_Light(light) {
-    if (light === "Camera Light") {
-        scene.remove(directional_light);
-        camera.remove(cameralight);
-        camera.add(cameralight);
-        $("#transform").fadeOut();
-    }
-    if (light === "Directional Light") {
-        scene.remove(directional_light);
-        camera.remove(cameralight);
-        scene.add(directional_light);
-        $("#transform").fadeIn();
-    }
+function Change_Light(fade) {
+    fade?$("#transform").fadeIn():$("#transform").fadeOut();
+    // if (light === "Camera Light") {
+    //     scene.remove(directional_light);
+    //     camera.remove(cameralight);
+    //     camera.add(cameralight);
+    //     $("#transform").fadeOut();
+    // }
+    // if (light === "Directional Light") {
+    //     scene.remove(directional_light);
+    //     camera.remove(cameralight);
+    //     scene.add(directional_light);
+    //     $("#transform").fadeIn();
+    // }
 }
 
 
@@ -3096,7 +3133,6 @@ function Wireframe(save = true, reload_edge = true, onchange = false) {
         gui_options.Wireframe = false;
         return;
     }
-    show_all(garment)
     if (reload_edge) {
         edge.clear();
     }
@@ -3171,7 +3207,6 @@ function Stress(save = true, reload_edge = true, onchange = false) {
         folder_sen.hide();
         return;
     }
-    show_all(garment)
     if (reload_edge) {
         edge.clear();
     }
@@ -3664,27 +3699,6 @@ function exportPatchesPNG() {
 
     renderer_patch.setPixelRatio(pixelRatio);
 }
-
-function exportPatchesOBJ() {
-    var exporter = new OBJExporter();
-    var patch_obj = exporter.parse(patch);
-    var blob = new Blob([patch_obj], { type: "text/plain;charset=utf-8" });
-    saveAs(blob, "Patches.obj");
-}
-function exportPatchesPLY() {
-    var exporter = new PLYExporter();
-    var patch_ply = exporter.parse(patch);
-    var blob = new Blob([patch_ply], { type: "text/plain;charset=utf-8" });
-    saveAs(blob, "Patches.ply");
-}
-
-document.querySelector('#exportPNG').addEventListener('click', () => {
-    exportPatchesPNG()
-})
-
-document.querySelector('#exportOBJ').addEventListener('click', () => {
-    exportPatchesOBJ()
-})
 
 document.querySelector('#exportPLY').addEventListener('click', () => {
     let isWireframe = false;
