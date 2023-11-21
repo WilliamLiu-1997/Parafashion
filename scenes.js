@@ -9,9 +9,10 @@ import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectCom
 import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
 import { Water } from './three.js/examples/jsm/objects/Water.js';
+import { Sky } from './three.js/examples/jsm/objects/Sky.js';
 
 var continue_start_flag = false;
-let camera, cameralight, controls, scene, renderer, garment, gui, env_light;
+let camera, cameralight, controls, scene, renderer, garment, gui, env_light,sky;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
 let cut_component;
@@ -35,6 +36,7 @@ let passed_time = 0;
 let vertices;
 let old_garment = new THREE.Object3D();
 let edge = new THREE.Object3D();
+let sceneEnv;
 
 let selected = [], selected_patch = [];
 let covered_obj = new THREE.Mesh();
@@ -108,112 +110,6 @@ let outlinePass_params_select = {
     visibleEdgeColor: "#ffffff",
     hiddenEdgeColor: "#444444"
 };
-
-
-var format = '.jpg';
-var path1 = "./three.js/examples/textures/cube/Park2/";
-var urls1 = [
-    path1 + 'posx' + format, path1 + 'negx' + format,
-    path1 + 'posy' + format, path1 + 'negy' + format,
-    path1 + 'posz' + format, path1 + 'negz' + format
-];
-var env1 = new THREE.CubeTextureLoader().load(urls1);
-var env1_refre = new THREE.CubeTextureLoader().load(urls1);
-env1_refre.mapping = THREE.CubeRefractionMapping;
-
-var env2 = textureloader.load('./images/11.jpg');
-env2.mapping = THREE.EquirectangularReflectionMapping;
-var env2_refre = textureloader.load('./images/11.jpg');
-env2_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env3 = textureloader.load('./images/7.jpg');
-env3.mapping = THREE.EquirectangularReflectionMapping;
-var env3_refre = textureloader.load('./images/7.jpg');
-env3_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var path4 = "./three.js/examples/textures/cube/skyboxsun25deg/";
-var urls4 = [
-    path4 + 'px' + format, path4 + 'nx' + format,
-    path4 + 'py' + format, path4 + 'ny' + format,
-    path4 + 'pz' + format, path4 + 'nz' + format
-];
-var env4 = new THREE.CubeTextureLoader().load(urls4);
-var env4_refre = new THREE.CubeTextureLoader().load(urls4);
-env4_refre.mapping = THREE.CubeRefractionMapping;
-
-var path5 = "./three.js/examples/textures/cube/Bridge2/";
-var urls5 = [
-    path5 + 'posx' + format, path5 + 'negx' + format,
-    path5 + 'posy' + format, path5 + 'negy' + format,
-    path5 + 'posz' + format, path5 + 'negz' + format
-];
-var env5 = new THREE.CubeTextureLoader().load(urls5);
-var env5_refre = new THREE.CubeTextureLoader().load(urls5);
-env5_refre.mapping = THREE.CubeRefractionMapping;
-
-var env6 = textureloader.load('./images/5.jpg');
-env6.mapping = THREE.EquirectangularReflectionMapping;
-var env6_refre = textureloader.load('./images/5.jpg');
-env6_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env7 = textureloader.load('./images/9.jpg');
-env7.mapping = THREE.EquirectangularReflectionMapping;
-var env7_refre = textureloader.load('./images/9.jpg');
-env7_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var path8 = "./three.js/examples/textures/cube/Park3Med/";
-var urls8 = [
-    path8 + 'px' + format, path8 + 'nx' + format,
-    path8 + 'py' + format, path8 + 'ny' + format,
-    path8 + 'pz' + format, path8 + 'nz' + format
-];
-var env8 = new THREE.CubeTextureLoader().load(urls8);
-var env8_refre = new THREE.CubeTextureLoader().load(urls8);
-env8_refre.mapping = THREE.CubeRefractionMapping;
-
-var env9 = textureloader.load('./images/4.jpg');
-env9.mapping = THREE.EquirectangularReflectionMapping;
-var env9_refre = textureloader.load('./images/4.jpg');
-env9_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env10 = textureloader.load('./images/1.jpg');
-env10.mapping = THREE.EquirectangularReflectionMapping;
-var env10_refre = textureloader.load('./images/1.jpg');
-env10_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env11 = textureloader.load('./images/2.jpg');
-env11.mapping = THREE.EquirectangularReflectionMapping;
-var env11_refre = textureloader.load('./images/2.jpg');
-env11_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env12 = textureloader.load('./images/3.jpg');
-env12.mapping = THREE.EquirectangularReflectionMapping;
-var env12_refre = textureloader.load('./images/3.jpg');
-env12_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env13 = textureloader.load('./images/10.jpg');
-env13.mapping = THREE.EquirectangularReflectionMapping;
-var env13_refre = textureloader.load('./images/10.jpg');
-env13_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env14 = textureloader.load('./images/6.jpg');
-env14.mapping = THREE.EquirectangularReflectionMapping;
-var env14_refre = textureloader.load('./images/6.jpg');
-env14_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env15 = textureloader.load('./images/8.jpg');
-env15.mapping = THREE.EquirectangularReflectionMapping;
-var env15_refre = textureloader.load('./images/8.jpg');
-env15_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-
-var environment = {
-    Square: env7, Park: env1, PlayingRoom: env2, Alley: env3, Sky: env4, Bridge: env5, Gallery: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env13, BedRoom: env9, BathRoom: env14, Town: env15
-}
-
-var environment_light = {
-    Square: [0.4, 0.2], Park: [0.4, 0.2], PlayingRoom: [0.6, 0.4], Alley: [0.5, 0.3], Sky: [0.5, 0.7], Bridge: [0.5, 0.2], Gallery: [0.4, 0.6], None: [0.7, 0.3], Snow: [0.4, 0.2], LivingRoom: [0.35, 0.65], Street: [0.4, 0.6], Church: [0.2, 0.8], Restaurant: [0.5, 0.35], BedRoom: [0.4, 0.5], BathRoom: [0.3, 0.7], Town: [0.3, 0.2]
-}
 
 var gui_options = {
     Reset_Camera: function () {
@@ -395,7 +291,6 @@ var Material = {
                     selected[0].material[sym] = n.material[sym].clone()
                     selected_patch[0].parent.children[sym].material = n.material[sym].clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
             }
@@ -407,7 +302,6 @@ var Material = {
                     selected[0].material = n.material.clone()
                     selected_patch[0].material = n.material.clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
             }
@@ -438,7 +332,6 @@ var Material = {
                     let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
                     n.material[sym] = selected[0].material[sym].clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
             }
@@ -449,7 +342,6 @@ var Material = {
                 if (n.name == name) {
                     n.material = selected[0].material.clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
                     return;
                 }
             }
@@ -569,20 +461,21 @@ function continue_start(garments_obj, no_load = false) {
 function init() {
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x181818);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.5;
     document.getElementById("container").appendChild(renderer.domElement);
 
     camera = new THREE.PerspectiveCamera(
         45,
         window.innerWidth / window.innerHeight,
-        0.01,
-        10000
+        0.1,
+        20000
     );
     camera.position.set(0, 0.5, 2);
 
@@ -590,8 +483,8 @@ function init() {
 
     camera.add(cameralight);
     scene.add(camera);
-    env_light = new THREE.AmbientLight(0xffffff, 0.2);
-    scene.add(env_light);
+    // env_light = new THREE.AmbientLight(0xffffff, 0.2);
+    // scene.add(env_light);
     scene.add(edge);
 
     // postprocessing
@@ -628,6 +521,7 @@ function init() {
     controls.rotateSpeed = 2.5;
     controls.target = O;
     controls.autoRotateSpeed = 2;
+    controls.maxDistance = 5000
 
     if (continue_start_flag === false) {
         //garment = ply_loader(garments_obj1, 1);
@@ -659,8 +553,8 @@ function init() {
           }
         ),
         sunDirection: new THREE.Vector3(),
-        sunColor: 0xfff9c2,
-        waterColor: 0x043253,
+        sunColor: 0xffffff,
+        waterColor: 0x001e0f,
         distortionScale: 10,
         fog: scene.fog !== undefined,
       },
@@ -670,9 +564,23 @@ function init() {
     MeshWater.rotation.x = -Math.PI / 2;
     scene.add(MeshWater);
 
+    sky = new Sky();
+    sky.scale.setScalar( 10000 );
+    scene.add( sky );
+
+    const skyUniforms = sky.material.uniforms;
+
+    skyUniforms[ 'turbidity' ].value = 10;
+    skyUniforms[ 'rayleigh' ].value = 2;
+    skyUniforms[ 'mieCoefficient' ].value = 0.005;
+    skyUniforms[ 'mieDirectionalG' ].value = 0.8;
+
+    pmremGenerator = new THREE.PMREMGenerator( renderer );
+    sceneEnv = new THREE.Scene();
+
     directional_light = new THREE.DirectionalLight(0xfffce2, 1);
     directional_light.castShadow = true;
-
+    updateSun()
 
     window.addEventListener("resize", onWindowResize);
     document.getElementById("container").addEventListener("mousedown", onmouseDown, false);
@@ -683,6 +591,24 @@ function init() {
     window.addEventListener("keyup", onKeyUp, false);
     document.getElementById("container").addEventListener("wheel", onMouseWheel, false);
     document.getElementById("container_patch").addEventListener("wheel", onMouseWheel_patch, false);
+
+}
+
+let renderTarget;
+let pmremGenerator
+
+function updateSun() {
+
+    sky.material.uniforms[ 'sunPosition' ].value.copy( directional_light.position );
+    MeshWater.material.uniforms[ 'sunDirection' ].value.copy( directional_light.position.clone().addScalar(-1) ).normalize();
+
+    if ( renderTarget !== undefined ) renderTarget.dispose();
+
+    sceneEnv.add( sky );
+    renderTarget = pmremGenerator.fromScene( sceneEnv );
+    scene.add( sky );
+
+    scene.environment = renderTarget.texture;
 
 }
 
@@ -832,7 +758,6 @@ function animate() {
             }
 
             $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
-            Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
             onWindowResize();
 
             for (var i = 0; i < num; i++) {
@@ -879,7 +804,7 @@ function animate() {
             directional_light.position.copy(new THREE.Vector3(0, obj_size, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
             camera_transform.position.copy(new THREE.Vector3(0, 0, 20).applyEuler(camera.rotation))
-            MeshWater.material.uniforms[ 'sunDirection' ].value.copy( directional_light.position.clone().addScalar(-1) ).normalize();
+            updateSun()
 
         }
 
@@ -2485,7 +2410,6 @@ function produce_geo(position, cut_geometry, line = false) {
         Material_Update_Param(true);
         select_recovery();
         cover_recovery();
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
         hide_loading();
         passed_time = 0;
         clearInterval(loading_time);
@@ -2569,111 +2493,6 @@ function init_produce_geo(position, child) {
         worker.terminate();
     }
 
-}
-
-
-
-
-function Display(show_env, patch_env, light) {
-    if (show_env) {
-        scene.background = show_env;
-        cameralight.intensity = light[0]
-        directional_light.intensity = light[0]
-        env_light.intensity = light[1]
-        if (garment !== undefined) {
-            garment.traverse(function (child) {
-                if (child.material !== undefined) {
-                    if (Array.isArray(child.material)) {
-                        child.material.forEach(function (m) {
-                            if (m.envMap !== undefined) { m.envMap = show_env; m.combine = THREE.MixOperation; }
-                        })
-                    } else {
-                        if (child.material.envMap !== undefined) {
-                            child.material.envMap = show_env; child.material.combine = THREE.MixOperation;
-                        }
-                    }
-                }
-            })
-        }
-        if (patch_env) {
-            scene_patch.background = show_env;
-            cameralight_patch.intensity = light[0]
-            env_light_patch.intensity = light[1]
-            if (patch !== undefined) {
-                patch.traverse(function (child) {
-                    if (child.material !== undefined) {
-                        if (Array.isArray(child.material)) {
-                            child.material.forEach(function (m) {
-                                if (m.envMap !== undefined) { m.envMap = show_env; m.combine = THREE.MixOperation; }
-                            })
-                        } else {
-                            if (child.material.envMap !== undefined) {
-                                child.material.envMap = show_env; child.material.combine = THREE.MixOperation;
-                            }
-                        }
-                    }
-                })
-            }
-        } else {
-            scene_patch.background = null;
-            cameralight_patch.intensity = environment_light.None[0]
-            env_light_patch.intensity = environment_light.None[1]
-            if (patch !== undefined) {
-                patch.traverse(function (child) {
-                    if (child.material !== undefined) {
-                        if (Array.isArray(child.material)) {
-                            child.material.forEach(function (m) {
-                                if (m.envMap !== undefined) {
-                                    m.envMap = null;
-                                }
-                            })
-                        } else {
-                            if (child.material.envMap !== undefined) { child.material.envMap = null; }
-                        }
-                    }
-                })
-            }
-        }
-    }
-    else {
-        scene.background = new THREE.Color(0x181818);
-        cameralight.intensity = environment_light.None[0]
-        directional_light.intensity = environment_light.None[0]
-        env_light.intensity = environment_light.None[1]
-        if (garment !== undefined) {
-            garment.traverse(function (child) {
-                if (child.material !== undefined) {
-                    if (Array.isArray(child.material)) {
-                        child.material.forEach(function (m) {
-                            if (m.envMap !== undefined) {
-                                m.envMap = null;
-                            }
-                        })
-                    } else {
-                        if (child.material.envMap !== undefined) { child.material.envMap = null; }
-                    }
-                }
-            })
-        }
-        scene_patch.background = null;
-        cameralight_patch.intensity = environment_light.None[0]
-        env_light_patch.intensity = environment_light.None[1]
-        if (patch !== undefined) {
-            patch.traverse(function (child) {
-                if (child.material !== undefined) {
-                    if (Array.isArray(child.material)) {
-                        child.material.forEach(function (m) {
-                            if (m.envMap !== undefined) {
-                                m.envMap = null;
-                            }
-                        })
-                    } else {
-                        if (child.material.envMap !== undefined) { child.material.envMap = null; }
-                    }
-                }
-            })
-        }
-    }
 }
 
 
@@ -2914,8 +2733,6 @@ function GUI_init() {
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
-    folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
-    folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
     folder_env.add(controls, 'autoRotate').name("Auto Rotate");
     folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
     folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe(true, true, true)).name('Show Wireframe');
@@ -3116,10 +2933,6 @@ function Reflectivity() {
     Materials.MeshLambertMaterial.reflectivity = gui_options.Overall_Reflectivity
     Materials.MeshPhongMaterial.reflectivity = gui_options.Overall_Reflectivity
     Materials.MeshPhysicalMaterial.reflectivity = gui_options.Overall_Reflectivity
-
-    if (selected.length == 2 || selected.length == 1) {
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
-    }
 }
 
 
@@ -3176,7 +2989,6 @@ function GUI_to_Texture() {
         selected[0].material = obj_material
         selected_patch[0].material = obj_material.clone()
     }
-    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
 }
 
 function Obj_to_GUI(obj_material) {
@@ -3346,7 +3158,6 @@ function Wireframe(save = true, reload_edge = true, onchange = false) {
         Material.resetAll();
     }
     if (gui_options.focus) { hide_others(garment, cut_obj) }
-    if (save) Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
 }
 
 function Stress(save = true, reload_edge = true, onchange = false) {
@@ -3505,9 +3316,6 @@ function Stress(save = true, reload_edge = true, onchange = false) {
         Material.resetAll();
     }
     if (gui_options.focus) { hide_others(garment, cut_obj) }
-    if (save) {
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
-    }
 }
 
 
@@ -3915,7 +3723,6 @@ document.querySelector('.savebtn').addEventListener('click', () => {
         gui_options.Stress = false;
         Stress(false, true);
     }
-    Display(environment["None"], gui_options.Enable_Patch_Background, environment_light["None"]);
     let garment_patch = new THREE.Object3D();
     garment_patch.add(garment.clone(), patch.clone());
     let garment_patch_json = JSON.stringify(garment_patch.toJSON());
@@ -3929,7 +3736,6 @@ document.querySelector('.savebtn').addEventListener('click', () => {
         gui_options.Stress = true;
         Stress(true, true);
     }
-    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
 })
 
 var dragboxObj = document.querySelector('.dragObj');
