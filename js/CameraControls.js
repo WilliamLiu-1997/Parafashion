@@ -90,7 +90,7 @@ class CameraControls extends EventDispatcher {
 		this.keys = { TURNLEFT: 37, TURNUP: 38, TURNRIGHT: 39, TURNBOTTOM: 40, FORWARD: 87, BACKWARD: 83, LEFT: 65, RIGHT: 68 };
 
 		// Mouse buttons
-		this.mouseButtons = { PAN: MOUSE.RIGHT, ZOOM: false, ROTATE: MOUSE.MIDDLE };
+		this.mouseButtons = { PAN: MOUSE.RIGHT, ZOOM: MOUSE.MIDDLE, ROTATE: MOUSE.LEFT };
 
 		// for reset
 		this.position0 = this.object.position.clone();
@@ -373,14 +373,9 @@ class CameraControls extends EventDispatcher {
 
 			let v = new Vector3();
 
-			return function moveForward(distance, objectMatrix) {
-
-				v.setFromMatrixColumn(objectMatrix, 2); // get Z column of objectMatrix
-
-				v.multiplyScalar(-distance);
-
-				panOffset.add(v);
-
+			return function moveForward(distance, zoomVector) {
+				zoomVector.multiplyScalar(distance)
+				panOffset.add(zoomVector);
 			};
 
 		}();
@@ -424,7 +419,8 @@ class CameraControls extends EventDispatcher {
 
 				let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0) * 2000;
-				moveForward(-0.1 * scope.sensitivity * targetDistance / element.clientHeight * dollyScale, scope.object.matrix);
+				const zoomVector = scope.target.clone().sub(scope.object.position).normalize()
+				moveForward(-0.1 * scope.sensitivity * targetDistance / element.clientHeight * dollyScale, zoomVector);
 
 			} else if (scope.object.isOrthographicCamera) {
 
@@ -447,7 +443,8 @@ class CameraControls extends EventDispatcher {
 
 				let element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 				let targetDistance = Math.tan((scope.object.fov / 2) * Math.PI / 180.0) * 2000;
-				moveForward(0.1 * scope.sensitivity * targetDistance / element.clientHeight * dollyScale, scope.object.matrix);
+				const zoomVector = scope.target.clone().sub(scope.object.position).normalize()
+				moveForward(0.1 * scope.sensitivity * targetDistance / element.clientHeight * dollyScale, zoomVector);
 
 			} else if (scope.object.isOrthographicCamera) {
 
@@ -508,13 +505,13 @@ class CameraControls extends EventDispatcher {
 
 			dollyDelta.subVectors(dollyEnd, dollyStart);
 
-			if (dollyDelta.y > 0) {
+			if (dollyDelta.y < 0) {
 
-				dollyForward(scope.zoomSpeed);
+				dollyForward(scope.zoomSpeed/2);
 
-			} else if (dollyDelta.y < 0) {
+			} else if (dollyDelta.y > 0) {
 
-				dollyBackward(scope.zoomSpeed);
+				dollyBackward(scope.zoomSpeed/2);
 
 			}
 

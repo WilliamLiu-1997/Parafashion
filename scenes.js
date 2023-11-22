@@ -563,8 +563,8 @@ function init() {
 
     controls = new CameraControls(camera, renderer.domElement);
     controls.dynamicSensitivity = true;
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.15;
+    // controls.enableDamping = true;
+    // controls.dampingFactor = 0.15;
     controls.rotateSpeed = 2.5;
     controls.target = O;
     controls.autoRotateSpeed = 2;
@@ -643,7 +643,7 @@ function init() {
     document.addEventListener("mousemove", mouseMove, false);
     window.addEventListener("keydown", onKeyDown, false);
     window.addEventListener("keyup", onKeyUp, false);
-    document.getElementById("container").addEventListener("wheel", onMouseWheel, false);
+    document.getElementById("container").addEventListener("wheel", onMouseWheel, true);
     document.getElementById("container_patch").addEventListener("wheel", onMouseWheel_patch, false);
     $("#transform").fadeIn()
 }
@@ -934,10 +934,6 @@ function onKeyDown(e) {
                 set_cursor(0)
             }
             break;
-        case 17:
-            ctrl = true;
-            controls.mouseButtons.ROTATE = THREE.MOUSE.LEFT;
-            break;
     }
 };
 
@@ -948,10 +944,6 @@ function onKeyUp(e) {
             controls.stop = false;
             controls_patch.stop = false;
             if (!reset_position) set_cursor(0)
-            break;
-        case 17:
-            ctrl = false;
-            controls.mouseButtons.ROTATE = THREE.MOUSE.MIDDLE;
             break;
     }
 };
@@ -988,10 +980,6 @@ function onmouseDown(event) {
     if (ctrl) {
         return;
     }
-    if (event.button == 0) {
-        controls.stop = true;
-        controls_patch.stop = true;
-    }
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
             draw_line.push([]);
@@ -1016,12 +1004,6 @@ function onmouseDown(event) {
                     Wireframe(false, true)
                 }
                 set_cursor(4)
-            }
-            if (controls !== undefined) {
-                if (cut_obj.length === 1) {
-                    controls.target = cut_obj[0].geometry.boundingSphere.center.clone().multiply(cut_obj[0].parent.scale).add(cut_obj[0].parent.position);
-                
-                }
             }
         }
     }
@@ -1063,11 +1045,9 @@ function onmouseDown(event) {
                 select_material(pointer, camera);
                 if (controls !== undefined) {
                     if (selected.length === 1) {
-                        controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
                     
                     } else if (selected.length === 2) {
                         selected_obj.geometry.computeBoundingSphere();
-                        controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
                     
                     }
 
@@ -1082,6 +1062,26 @@ function onmouseDown(event) {
         else if (event.button == 1) { cover = false; }
         else if (event.button == 2) { cover = false; }
     }
+    if (controls !== undefined) {
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Update the raycaster with the camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects(scene.children).filter((i)=>{
+            return i.point.distanceTo(camera.position)>camera.near
+        });
+
+        if (intersects.length > 0) {
+            controls.target = intersects[0].point; // The picked position on the first intersected object
+        }else{
+            controls.target = O
+        }
+    }
 }
 
 
@@ -1092,11 +1092,6 @@ function onmouseDown_patch(event) {
 
     if (ctrl) {
         return;
-    }
-
-    if (event.button == 0) {
-        controls.stop = true;
-        controls_patch.stop = true;
     }
 
     if (reset_position && event.button == 0 && !gui_options.cut) {
@@ -1136,11 +1131,9 @@ function onmouseDown_patch(event) {
                 select_material_patch(pointer_patch, camera_patch);
                 if (controls !== undefined) {
                     if (selected.length === 1) {
-                        controls.target = selected[0].geometry.boundingSphere.center.clone().multiply(selected[0].parent.scale).add(selected[0].parent.position);
                     
                     } else if (selected.length === 2) {
                         selected_obj.geometry.computeBoundingSphere();
-                        controls.target = selected_obj.geometry.boundingSphere.center.clone().multiply(selected_obj.scale).add(selected_obj.position);
                     
                     }
 
@@ -1160,10 +1153,6 @@ function onmouseUp(event) {
     mouse_down = false;
     uv_offset = false;
     segment = 0;
-    if (event.button == 0) {
-        controls.stop = false;
-        controls_patch.stop = false;
-    }
     if (event.button == 0 && gui_options.cut) {
         drawing = false;
         if (draw_line.length > 0 && draw_line[draw_line.length - 1].length <= 10) {
@@ -1409,6 +1398,26 @@ function mouseMove(event) {
 }
 
 function onMouseWheel(e) {
+    if (controls !== undefined) {
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        // Update the raycaster with the camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+
+        // Calculate objects intersecting the picking ray
+        const intersects = raycaster.intersectObjects(scene.children).filter((i)=>{
+            return i.point.distanceTo(camera.position)>camera.near
+        });
+
+        if (intersects.length > 0) {
+            controls.target = intersects[0].point; // The picked position on the first intersected object
+        }else{
+            controls.target = O
+        }
+    }
     if (shift && !mouse_down) {
         pointer.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
         pointer.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
