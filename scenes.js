@@ -2,11 +2,11 @@ import * as THREE from './three.js/build/three.module.js';
 import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
-import { OBJLoader, EffectComposer, RenderPass, OutlinePass, ShaderPass, Water, Sky } from "./three.js/examples/jsm/Addons.js";
+import { OBJLoader, EffectComposer, RenderPass, OutlinePass, ShaderPass, Water, Sky, FXAAShader } from "./three.js/examples/jsm/Addons.js";
 
 
 var continue_start_flag = false;
-let camera, cameralight, controls, scene, renderer, garment, gui, env_light,sky;
+let camera, cameralight, controls, scene, renderer, garment, gui, env_light, sky, fxaaPass;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
 let cut_component;
@@ -459,6 +459,8 @@ function init() {
     renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor( 0xffffff );
+    renderer.autoClear = false;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -484,7 +486,19 @@ function init() {
     // postprocessing
     composer = new EffectComposer(renderer);
     var renderPass = new RenderPass(scene, camera);
+    renderPass.clearAlpha = 0;
+
+    
+    fxaaPass = new ShaderPass( FXAAShader );
+
     composer.addPass(renderPass);
+
+    fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+    fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
+
+    // FXAA is engineered to be applied towards the end of engine post processing after conversion to low dynamic range and conversion to the sRGB color space for display.
+
+    composer.addPass( fxaaPass );
 
     var tonemapping_pars_fragment = "#ifndef saturate\n#define saturate(a) clamp( a, 0.0, 1.0 )\n#endif\nuniform float toneMappingExposure;\nvec3 LinearToneMapping( vec3 color ) {\n\treturn toneMappingExposure * color;\n}\nvec3 ReinhardToneMapping( vec3 color ) {\n\tcolor *= toneMappingExposure;\n\treturn saturate( color / ( vec3( 1.0 ) + color ) );\n}\nvec3 OptimizedCineonToneMapping( vec3 color ) {\n\tcolor *= toneMappingExposure;\n\tcolor = max( vec3( 0.0 ), color - 0.004 );\n\treturn pow( ( color * ( 6.2 * color + 0.5 ) ) / ( color * ( 6.2 * color + 1.7 ) + 0.06 ), vec3( 2.2 ) );\n}\nvec3 RRTAndODTFit( vec3 v ) {\n\tvec3 a = v * ( v + 0.0245786 ) - 0.000090537;\n\tvec3 b = v * ( 0.983729 * v + 0.4329510 ) + 0.238081;\n\treturn a / b;\n}\nvec3 ACESFilmicToneMapping( vec3 color ) {\n\tconst mat3 ACESInputMat = mat3(\n\t\tvec3( 0.59719, 0.07600, 0.02840 ),\t\tvec3( 0.35458, 0.90834, 0.13383 ),\n\t\tvec3( 0.04823, 0.01566, 0.83777 )\n\t);\n\tconst mat3 ACESOutputMat = mat3(\n\t\tvec3(	1.60475, -0.10208, -0.00327 ),\t\tvec3( -0.53108,	1.10813, -0.07276 ),\n\t\tvec3( -0.07367, -0.00605,	1.07602 )\n\t);\n\tcolor *= toneMappingExposure / 0.6;\n\tcolor = ACESInputMat * color;\n\tcolor = RRTAndODTFit( color );\n\tcolor = ACESOutputMat * color;\n\treturn saturate( color );\n}\nvec3 CustomToneMapping( vec3 color ) { return color; }";
     const toneMappingShader = {
@@ -586,8 +600,8 @@ function init() {
           }
         ),
         sunDirection: new THREE.Vector3(),
-        sunColor: 0xffffff,
-        waterColor: 0x001e0f,
+        sunColor: 0xffffdd,
+        waterColor: 0x0c4e7c,
         distortionScale: 10,
         fog: scene.fog !== undefined,
         side: THREE.DoubleSide
@@ -604,15 +618,15 @@ function init() {
 
     const skyUniforms = sky.material.uniforms;
 
-    skyUniforms[ 'turbidity' ].value = 2;
-    skyUniforms[ 'rayleigh' ].value = 1;
+    skyUniforms[ 'turbidity' ].value = 10;
+    skyUniforms[ 'rayleigh' ].value = 2;
     skyUniforms[ 'mieCoefficient' ].value = 0.005;
     skyUniforms[ 'mieDirectionalG' ].value = 0.8;
 
     pmremGenerator = new THREE.PMREMGenerator( renderer );
     sceneEnv = new THREE.Scene();
 
-    directional_light = new THREE.DirectionalLight(0xffffcc, 10);
+    directional_light = new THREE.DirectionalLight(0xffffdd, 10);
     directional_light.castShadow = true;
 
     scene.remove(directional_light);
@@ -863,7 +877,6 @@ function animate() {
 
 function render() {
     renderer_transform.render(scene_transform, camera_transform);
-    controls.update();
     composer.render();
 }
 
@@ -884,6 +897,9 @@ function onWindowResize() {
     composer.setPixelRatio(pixelRatio);
     renderer_transform.setSize(window.innerHeight / 7, window.innerHeight / 7);
     renderer_transform.setPixelRatio(pixelRatio);
+
+    fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( window.innerWidth * pixelRatio );
+    fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( window.innerHeight * pixelRatio );
 
     if (render_patch_flag) {
         camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.78;
