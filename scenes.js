@@ -2,13 +2,7 @@ import * as THREE from './three.js/build/three.module.js';
 import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
-import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
-import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
-import { ShaderPass } from './three.js/examples/jsm/postprocessing/ShaderPass.js';
-import { Water } from './three.js/examples/jsm/objects/Water.js';
-import { Sky } from './three.js/examples/jsm/objects/Sky.js';
+import { OBJLoader, EffectComposer, RenderPass, OutlinePass, ShaderPass, Water, Sky } from "./three.js/examples/jsm/Addons.js";
 
 
 var continue_start_flag = false;
@@ -596,6 +590,7 @@ function init() {
         waterColor: 0x001e0f,
         distortionScale: 10,
         fog: scene.fog !== undefined,
+        side: THREE.DoubleSide
       },
       0.5
     );
@@ -619,8 +614,10 @@ function init() {
 
     directional_light = new THREE.DirectionalLight(0xffffcc, 10);
     directional_light.castShadow = true;
+
     scene.remove(directional_light);
     scene.add(directional_light);
+
     env_light = new THREE.AmbientLight(0xffffff, 1);
     scene.add(env_light);
     updateSun()
@@ -2594,19 +2591,18 @@ function obj_loader(url_obj) {
                 $("#small_info").html("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.<br>This may be longer for the first time.");
             }, 1000)
             obj_size = Math.sqrt((x_max-x_min)**2+(y_max-y_min)**2+(z_max-z_min)**2)
-            directional_light.shadow.camera.near = 1;
-            directional_light.shadow.camera.far = obj_size*2;
+            directional_light.shadow.camera.near = obj_size/2;
+            directional_light.shadow.camera.far = obj_size*3/2;
             directional_light.shadow.bias = -0.001;
+            directional_light.shadow.radius = 5
             directional_light.position.set(0, obj_size, 0);
             
-            directional_light.shadow.mapSize.width = 1024*1024;
-            directional_light.shadow.mapSize.height = 1024*1024;
+            directional_light.shadow.mapSize = new THREE.Vector2(1024*16, 1024*16)
 
-            directional_light.shadow.camera.left = -obj_size;
-            directional_light.shadow.camera.right = obj_size;
-            directional_light.shadow.camera.top = obj_size;
-            directional_light.shadow.camera.bottom = -obj_size;
-            directional_light.shadow.normalBias=0.001
+            directional_light.shadow.camera.left = -obj_size/2;
+            directional_light.shadow.camera.right = obj_size/2;
+            directional_light.shadow.camera.top = obj_size/2;
+            directional_light.shadow.camera.bottom = -obj_size/2;
             newobj.add(root);
         },
         onProgress_obj
