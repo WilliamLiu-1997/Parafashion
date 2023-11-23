@@ -110,6 +110,9 @@ var gui_options = {
         controls.reset();
         controls_patch.reset();
     },
+    Render:function () {
+        exportRenderPNG();
+    },
     Unselect: function () {
         select_recovery();
         cover_recovery();
@@ -1398,32 +1401,14 @@ function mouseMove(event) {
 }
 
 function onMouseWheel(e) {
-    if (controls !== undefined) {
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-        // Update the raycaster with the camera and mouse position
-        raycaster.setFromCamera(mouse, camera);
-
-        // Calculate objects intersecting the picking ray
-        const intersects = raycaster.intersectObjects(scene.children).filter((i)=>{
-            return i.point.distanceTo(camera.position)>camera.near
-        });
-
-        if (intersects.length > 0) {
-            controls.target = intersects[0].point; // The picked position on the first intersected object
-        }else{
-            controls.target = O
-        }
-    }
     if (shift && !mouse_down) {
         pointer.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
         pointer.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
         let rotation = e.deltaY > 0 ? 0.015 : -0.015
         raycaster.setFromCamera(pointer, camera);
-        if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+        let intersects
+        if (selected.length === 2) intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+        console.log(intersects)
         if (intersects.length > 0) {
             if (intersects[0].object == selected_obj_sym) {
                 var sym = 1
@@ -1468,6 +1453,28 @@ function onMouseWheel(e) {
             uv_offset = false;
         }
 
+    }else{
+        
+    if (controls !== undefined) {
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+        // Update the raycaster with the camera and mouse position
+        raycaster.setFromCamera(mouse, camera);
+
+        // Calculate objects intersecting the picking ray
+        intersects = raycaster.intersectObjects(scene.children).filter((i)=>{
+            return i.point.distanceTo(camera.position)>camera.near
+        });
+
+        if (intersects.length > 0) {
+            controls.target = intersects[0].point; // The picked position on the first intersected object
+        }else{
+            controls.target = O
+        }
+    }
     }
 }
 
@@ -2758,6 +2765,7 @@ function GUI_init() {
     folder_basic = gui.addFolder("Basic")
     folder_basic.add(gui_options, 'controlSun').onChange(() => Change_Light(gui_options.controlSun));
     folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
+    folder_basic.add(gui_options, 'Render').name("Render");
     cut_component = folder_basic.addFolder("Cutting Control");
     cut_component.add(gui_options, 'Unselect');
     cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => {
@@ -3703,22 +3711,23 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 })
 
 
-function exportPatchesPNG() {
+function exportRenderPNG() {
 
-    let scale = Math.sqrt((4096 ** 2) / ($("#container_patch").width() * window.innerHeight * 0.78));
+    let scale = Math.sqrt(((4096*4096/$("#container").width())**2) / ($("#container").width() * window.innerHeight * 0.78));
+    console.log(scale, pixelRatio)
 
-    renderer_patch.setPixelRatio(scale);
+    renderer.setPixelRatio(scale);
 
-    renderer_patch.render(scene_patch, camera_patch);
-    renderer_patch.domElement.toBlob(function (blob) {
+    renderer.render(scene, camera);
+    renderer.domElement.toBlob(function (blob) {
         var a = document.createElement('a');
         var url = URL.createObjectURL(blob);
         a.href = url;
-        a.download = 'Patches.png';
+        a.download = 'render.png';
         a.click();
     }, 'image/png', 1.0);
 
-    renderer_patch.setPixelRatio(pixelRatio);
+    renderer.setPixelRatio(pixelRatio);
 }
 
 document.querySelector('#exportPLY').addEventListener('click', () => {
