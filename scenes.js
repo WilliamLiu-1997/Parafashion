@@ -630,14 +630,12 @@ function init() {
     updateSun()
 
     window.addEventListener("resize", onWindowResize);
-    document.getElementById("container").addEventListener("mousedown", onmouseDown, false);
-    document.getElementById("container_patch").addEventListener("mousedown", onmouseDown_patch, false);
+    document.getElementById("container").addEventListener("mousedown", onmouseDown, true);
     window.addEventListener("mouseup", onmouseUp, false);
     document.addEventListener("mousemove", mouseMove, false);
     window.addEventListener("keydown", onKeyDown, false);
     window.addEventListener("keyup", onKeyUp, false);
     document.getElementById("container").addEventListener("wheel", onMouseWheel, true);
-    document.getElementById("container_patch").addEventListener("wheel", onMouseWheel_patch, false);
     $("#transform").fadeIn()
 }
 
@@ -970,6 +968,7 @@ function onmouseDown(event) {
     if (ctrl) {
         return;
     }
+
     if (event.button == 0 && gui_options.cut) {
         if (cut_obj.length > 0) {
             draw_line.push([]);
@@ -1052,6 +1051,7 @@ function onmouseDown(event) {
         else if (event.button == 1) { cover = false; }
         else if (event.button == 2) { cover = false; }
     }
+        
     if (controls !== undefined) {
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
@@ -1065,7 +1065,6 @@ function onmouseDown(event) {
         const intersects = raycaster.intersectObjects(scene.children).filter((i)=>{
             return i.point.distanceTo(camera.position)>camera.near
         });
-
         if (intersects.length > 0) {
             controls.target = intersects[0].point; // The picked position on the first intersected object
         }else{
@@ -1388,6 +1387,7 @@ function mouseMove(event) {
 }
 
 function onMouseWheel(e) {
+
     if (shift && !mouse_down) {
         pointer.x = (e.clientX / renderer.domElement.clientWidth) * 2 - 1;
         pointer.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
@@ -1439,8 +1439,7 @@ function onMouseWheel(e) {
             uv_offset = false;
         }
 
-    }else{
-        
+    }
     if (controls !== undefined) {
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
@@ -1451,7 +1450,7 @@ function onMouseWheel(e) {
         raycaster.setFromCamera(mouse, camera);
 
         // Calculate objects intersecting the picking ray
-        intersects = raycaster.intersectObjects(scene.children).filter((i)=>{
+        const intersects = raycaster.intersectObjects(scene.children).filter((i)=>{
             return i.point.distanceTo(camera.position)>camera.near
         });
 
@@ -1460,7 +1459,6 @@ function onMouseWheel(e) {
         }else{
             controls.target = O
         }
-    }
     }
 }
 
@@ -2572,8 +2570,8 @@ function obj_loader(url_obj) {
                     child.name = randomString();
 
                     obj_vertices_count += child.geometry.attributes.position.count;
-                    child.material = []
                     if (child.geometry.groups.length > 0) {
+                        child.material = []
                         for (let group_i = 0; group_i < child.geometry.groups.length; group_i++) {
                             let default_m = default_material.clone()
                             child.material.push(default_m);
@@ -2592,7 +2590,9 @@ function obj_loader(url_obj) {
                     vertices += child.geometry.attributes.position.count
                     $("#vertice_num").html("<p>Vertices: " + vertices + "</p>")
                     $("#small_info").html("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.<br>This may be longer for the first time.");
-                    child.geometry.computeBoundingBox();
+                    try{child.geometry.computeBoundingBox();}
+                    catch(e){
+                    }
                     x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
                     y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
                     z_max = z_max < child.geometry.boundingBox.max.z ? child.geometry.boundingBox.max.z : z_max;
@@ -3700,7 +3700,6 @@ document.querySelector('.homebtn').addEventListener('click', () => {
 function exportRenderPNG() {
 
     let scale = Math.sqrt(((4096*4096/$("#container").width())**2) / ($("#container").width() * window.innerHeight * 0.78));
-    console.log(scale, pixelRatio)
 
     renderer.setPixelRatio(scale);
 
