@@ -239,7 +239,7 @@ var Materials = {
         clearcoat: 0.0,
         clearcoatRoughness: 0.0,
         reflectivity: 0.5,
-        sheenTint: 0x000000,//color
+        // sheenTint: 0x000000,//color
         transmission: 0,
         thickness: 0,
     },
@@ -398,6 +398,8 @@ function continue_start(garments_obj, no_load = false) {
         window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
     };
     continue_start_flag = true;
+    init();
+    let x_max = -Infinity, x_min = Infinity, y_max = -Infinity, y_min = Infinity, z_max = -Infinity, z_min = Infinity;
     let objectloader = new THREE.ObjectLoader();
     objectloader.load(
         garments_obj,
@@ -405,7 +407,6 @@ function continue_start(garments_obj, no_load = false) {
             garment = obj.children[0];
             patch = obj.children[1];
             $(".homebtn").fadeIn();
-            init();
             init_patch();
             init_transform();
             onWindowResize();
@@ -415,8 +416,18 @@ function continue_start(garments_obj, no_load = false) {
             garment.traverse(function (child) {
                 if (child.type === 'Mesh') {
                     original.push(child.clone())
+                    try{child.geometry.computeBoundingBox();}
+                    catch(e){
+                    }
+                    x_max = x_max < child.geometry.boundingBox.max.x ? child.geometry.boundingBox.max.x : x_max;
+                    y_max = y_max < child.geometry.boundingBox.max.y ? child.geometry.boundingBox.max.y : y_max;
+                    z_max = z_max < child.geometry.boundingBox.max.z ? child.geometry.boundingBox.max.z : z_max;
+                    x_min = x_min > child.geometry.boundingBox.min.x ? child.geometry.boundingBox.min.x : x_min;
+                    y_min = y_min > child.geometry.boundingBox.min.y ? child.geometry.boundingBox.min.y : y_min;
+                    z_min = z_min > child.geometry.boundingBox.min.z ? child.geometry.boundingBox.min.z : z_min;
                 }
             })
+            obj_size = Math.sqrt((x_max-x_min)**2+(y_max-y_min)**2+(z_max-z_min)**2)
             for (var i = 0; i < original.length; i++) {
                 if (original[i].geometry.groups.length > 0) {
                     original[i].material = original[i].material.slice(0)
@@ -437,6 +448,19 @@ function continue_start(garments_obj, no_load = false) {
                 progress_obj = 100;
                 progress_mtl = 100;
             }
+            
+            directional_light.shadow.camera.near = obj_size/2;
+            directional_light.shadow.camera.far = obj_size*3/2;
+            directional_light.shadow.bias = -0.001;
+            directional_light.shadow.radius = 5
+            directional_light.position.set(0, obj_size, 0);
+            
+            directional_light.shadow.mapSize = new THREE.Vector2(1024*16, 1024*16)
+
+            directional_light.shadow.camera.left = -obj_size/2;
+            directional_light.shadow.camera.right = obj_size/2;
+            directional_light.shadow.camera.top = obj_size/2;
+            directional_light.shadow.camera.bottom = -obj_size/2;
             animate();
         },
         function (xhr) {
@@ -597,7 +621,6 @@ function init() {
         waterColor: 0x0c4e7c,
         distortionScale: 10,
         fog: scene.fog !== undefined,
-        side: THREE.DoubleSide
       },
       0.5
     );
@@ -621,8 +644,6 @@ function init() {
 
     directional_light = new THREE.DirectionalLight(0xffffdd, 10);
     directional_light.castShadow = true;
-
-    scene.remove(directional_light);
     scene.add(directional_light);
 
     env_light = new THREE.AmbientLight(0xffffff, 1);
@@ -2904,7 +2925,7 @@ function GUI_init() {
     Material_Type_Folder.MeshPhysicalMaterial = material_folder.addFolder("Physical Material")
     Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "color").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "emissive").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheenTint").onChange(() => Material_Update_Param())
+    // Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheenTint").onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
     Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
@@ -3104,7 +3125,6 @@ function Obj_to_GUI(obj_material) {
 
         case "MeshPhysicalMaterial":
             Materials.MeshPhysicalMaterial.color = obj_material.color.getHex()
-            Materials.MeshPhysicalMaterial.sheenTint = obj_material.sheenTint.getHex()
             Materials.MeshPhysicalMaterial.emissive = obj_material.emissive.getHex()
             Materials.MeshPhysicalMaterial.emissiveIntensity = obj_material.emissiveIntensity
             Materials.MeshPhysicalMaterial.bumpScale = obj_material.bumpScale
@@ -3456,8 +3476,8 @@ function GUI_to_Obj_Param(obj_material) {
 
         case "MeshPhysicalMaterial":
             obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
-            else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
+            // if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
+            // else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
             obj_material.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
             obj_material.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
             obj_material.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
@@ -3544,8 +3564,8 @@ function GUI_to_Obj(obj_material_original) {
         case "MeshPhysicalMaterial":
             if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide }) }
             obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
-            else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
+            // if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
+            // else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
             obj_material.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
             obj_material.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
             obj_material.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
