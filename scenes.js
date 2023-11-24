@@ -491,7 +491,7 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.5;
+    renderer.toneMappingExposure = 0.2;
     document.getElementById("container").appendChild(renderer.domElement);
 
     camera = new THREE.PerspectiveCamera(
@@ -552,7 +552,7 @@ function init() {
     composer.addPass(toneMappingPass);
     
     // Update the exposure uniform if needed
-    toneMappingPass.uniforms.toneMappingExposure.value = renderer.toneMappingExposure;
+    toneMappingPass.uniforms.toneMappingExposure.value = 0.5;
 
 
 
