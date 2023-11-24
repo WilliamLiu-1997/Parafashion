@@ -3777,7 +3777,7 @@ document.querySelector('.savebtn').addEventListener('click', () => {
     garment_patch.add(garment.clone(), patch.clone());
     let garment_patch_json = JSON.stringify(garment_patch.toJSON());
     var blob = new Blob([garment_patch_json], { type: "text/plain;charset=utf-8" });
-    saveAs(blob, "Parafashion.json");
+    saveAs(blob, "YuziRender.json");
     if (isWireframe) {
         gui_options.Wireframe = true;
         Wireframe(true, true);
