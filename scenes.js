@@ -3697,6 +3697,7 @@ function appendFile(files) {
     }
 }
 
+
 document.querySelector('.startbtn').addEventListener('click', () => {
     try {
         garments_obj = "./obj/Parafashion.json";
