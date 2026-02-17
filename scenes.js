@@ -9,18 +9,20 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { createEnvironmentConfig } from './js/app/environment-config.js';
+import { createDefaultMaterialPresets, createMaterialFolderState } from './js/app/material-presets.js';
 
-var continue_start_flag = false;
+let isResumeStart = false;
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light;
 let camera_patch, cameralight_patch, controls_patch, scene_patch, renderer_patch, patch, env_light_patch;
 let scene_transform, camera_transform, renderer_transform, controls_transform, arrow, directional_light;
 let cut_component;
-let obj_vertices_count = 0;
+let totalVerticesCount = 0;
 let drawing = false, cover = true;
 let draw_line = [];
 let obj3D = new THREE.Object3D();
-let progress_obj = 0, progress_mtl = 0;
-let patch_panel_width = $("#container_patch").css("width");
+let objectLoadProgress = 0, materialLoadProgress = 0;
+let patchPanelWidth = $("#container_patch").css("width");
 let raycaster = new THREE.Raycaster();
 let pointer = new THREE.Vector2();
 let pointer_patch = new THREE.Vector2();
@@ -46,45 +48,77 @@ let last_cover_patch = [];
 let last_select = [];
 let last_select_patch = [];
 
-var textureloader = new THREE.TextureLoader();
-let obj_size = 1;
+const textureLoader = new THREE.TextureLoader();
+let modelSize = 1;
 let find_new = false;
 let pixelRatio = window.devicePixelRatio;
-var FPS = 60;
-var singleFrameTime = 1 / FPS;
-var timeStamp = 0;
-var uv_offset = false;
-var intersects_scale = false;
-var line_geo = new THREE.BufferGeometry();
-var line_material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-var line = new THREE.Group();
-var line_back = new THREE.Group();
-var line_left = new THREE.Group();
-var line_back_left = new THREE.Group();
+const TARGET_FPS = 60;
+const frameInterval = 1 / TARGET_FPS;
+let frameTimeAccumulator = 0;
+let uv_offset = false;
+let intersects_scale = false;
+const drawLineGeometry = new THREE.BufferGeometry();
+const drawLineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+let line = new THREE.Group();
+let line_back = new THREE.Group();
+let line_left = new THREE.Group();
+let line_back_left = new THREE.Group();
 let last_instance_position;
-var draw_line_show = [];
-var draw_line_show_back = [];
-var draw_line_show_left = [];
-var draw_line_show_back_left = [];
-var segment = 0;
-var mouse_down_position;
+let draw_line_show = [];
+let draw_line_show_back = [];
+let draw_line_show_left = [];
+let draw_line_show_back_left = [];
+let segment = 0;
+let mouse_down_position;
 const clock = new THREE.Clock();
 
 let shift = false;
 let ctrl = false;
 let reset_position = false;
 let mouse_position = new THREE.Vector2();
-let O = new THREE.Vector3();
+const cameraTarget = new THREE.Vector3();
 let texture_state = 0;
 
-var url = ""
+let customTextureUrl = ""
+const texturePreviewSelector = ".list-drag";
+
+function getTexturePreviewElement() {
+    return document.querySelector(texturePreviewSelector);
+}
+
+function clearTexturePreview() {
+    const previewElement = getTexturePreviewElement();
+    if (!previewElement) return;
+
+    previewElement.replaceChildren();
+    previewElement.style.minHeight = "";
+    previewElement.style.backgroundImage = "";
+    previewElement.style.backgroundSize = "";
+    previewElement.style.backgroundPosition = "";
+    previewElement.style.backgroundRepeat = "";
+}
+
+function showTexturePreview(textureUrl) {
+    const previewElement = getTexturePreviewElement();
+    if (!previewElement || !textureUrl) {
+        clearTexturePreview();
+        return;
+    }
+
+    previewElement.replaceChildren();
+    previewElement.style.minHeight = "64px";
+    previewElement.style.backgroundImage = `url(${JSON.stringify(textureUrl)})`;
+    previewElement.style.backgroundSize = "contain";
+    previewElement.style.backgroundPosition = "center";
+    previewElement.style.backgroundRepeat = "no-repeat";
+}
 
 let composer, outlinePass, outlinePass_select, composer_patch, outlinePass_patch, outlinePass_patch_select;
-var folder_basic, folder_env, folder_sen, material_folder, basic_texture, lambert_texture, phong_texture, toon_texture, standard_texture, physical_texture;
+let folder_basic, folder_env, folder_sen, material_folder, basic_texture, lambert_texture, phong_texture, toon_texture, standard_texture, physical_texture;
 
 
 
-var garments_obj = "./obj/garments_high_poly.obj"
+let garmentSourcePath = "./obj/garments_high_poly.obj"
 
 
 let outlinePass_params_cover = {
@@ -110,112 +144,9 @@ let outlinePass_params_select = {
 };
 
 
-var format = '.jpg';
-var path1 = "./images/three-textures/cube/Park2/";
-var urls1 = [
-    path1 + 'posx' + format, path1 + 'negx' + format,
-    path1 + 'posy' + format, path1 + 'negy' + format,
-    path1 + 'posz' + format, path1 + 'negz' + format
-];
-var env1 = new THREE.CubeTextureLoader().load(urls1);
-var env1_refre = new THREE.CubeTextureLoader().load(urls1);
-env1_refre.mapping = THREE.CubeRefractionMapping;
+const { environmentMaps, environmentLightPresets } = createEnvironmentConfig(textureLoader);
 
-var env2 = textureloader.load('./images/11.jpg');
-env2.mapping = THREE.EquirectangularReflectionMapping;
-var env2_refre = textureloader.load('./images/11.jpg');
-env2_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env3 = textureloader.load('./images/7.jpg');
-env3.mapping = THREE.EquirectangularReflectionMapping;
-var env3_refre = textureloader.load('./images/7.jpg');
-env3_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var path4 = "./images/three-textures/cube/skyboxsun25deg/";
-var urls4 = [
-    path4 + 'px' + format, path4 + 'nx' + format,
-    path4 + 'py' + format, path4 + 'ny' + format,
-    path4 + 'pz' + format, path4 + 'nz' + format
-];
-var env4 = new THREE.CubeTextureLoader().load(urls4);
-var env4_refre = new THREE.CubeTextureLoader().load(urls4);
-env4_refre.mapping = THREE.CubeRefractionMapping;
-
-var path5 = "./images/three-textures/cube/Bridge2/";
-var urls5 = [
-    path5 + 'posx' + format, path5 + 'negx' + format,
-    path5 + 'posy' + format, path5 + 'negy' + format,
-    path5 + 'posz' + format, path5 + 'negz' + format
-];
-var env5 = new THREE.CubeTextureLoader().load(urls5);
-var env5_refre = new THREE.CubeTextureLoader().load(urls5);
-env5_refre.mapping = THREE.CubeRefractionMapping;
-
-var env6 = textureloader.load('./images/5.jpg');
-env6.mapping = THREE.EquirectangularReflectionMapping;
-var env6_refre = textureloader.load('./images/5.jpg');
-env6_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env7 = textureloader.load('./images/9.jpg');
-env7.mapping = THREE.EquirectangularReflectionMapping;
-var env7_refre = textureloader.load('./images/9.jpg');
-env7_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var path8 = "./images/three-textures/cube/Park3Med/";
-var urls8 = [
-    path8 + 'px' + format, path8 + 'nx' + format,
-    path8 + 'py' + format, path8 + 'ny' + format,
-    path8 + 'pz' + format, path8 + 'nz' + format
-];
-var env8 = new THREE.CubeTextureLoader().load(urls8);
-var env8_refre = new THREE.CubeTextureLoader().load(urls8);
-env8_refre.mapping = THREE.CubeRefractionMapping;
-
-var env9 = textureloader.load('./images/4.jpg');
-env9.mapping = THREE.EquirectangularReflectionMapping;
-var env9_refre = textureloader.load('./images/4.jpg');
-env9_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env10 = textureloader.load('./images/1.jpg');
-env10.mapping = THREE.EquirectangularReflectionMapping;
-var env10_refre = textureloader.load('./images/1.jpg');
-env10_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env11 = textureloader.load('./images/2.jpg');
-env11.mapping = THREE.EquirectangularReflectionMapping;
-var env11_refre = textureloader.load('./images/2.jpg');
-env11_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env12 = textureloader.load('./images/3.jpg');
-env12.mapping = THREE.EquirectangularReflectionMapping;
-var env12_refre = textureloader.load('./images/3.jpg');
-env12_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env13 = textureloader.load('./images/10.jpg');
-env13.mapping = THREE.EquirectangularReflectionMapping;
-var env13_refre = textureloader.load('./images/10.jpg');
-env13_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env14 = textureloader.load('./images/6.jpg');
-env14.mapping = THREE.EquirectangularReflectionMapping;
-var env14_refre = textureloader.load('./images/6.jpg');
-env14_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-var env15 = textureloader.load('./images/8.jpg');
-env15.mapping = THREE.EquirectangularReflectionMapping;
-var env15_refre = textureloader.load('./images/8.jpg');
-env15_refre.mapping = THREE.EquirectangularRefractionMapping;
-
-
-var environment = {
-    Square: env7, Park: env1, PlayingRoom: env2, Alley: env3, Sky: env4, Bridge: env5, Gallery: env6, None: null, Snow: env8, LivingRoom: env12, Street: env10, Church: env11, Restaurant: env13, BedRoom: env9, BathRoom: env14, Town: env15
-}
-
-var environment_light = {
-    Square: [0.4, 0.2], Park: [0.4, 0.2], PlayingRoom: [0.6, 0.4], Alley: [0.5, 0.3], Sky: [0.5, 0.7], Bridge: [0.5, 0.2], Gallery: [0.4, 0.6], None: [0.7, 0.3], Snow: [0.4, 0.2], LivingRoom: [0.35, 0.65], Street: [0.4, 0.6], Church: [0.2, 0.8], Restaurant: [0.5, 0.35], BedRoom: [0.4, 0.5], BathRoom: [0.3, 0.7], Town: [0.3, 0.2]
-}
-
-var gui_options = {
+let uiOptions = {
     Reset_Camera: function () {
         controls.reset();
         controls_patch.reset();
@@ -223,10 +154,10 @@ var gui_options = {
     Unselect: function () {
         select_recovery();
         cover_recovery();
-        if (gui_options.Stress) {
+        if (uiOptions.Stress) {
             Stress(false, true)
         }
-        if (gui_options.Wireframe) {
+        if (uiOptions.Wireframe) {
             Wireframe(false, true)
         }
     },
@@ -269,7 +200,7 @@ var gui_options = {
                 }, 1000)
             }
             show_processing()
-            obj_vertices_count -= cut_obj[0].geometry.getAttribute("position").count;
+            totalVerticesCount -= cut_obj[0].geometry.getAttribute("position").count;
             produce_geo(cut_obj[0].geometry.attributes.position.array, cut_obj[0], draw_line)
         }
     },
@@ -289,86 +220,16 @@ var gui_options = {
 
 
 
-var Materials = {
-    'MeshBasicMaterial': {
-        color: 0xffffff,
-        reflectivity: 0.5,
-        wireframe: false,
-    },
-    'MeshLambertMaterial': {
-        color: 0xffffff,
-        emissive: 0x000000,
-        emissiveIntensity: 1.0,
-        reflectivity: 0.5,
-        wireframe: false,
-    },
-    'MeshPhongMaterial': {
-        bumpScale: 1.0,
-        color: 0xffffff,
-        emissive: 0x000000,
-        emissiveIntensity: 1.0,
-        flatShading: false,
-        normalScale: new THREE.Vector2(1, 1),//vector2
-        reflectivity: 0.5,
-        shininess: 30,//0 to 100
-        specular: 0x111111,
-        wireframe: false,
-    },
-    'MeshToonMaterial': {
-        bumpScale: 1.0,
-        color: 0xffffff,
-        emissive: 0x000000,
-        emissiveIntensity: 1.0,
-        normalScale: new THREE.Vector2(1, 1),//vector2
-        wireframe: false,
-    },
-    'MeshStandardMaterial': {
-        bumpScale: 1.0,
-        color: 0xffffff,
-        emissive: 0x000000,
-        emissiveIntensity: 1.0,
-        flatShading: false,
-        metalness: 0.0,
-        normalScale: new THREE.Vector2(1, 1),//vector2
-        roughness: 0.5,
-        wireframe: false,
-    },
-    'MeshPhysicalMaterial': {
-        bumpScale: 1.0,
-        color: 0xffffff,
-        emissive: 0x000000,
-        emissiveIntensity: 1.0,
-        flatShading: false,
-        metalness: 0.0,
-        normalScale: new THREE.Vector2(1, 1),//vector2
-        roughness: 0.5,
-        wireframe: false,
-        clearcoat: 0.0,
-        clearcoatRoughness: 0.0,
-        reflectivity: 0.5,
-        sheenTint: 0x000000,//color
-        transmission: 0,
-        thickness: 0,
-    },
-}
+let materialPresets = createDefaultMaterialPresets();
 
+let materialTypeFolders = createMaterialFolderState();
 
-var Material_Type_Folder = {
-    MeshBasicMaterial: null,
-    // MeshDepthMaterial: null,
-    MeshLambertMaterial: null,
-    MeshPhongMaterial: null,
-    MeshToonMaterial: null,
-    MeshStandardMaterial: null,
-    MeshPhysicalMaterial: null,
-}
-
-var Material = {
+let materialSettings = {
     resetAll: function () {
-        gui_options.Overall_Reflectivity = NaN
+        uiOptions.Overall_Reflectivity = NaN
         garment.traverse((child) => {
             if (child.type == "Mesh") {
-                for (var n of original) {
+                for (let n of original) {
                     if (n.name == child.name) {
                         patch.traverse((child_patch) => {
                             if (child_patch.type == "Group" && child_patch.name == child.name) {
@@ -384,10 +245,10 @@ var Material = {
         })
     },
     reset: function () {
-        gui_options.Overall_Reflectivity = NaN
+        uiOptions.Overall_Reflectivity = NaN
         if (selected.length == 2) {
             let name = selected[0].name
-            for (var n of original) {
+            for (let n of original) {
                 if (n.name == name) {
                     selected[0].material[selected[1]] = n.material[selected[1]].clone()
                     selected_patch[0].material = n.material[selected[1]].clone()
@@ -395,19 +256,19 @@ var Material = {
                     selected[0].material[sym] = n.material[sym].clone()
                     selected_patch[0].parent.children[sym].material = n.material[sym].clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+                    Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env])
                     return;
                 }
             }
         }
         else if (selected.length == 1) {
             let name = selected[0].name
-            for (var n of original) {
+            for (let n of original) {
                 if (n.name == name) {
                     selected[0].material = n.material.clone()
                     selected_patch[0].material = n.material.clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+                    Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env])
                     return;
                 }
             }
@@ -415,10 +276,10 @@ var Material = {
         else { return }
     },
     saveAll: function () {
-        gui_options.Overall_Reflectivity = NaN
+        uiOptions.Overall_Reflectivity = NaN
         garment.traverse((child) => {
             if (child.type == "Mesh") {
-                for (var n of original) {
+                for (let n of original) {
                     if (n.name == child.name) {
                         for (let i = 0; i < child.material.length; i++) {
                             n.material[i] = child.material[i].clone()
@@ -429,27 +290,27 @@ var Material = {
         })
     },
     save: function () {
-        gui_options.Overall_Reflectivity = NaN
+        uiOptions.Overall_Reflectivity = NaN
         if (selected.length == 2) {
             let name = selected[0].name
-            for (var n of original) {
+            for (let n of original) {
                 if (n.name == name) {
                     n.material[selected[1]] = selected[0].material[selected[1]].clone()
                     let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
                     n.material[sym] = selected[0].material[sym].clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+                    Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env])
                     return;
                 }
             }
         }
         else if (selected.length == 1) {
             let name = selected[0].name
-            for (var n of original) {
+            for (let n of original) {
                 if (n.name == name) {
                     n.material = selected[0].material.clone()
                     load_material()
-                    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+                    Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env])
                     return;
                 }
             }
@@ -464,7 +325,7 @@ var Material = {
     visible: true,
 }
 
-var TextureParams = {
+let textureParams = {
     current: "map",
     wrap: "mirror",
     reset_position: function () {
@@ -475,20 +336,20 @@ var TextureParams = {
         if (selected.length == 2) {
             selected[0].material[selected[1]] = selected[0].material[selected[1]].clone()
             selected_patch[0].material = selected_patch[0].material.clone()
-            selected[0].material[selected[1]][TextureParams.current] = null;
-            selected_patch[0].material[TextureParams.current] = null;
+            selected[0].material[selected[1]][textureParams.current] = null;
+            selected_patch[0].material[textureParams.current] = null;
             let sym = selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1
             selected[0].material[sym] = selected[0].material[sym].clone()
-            selected[0].material[sym][TextureParams.current] = null;
+            selected[0].material[sym][textureParams.current] = null;
             selected_patch[0].parent.children[sym].material = selected_patch[0].parent.children[sym].material.clone()
-            selected_patch[0].parent.children[sym].material[TextureParams.current] = null;
+            selected_patch[0].parent.children[sym].material[textureParams.current] = null;
             load_material();
         }
         else if (selected.length == 1) {
             selected[0].material = selected[0].material.clone()
             selected_patch[0].material = selected_patch[0].material.clone()
-            selected[0].material[TextureParams.current] = null;
-            selected_patch[0].material[TextureParams.current] = null;
+            selected[0].material[textureParams.current] = null;
+            selected_patch[0].material[textureParams.current] = null;
             load_material();
         }
     },
@@ -503,15 +364,15 @@ function start() {
     animate();
 }
 
-function continue_start(garments_obj, no_load = false) {
+function continue_start(garmentSourcePath, no_load = false) {
     window.console.error = function (err) {
         alert("Invalid JSON file!\n" + err);
         window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
     };
-    continue_start_flag = true;
+    isResumeStart = true;
     let objectloader = new THREE.ObjectLoader();
     objectloader.load(
-        garments_obj,
+        garmentSourcePath,
         function (obj) {
             garment = obj.children[0];
             patch = obj.children[1];
@@ -528,16 +389,16 @@ function continue_start(garments_obj, no_load = false) {
                     original.push(child.clone())
                 }
             })
-            for (var i = 0; i < original.length; i++) {
+            for (let i = 0; i < original.length; i++) {
                 if (original[i].geometry.groups.length > 0) {
                     original[i].material = original[i].material.slice(0)
                 }
             }
-            obj_vertices_count = 0;
+            totalVerticesCount = 0;
             garment.traverse((child) => {
                 if (child.type === "Mesh") {
-                    obj_vertices_count += child.geometry.getAttribute("position").count;
-                    $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
+                    totalVerticesCount += child.geometry.getAttribute("position").count;
+                    $("#vertice_num").html("<p>Vertices: " + totalVerticesCount + "</p>")
                 }
             })
             window.console.error = function (err) {
@@ -545,8 +406,8 @@ function continue_start(garments_obj, no_load = false) {
                 window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
             };
             if (no_load) {
-                progress_obj = 100;
-                progress_mtl = 100;
+                objectLoadProgress = 100;
+                materialLoadProgress = 100;
             }
             animate();
         },
@@ -554,8 +415,8 @@ function continue_start(garments_obj, no_load = false) {
             if (xhr.lengthComputable) {
                 let percentComplete = (xhr.loaded / xhr.total) * 100;
                 console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
-                progress_obj = Math.round(percentComplete, 2);
-                progress_mtl = 100
+                objectLoadProgress = Math.round(percentComplete, 2);
+                materialLoadProgress = 100
             }
         },
         function (err) {
@@ -596,7 +457,7 @@ function init() {
 
     // postprocessing
     composer = new EffectComposer(renderer);
-    var renderPass = new RenderPass(scene, camera);
+    let renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
 
     outlinePass = new OutlinePass(new THREE.Vector2(window.innerWidth, window.innerHeight), scene, camera);
@@ -626,12 +487,12 @@ function init() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.15;
     controls.rotateSpeed = 2.5;
-    controls.target = O;
+    controls.target = cameraTarget;
     controls.autoRotateSpeed = 2;
 
-    if (continue_start_flag === false) {
+    if (isResumeStart === false) {
         //garment = ply_loader(garments_obj1, 1);
-        garment = obj_loader(garments_obj, 1);
+        garment = obj_loader(garmentSourcePath, 1);
         scene.add(garment);
     }
 
@@ -646,7 +507,7 @@ function init() {
     scene.add(line_back_left);
 
 
-    var helper = new THREE.GridHelper(10, 50, 0x999999, 0x666666);
+    let helper = new THREE.GridHelper(10, 50, 0x999999, 0x666666);
     helper.position.y = 0;
     helper.material.opacity = 0.25;
     helper.material.transparent = true;
@@ -701,7 +562,7 @@ function init_patch() {
     scene_patch.add(env_light_patch);
 
     composer_patch = new EffectComposer(renderer_patch);
-    var renderPass_patch = new RenderPass(scene_patch, camera_patch);
+    let renderPass_patch = new RenderPass(scene_patch, camera_patch);
     composer_patch.addPass(renderPass_patch);
 
     outlinePass_patch = new OutlinePass(new THREE.Vector2(safe_patch_width, safe_patch_height), scene_patch, camera_patch);
@@ -786,25 +647,25 @@ function init_transform() {
 
 
 function animate() {
-    var delta = clock.getDelta();
+    let delta = clock.getDelta();
     requestAnimationFrame(animate);
-    timeStamp += delta;
-    if (timeStamp > singleFrameTime) {
-        if (patch_panel_width != $("#container_patch").css("width")) {
-            patch_panel_width = $("#container_patch").css("width")
+    frameTimeAccumulator += delta;
+    if (frameTimeAccumulator > frameInterval) {
+        if (patchPanelWidth != $("#container_patch").css("width")) {
+            patchPanelWidth = $("#container_patch").css("width")
             onWindowResize()
         }
-        if (progress_obj + progress_mtl == 200 && (continue_start_flag === true || ready.length == load_num) && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
+        if (objectLoadProgress + materialLoadProgress == 200 && (isResumeStart === true || ready.length == load_num) && garment !== undefined && garment.children !== undefined && garment.children[0] !== undefined && garment.children[0].children !== undefined) {
             passed_time = 0;
             clearInterval(loading_time);
-            camera.position.set(0, obj_size / 2, obj_size * 2);
+            camera.position.set(0, modelSize / 2, modelSize * 2);
             controls.saveState();
-            var lack = false;
-            var all_empty = false;
-            progress_obj = progress_mtl = -1;
-            var num = garment.children[0].children.length;
+            let lack = false;
+            let all_empty = false;
+            objectLoadProgress = materialLoadProgress = -1;
+            let num = garment.children[0].children.length;
 
-            if (continue_start_flag === false) {
+            if (isResumeStart === false) {
                 patch = patch_loader(garment);
                 patch.name = "patch";
                 scene_patch.add(patch);
@@ -820,26 +681,26 @@ function animate() {
             directional_light.shadow.mapSize.width = 4096;
             directional_light.shadow.mapSize.height = 4096;
 
-            directional_light.shadow.camera.left = -obj_size * 1.5;
-            directional_light.shadow.camera.right = obj_size * 1.5;
-            directional_light.shadow.camera.top = obj_size * 1.5;
-            directional_light.shadow.camera.bottom = -obj_size * 1.5;
-            for (var i = 0; i < original.length; i++) {
+            directional_light.shadow.camera.left = -modelSize * 1.5;
+            directional_light.shadow.camera.right = modelSize * 1.5;
+            directional_light.shadow.camera.top = modelSize * 1.5;
+            directional_light.shadow.camera.bottom = -modelSize * 1.5;
+            for (let i = 0; i < original.length; i++) {
                 if (original[i].geometry.groups.length > 0) {
                     original[i].material = original[i].material.slice(0)
                 }
             }
 
-            $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
-            Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+            $("#vertice_num").html("<p>Vertices: " + totalVerticesCount + "</p>")
+            Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env]);
             onWindowResize();
 
-            for (var i = 0; i < num; i++) {
+            for (let i = 0; i < num; i++) {
                 try {
-                    var empty = true;
-                    var uvarray = garment.children[0].children[i].geometry.attributes.uv.array
+                    let empty = true;
+                    let uvarray = garment.children[0].children[i].geometry.attributes.uv.array
                     if (!all_empty || i == 0) {
-                        for (var uv_index in uvarray) {
+                        for (let uv_index in uvarray) {
                             if (uvarray[uv_index] != 0 && uvarray[uv_index] != 1) {
                                 empty = false;
                             }
@@ -873,7 +734,7 @@ function animate() {
                 }
             })
         }
-        else if (progress_obj + progress_mtl == -2 && garment.children[0].children !== undefined) {
+        else if (objectLoadProgress + materialLoadProgress == -2 && garment.children[0].children !== undefined) {
             gui.updateDisplay();
             directional_light.position.copy(new THREE.Vector3(0, 3, 0).applyEuler(arrow.rotation));
             camera_transform.rotation.copy(camera.rotation)
@@ -890,7 +751,7 @@ function animate() {
         if (patch_scaled) { $(".panel_box").css({ width: Math.max(450, window.innerWidth - 2 - $("#gui_container").width()) }); }
         controls_patch.sensitivity = camera_patch.position.z
         render();
-        timeStamp = timeStamp % singleFrameTime;
+        frameTimeAccumulator = frameTimeAccumulator % frameInterval;
     }
 }
 
@@ -944,9 +805,9 @@ function onKeyDown(e) {
     switch (e.keyCode) {
         case 16:
             let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + window.innerHeight * 0.1 + 25) / window.innerHeight * 2) && pointer.y < 0.8
-            let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
+            let on_transform = uiOptions.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
             if (!on_gui && !on_transform
-                && !gui_options.cut
+                && !uiOptions.cut
                 && selected.length > 0
                 && !mouse_down
                 && !reset_position) {
@@ -1021,27 +882,27 @@ function onmouseDown(event) {
         controls.stop = true;
         controls_patch.stop = true;
     }
-    if (event.button == 0 && gui_options.cut) {
+    if (event.button == 0 && uiOptions.cut) {
         if (cut_obj.length > 0) {
             draw_line.push([]);
             draw_line_show.push([]);
             draw_line_show_back.push([]);
             draw_line_show_left.push([]);
             draw_line_show_back_left.push([]);
-            line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-            line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-            line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-            line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+            line.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+            line_back.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+            line_left.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+            line_back_left.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
             drawing = true;
             mouseMove(event)
         } else {
             select_cut(pointer, camera, event);
             if (cut_obj.length > 0) {
                 hide_others(garment, cut_obj);
-                if (gui_options.Stress) {
+                if (uiOptions.Stress) {
                     Stress(false, true)
                 }
-                if (gui_options.Wireframe) {
+                if (uiOptions.Wireframe) {
                     Wireframe(false, true)
                 }
                 set_cursor(4)
@@ -1059,7 +920,8 @@ function onmouseDown(event) {
         reset_position = false;
         if (shift) { set_cursor(1) } else { set_cursor(0) }
         raycaster.setFromCamera(pointer, camera);
-        if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+        let intersects = [];
+        if (selected.length === 2) { intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true); }
         if (intersects.length > 0) {
             reset_texture_position(intersects)
         }
@@ -1068,7 +930,8 @@ function onmouseDown(event) {
         event.preventDefault()
         if (event.button == 0) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+            let intersects = [];
+            if (selected.length === 2) { intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true); }
             if (intersects.length > 0) {
                 texture_state = 1;
                 set_cursor(3)
@@ -1129,20 +992,22 @@ function onmouseDown_patch(event) {
         controls_patch.stop = true;
     }
 
-    if (reset_position && event.button == 0 && !gui_options.cut) {
+    if (reset_position && event.button == 0 && !uiOptions.cut) {
         reset_position = false;
         if (shift) { set_cursor(1) } else { set_cursor(0) }
         raycaster.setFromCamera(pointer_patch, camera_patch);
-        if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
+        let intersects = [];
+        if (selected_patch.length === 1) { intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true); }
         if (intersects.length > 0) {
             reset_texture_position(intersects)
         }
     }
-    else if (shift && !gui_options.cut) {
+    else if (shift && !uiOptions.cut) {
         event.preventDefault()
         if (event.button == 0) {
             raycaster.setFromCamera(pointer_patch, camera_patch);
-            if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
+            let intersects = [];
+            if (selected_patch.length === 1) { intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true); }
             if (intersects.length > 0) {
                 texture_state = 1.5;
                 set_cursor(3)
@@ -1157,7 +1022,7 @@ function onmouseDown_patch(event) {
             }
         }
     }
-    else if (!gui_options.cut) {
+    else if (!uiOptions.cut) {
         if (event.button == 0) {
             pointer_patch.x = (event.clientX / (renderer_patch.domElement.clientWidth)) * 2 - 1;
             pointer_patch.y = - ((event.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
@@ -1194,7 +1059,7 @@ function onmouseUp(event) {
         controls.stop = false;
         controls_patch.stop = false;
     }
-    if (event.button == 0 && gui_options.cut) {
+    if (event.button == 0 && uiOptions.cut) {
         drawing = false;
         if (draw_line.length > 0 && draw_line[draw_line.length - 1].length <= 10) {
             draw_line.pop()
@@ -1231,17 +1096,13 @@ function onmouseUp(event) {
 
 function reset_texture_position(intersects) {
     if (intersects.length > 0) {
-        if (intersects[0].object == selected_obj_sym || intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
-            var sym = 1
-        } else {
-            var sym = -1
-        }
+        let sym = (intersects[0].object == selected_obj_sym || intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) ? 1 : -1
         if (selected.length === 2) {
             let start = selected[0].geometry.groups[selected[1]].start
             let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
             for (let i = start; i < start + selected[0].geometry.groups[selected[1]].count; i++) {
-                var uv_deltaX = -(intersects[0].uv.x + sym * 0.5)
-                var uv_deltaY = -(intersects[0].uv.y - 0.5)
+                let uv_deltaX = -(intersects[0].uv.x + sym * 0.5)
+                let uv_deltaY = -(intersects[0].uv.y - 0.5)
                 selected_obj.geometry.attributes.uv.setX(i - start, selected_obj.geometry.attributes.uv.getX(i - start) - sym * uv_deltaX)
                 selected_obj.geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start) + uv_deltaY)
                 selected[0].geometry.attributes.uv.setX(i, selected_obj.geometry.attributes.uv.getX(i - start))
@@ -1250,8 +1111,8 @@ function reset_texture_position(intersects) {
                 selected_patch[0].geometry.attributes.uv.setY(i - start, selected_obj.geometry.attributes.uv.getY(i - start))
             }
             for (let i = start_sym; i < start_sym + selected[0].geometry.groups[selected[1]].count; i++) {
-                var uv_deltaX = -(intersects[0].uv.x + sym * 0.5)
-                var uv_deltaY = -(intersects[0].uv.y - 0.5)
+                let uv_deltaX = -(intersects[0].uv.x + sym * 0.5)
+                let uv_deltaY = -(intersects[0].uv.y - 0.5)
                 selected_obj_sym.geometry.attributes.uv.setX(i - start_sym, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym) + sym * uv_deltaX)
                 selected_obj_sym.geometry.attributes.uv.setY(i - start_sym, selected_obj_sym.geometry.attributes.uv.getY(i - start_sym) + uv_deltaY)
                 selected[0].geometry.attributes.uv.setX(i, selected_obj_sym.geometry.attributes.uv.getX(i - start_sym))
@@ -1284,9 +1145,9 @@ function mouseMove(event) {
 
     if (!mouse_down && cover) { cover_recovery(); }
 
-    if (gui_options.cut) {
+    if (uiOptions.cut) {
         if (cut_obj.length > 0) {
-            if (drawing && !gui_options.Straight) {
+            if (drawing && !uiOptions.Straight) {
                 let pointers = []
                 if (Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1) {
                     let max_l = Math.max(Math.abs(deltaX), Math.abs(deltaY));
@@ -1295,7 +1156,7 @@ function mouseMove(event) {
                     }
                 }
                 draw(pointers, camera, cut_obj)
-            } else if (drawing && gui_options.Straight) {
+            } else if (drawing && uiOptions.Straight) {
                 let pointers = []
                 let deltaX0 = mouse_position.x - mouse_down_position.x
                 let deltaY0 = mouse_down_position.y - mouse_position.y
@@ -1315,16 +1176,13 @@ function mouseMove(event) {
     else if (shift) {
         if (texture_state === 1) {
             raycaster.setFromCamera(pointer, camera);
-            if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+            let intersects = [];
+            if (selected.length === 2) { intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true); }
             if (intersects.length > 0) {
-                if (intersects[0].object == selected_obj_sym) {
-                    var sym = 1
-                } else {
-                    var sym = -1
-                }
+                let sym = (intersects[0].object == selected_obj_sym) ? 1 : -1
                 if (!uv_offset) uv_offset = intersects[0].uv.clone();
-                var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
-                var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
+                let uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
+                let uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
                 uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
                 if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
@@ -1356,16 +1214,13 @@ function mouseMove(event) {
         }
         if (texture_state === 1.5) {
             raycaster.setFromCamera(pointer_patch, camera_patch);
-            if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
+            let intersects = [];
+            if (selected_patch.length === 1) { intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true); }
             if (intersects.length > 0) {
-                if (intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
-                    var sym = 1
-                } else {
-                    var sym = -1
-                }
+                let sym = (intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) ? 1 : -1
                 if (!uv_offset) uv_offset = intersects[0].uv.clone();
-                var uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
-                var uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
+                let uv_deltaX = -(intersects[0].uv.x - uv_offset.x)
+                let uv_deltaY = -(intersects[0].uv.y - uv_offset.y)
                 uv_offset.copy(intersects[0].uv.add(new THREE.Vector2(uv_deltaX, uv_deltaY)))
                 if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
@@ -1399,11 +1254,7 @@ function mouseMove(event) {
             if (intersects_scale && intersects_scale.length > 0) {
                 if (!uv_offset) uv_offset = intersects_scale[0].uv.clone();
                 let scale = -(deltaY + deltaX) / 500;
-                if (intersects_scale[0].object == selected_obj_sym || intersects_scale[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
-                    var sym = 1
-                } else {
-                    var sym = -1
-                }
+                let sym = (intersects_scale[0].object == selected_obj_sym || intersects_scale[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) ? 1 : -1
                 if (selected.length === 2) {
                     let start = selected[0].geometry.groups[selected[1]].start
                     let start_sym = selected[0].geometry.groups[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1].start
@@ -1444,13 +1295,10 @@ function onMouseWheel(e) {
         pointer.y = - (e.clientY / renderer.domElement.clientHeight) * 2 + 1;
         let rotation = e.deltaY > 0 ? 0.015 : -0.015
         raycaster.setFromCamera(pointer, camera);
-        if (selected.length === 2) var intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true);
+        let intersects = [];
+        if (selected.length === 2) { intersects = raycaster.intersectObjects([selected_obj, selected_obj_sym], true); }
         if (intersects.length > 0) {
-            if (intersects[0].object == selected_obj_sym) {
-                var sym = 1
-            } else {
-                var sym = -1
-            }
+            let sym = (intersects[0].object == selected_obj_sym) ? 1 : -1
             set_cursor(3)
             uv_offset = intersects[0].uv.clone();
             if (selected.length === 2) {
@@ -1499,13 +1347,10 @@ function onMouseWheel_patch(e) {
         pointer_patch.y = - ((e.clientY - obj.offsetTop - document.getElementById("patch_btn").clientHeight) / (renderer_patch.domElement.clientHeight)) * 2 + 1;
         let rotation = e.deltaY > 0 ? 0.015 : -0.015
         raycaster.setFromCamera(pointer_patch, camera_patch);
-        if (selected_patch.length === 1) var intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true);
+        let intersects = [];
+        if (selected_patch.length === 1) { intersects = raycaster.intersectObjects([selected_patch[0], selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]], true); }
         if (intersects.length > 0) {
-            if (intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) {
-                var sym = 1
-            } else {
-                var sym = -1
-            }
+            let sym = (intersects[0].object == selected_patch[0].parent.children[selected[1] % 2 == 0 ? selected[1] + 1 : selected[1] - 1]) ? 1 : -1
             set_cursor(3)
             uv_offset = intersects[0].uv.clone();
             if (selected.length === 2) {
@@ -1585,7 +1430,7 @@ function select_recovery() {
     })
     scene.remove(selected_obj_sym);
     show_all(garment);
-    gui_options.focus = false;
+    uiOptions.focus = false;
     material_folder.hide()
     outlinePass_select.selectedObjects = []
     outlinePass_patch_select.selectedObjects = []
@@ -1606,19 +1451,18 @@ function select_recovery() {
     controls.maxDistance = 5;
     set_cursor(0)
     if (controls !== undefined) {
-        controls.target = O;
+        controls.target = cameraTarget;
     }
     $("#texture_container").hide();
-    url = ""
-    let liStr = "";
-    $('.list-drag').html(liStr);
+    customTextureUrl = ""
+    clearTexturePreview();
     $(".tip").show();
 }
 
 function draw(pointers, camera, cut_obj) {
     for (let pointer of pointers) {
         raycaster.setFromCamera(pointer, camera);
-        var intersects = raycaster.intersectObject(cut_obj[0], true);
+        let intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             intersects[0].point.x = Math.abs(intersects[0].point.x)
             let distance = camera.position.distanceTo(intersects[0].point)
@@ -1652,10 +1496,10 @@ function draw(pointers, camera, cut_obj) {
                     draw_line_show_back[draw_line_show_back.length - 1].pop()
                     draw_line_show_left[draw_line_show_left.length - 1].pop()
                     draw_line_show_back_left[draw_line_show_back_left.length - 1].pop()
-                    line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-                    line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-                    line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-                    line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+                    line_back.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+                    line_left.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+                    line_back_left.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
                     draw_line.push([]);
                     draw_line_show.push([]);
                     draw_line_show_back.push([]);
@@ -1695,7 +1539,7 @@ function draw_straight(pointers, camera, cut_obj) {
     draw_line_show_back_left[draw_line_show_back_left.length - 1] = []
     for (let pointer of pointers) {
         raycaster.setFromCamera(pointer, camera);
-        var intersects = raycaster.intersectObject(cut_obj[0], true);
+        let intersects = raycaster.intersectObject(cut_obj[0], true);
         if (intersects.length > 0) {
             intersects[0].point.x = Math.abs(intersects[0].point.x)
             let distance = camera.position.distanceTo(intersects[0].point)
@@ -1729,10 +1573,10 @@ function draw_straight(pointers, camera, cut_obj) {
                     draw_line_show_back[draw_line_show_back.length - 1].pop()
                     draw_line_show_left[draw_line_show_left.length - 1].pop()
                     draw_line_show_back_left[draw_line_show_back_left.length - 1].pop()
-                    line.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-                    line_back.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-                    line_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
-                    line_back_left.add(new THREE.Line(line_geo.clone(), line_material.clone()));
+                    line.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+                    line_back.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+                    line_left.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
+                    line_back_left.add(new THREE.Line(drawLineGeometry.clone(), drawLineMaterial.clone()));
                     draw_line.push([]);
                     draw_line_show.push([]);
                     draw_line_show_back.push([]);
@@ -1756,12 +1600,12 @@ function draw_straight(pointers, camera, cut_obj) {
 function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_camera_patch, event) {
 
     let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + window.innerHeight * 0.1 + 25) / window.innerHeight * 2) && pointer.y < 0.8
-    let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
+    let on_transform = uiOptions.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
     if (on_gui || on_transform) {
         cover_recovery();
         return;
     }
-    if (progress_obj + progress_mtl != -2) {
+    if (objectLoadProgress + materialLoadProgress != -2) {
         cover_recovery();
         return;
     }
@@ -1772,14 +1616,14 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
         && event.clientY < (obj.offsetTop + obj.clientHeight)) {
 
         raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
-        var intersects = raycaster.intersectObject(patch, true);
+        let intersects = raycaster.intersectObject(patch, true);
         if (intersects.length > 0) {
             if (intersects[0].object.parent instanceof THREE.Group) {
-                var i = 0;
+                let i = 0;
                 for (i = 0; i < intersects[0].object.parent.children.length; i++) {
                     if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
                 }
-                var j = i % 2 == 0 ? i + 1 : i - 1
+                let j = i % 2 == 0 ? i + 1 : i - 1
                 if (last_cover_patch.length != 1 || (last_cover_patch[0] != intersects[0].object)) {
                     covered_obj.traverse(function (obj) {
                         if (obj.type === 'Mesh') {
@@ -1802,16 +1646,16 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                     garment.traverse(function (obj) {
                         if (obj.type === "Mesh") {
                             if (obj.name == intersects[0].object.parent.name) {
-                                var this_scale = obj.parent.scale;
-                                var this_position = obj.parent.position;
-                                var g = individual(obj.geometry, i)
+                                let this_scale = obj.parent.scale;
+                                let this_position = obj.parent.position;
+                                let g = individual(obj.geometry, i)
                                 covered_obj = new THREE.Mesh(g);
                                 covered_obj.material.transparent = true;
                                 covered_obj.material.opacity = 0;
                                 covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                                 covered_obj.position.set(this_position.x, this_position.y, this_position.z);
                                 scene.add(covered_obj)
-                                var g_sym = individual(obj.geometry, j)
+                                let g_sym = individual(obj.geometry, j)
                                 covered_obj_sym = new THREE.Mesh(g_sym);
                                 covered_obj_sym.material.transparent = true;
                                 covered_obj_sym.material.opacity = 0;
@@ -1839,17 +1683,17 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
         } else { cover_recovery() }
     } else {
         raycaster.setFromCamera(cover_pointer, cover_camera);
-        var intersects = raycaster.intersectObject(garment, true);
+        let intersects = raycaster.intersectObject(garment, true);
         if (intersects.length > 0) {
-            var group_num = intersects[0].object.geometry.groups.length;
-            var vertice_index = intersects[0].face.a;
-            var i = 0;
-            var num = patch ? patch.children.length : 0;
+            let group_num = intersects[0].object.geometry.groups.length;
+            let vertice_index = intersects[0].face.a;
+            let i = 0;
+            let num = patch ? patch.children.length : 0;
             if (group_num > 0) {
                 for (i = 0; i < group_num; i++) {
                     if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
                 }
-                var j = i % 2 == 0 ? i + 1 : i - 1
+                let j = i % 2 == 0 ? i + 1 : i - 1
                 if (last_cover.length != 2 || last_cover[1] != i || (last_cover[0] != intersects[0].object)) {
                     covered_obj.traverse(function (obj) {
                         if (obj.type === 'Mesh') {
@@ -1865,16 +1709,16 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                         }
                     })
                     scene.remove(covered_obj_sym);
-                    var this_scale = intersects[0].object.parent.scale;
-                    var this_position = intersects[0].object.parent.position;
-                    var g = individual(intersects[0].object.geometry, i)
+                    let this_scale = intersects[0].object.parent.scale;
+                    let this_position = intersects[0].object.parent.position;
+                    let g = individual(intersects[0].object.geometry, i)
                     covered_obj = new THREE.Mesh(g);
                     covered_obj.material.transparent = true;
                     covered_obj.material.opacity = 0;
                     covered_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                     covered_obj.position.set(this_position.x, this_position.y, this_position.z);
                     scene.add(covered_obj)
-                    var g_sym = individual(intersects[0].object.geometry, j)
+                    let g_sym = individual(intersects[0].object.geometry, j)
                     covered_obj_sym = new THREE.Mesh(g_sym);
                     covered_obj_sym.material.transparent = true;
                     covered_obj_sym.material.opacity = 0;
@@ -1885,7 +1729,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                     last_cover = []
                     last_cover.push(intersects[0].object, i)
 
-                    for (var x = 0; x < num; x++) {
+                    for (let x = 0; x < num; x++) {
                         if (patch && intersects[0].object.name == patch.children[x].name) {
                             outlinePass_patch.selectedObjects = [patch.children[x].children[i], patch.children[x].children[j]];
                             break;
@@ -1899,7 +1743,7 @@ function cover_material(cover_pointer, cover_camera, cover_pointer_patch, cover_
                     last_cover = []
                     last_cover.push(intersects[0].object)
 
-                    for (var x = 0; x < num; x++) {
+                    for (let x = 0; x < num; x++) {
                         if (patch && intersects[0].object.name == patch.children[x].name) {
                             outlinePass_patch.selectedObjects = [patch.children[x]];
                             break;
@@ -1915,13 +1759,13 @@ function cover_cut(cover_pointer, cover_camera, event) {
     if (cut_obj.length > 0) return;
 
     let on_gui = pointer.x > 1 - (($('#gui_container').width() + 5) / window.innerWidth * 2) && pointer.y > (1 - (document.getElementById('gui_container_gui').offsetHeight + window.innerHeight * 0.1 + 25) / window.innerHeight * 2) && pointer.y < 0.8
-    let on_transform = gui_options.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
+    let on_transform = uiOptions.light === "Directional Light" && pointer.x > - $('#transform').width() / window.innerWidth && pointer.x < $('#transform').width() / window.innerWidth && pointer.y > 1 - (40 + $('#transform').height()) / window.innerHeight * 2
 
     if (on_gui || on_transform) {
         cover_recovery();
         return;
     }
-    if (progress_obj + progress_mtl != -2) {
+    if (objectLoadProgress + materialLoadProgress != -2) {
         cover_recovery();
         return;
     }
@@ -1931,16 +1775,16 @@ function cover_cut(cover_pointer, cover_camera, event) {
         || event.clientY < obj.offsetTop
         || event.clientY > (obj.offsetTop + obj.clientHeight)) {
         raycaster.setFromCamera(cover_pointer, cover_camera);
-        var intersects = raycaster.intersectObject(garment, true);
+        let intersects = raycaster.intersectObject(garment, true);
         if (intersects.length > 0) {
-            var num = patch ? patch.children.length : 0;
+            let num = patch ? patch.children.length : 0;
 
             if (last_cover.length != 1 || (last_cover[0] != intersects[0].object)) {
                 outlinePass.selectedObjects = [intersects[0].object];
                 last_cover = []
                 last_cover.push(intersects[0].object)
 
-                for (var x = 0; x < num; x++) {
+                for (let x = 0; x < num; x++) {
                     if (patch && intersects[0].object.name == patch.children[x].name) {
                         outlinePass_patch.selectedObjects = [patch.children[x]];
                         break;
@@ -1954,23 +1798,23 @@ function cover_cut(cover_pointer, cover_camera, event) {
 
 
 function select_material(cover_pointer, cover_camera) {
-    if (progress_obj + progress_mtl != -2) {
+    if (objectLoadProgress + materialLoadProgress != -2) {
         select_recovery();
         return;
     }
 
     raycaster.setFromCamera(cover_pointer, cover_camera);
-    var intersects = raycaster.intersectObject(garment, true);
+    let intersects = raycaster.intersectObject(garment, true);
     if (intersects.length > 0) {
-        var group_num = intersects[0].object.geometry.groups.length;
-        var vertice_index = intersects[0].face.a;
-        var i = 0;
-        var num = patch ? patch.children.length : 0;
+        let group_num = intersects[0].object.geometry.groups.length;
+        let vertice_index = intersects[0].face.a;
+        let i = 0;
+        let num = patch ? patch.children.length : 0;
         if (group_num > 0) {
             for (i = 0; i < group_num; i++) {
                 if (intersects[0].object.geometry.groups[i].start <= vertice_index && (vertice_index < (intersects[0].object.geometry.groups[i].start + intersects[0].object.geometry.groups[i].count))) { break; }
             }
-            var j = i % 2 == 0 ? i + 1 : i - 1
+            let j = i % 2 == 0 ? i + 1 : i - 1
             if (last_select.length != 2 || last_select[1] != i || last_select[0] != intersects[0].object) {
                 select_recovery()
                 find_new = true;
@@ -1989,16 +1833,16 @@ function select_material(cover_pointer, cover_camera) {
                     }
                 })
                 scene.remove(selected_obj_sym);
-                var this_scale = intersects[0].object.parent.scale;
-                var this_position = intersects[0].object.parent.position;
-                var g = individual(intersects[0].object.geometry, i)
+                let this_scale = intersects[0].object.parent.scale;
+                let this_position = intersects[0].object.parent.position;
+                let g = individual(intersects[0].object.geometry, i)
                 selected_obj = new THREE.Mesh(g);
                 selected_obj.material.transparent = true;
                 selected_obj.material.opacity = 0;
                 selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                 selected_obj.position.set(this_position.x, this_position.y, this_position.z);
                 scene.add(selected_obj)
-                var g_sym = individual(intersects[0].object.geometry, j)
+                let g_sym = individual(intersects[0].object.geometry, j)
                 selected_obj_sym = new THREE.Mesh(g_sym);
                 selected_obj_sym.material.transparent = true;
                 selected_obj_sym.material.opacity = 0;
@@ -2010,7 +1854,7 @@ function select_material(cover_pointer, cover_camera) {
                 last_select_patch = []
                 last_select.push(intersects[0].object, i)
 
-                for (var x = 0; x < num; x++) {
+                for (let x = 0; x < num; x++) {
                     if (patch && intersects[0].object.name == patch.children[x].name) {
                         selected_patch = [patch.children[x].children[i]];
                         outlinePass_patch_select.selectedObjects = [patch.children[x].children[i], patch.children[x].children[j]];
@@ -2031,9 +1875,9 @@ function select_material(cover_pointer, cover_camera) {
                     }
                 })
                 scene.remove(selected_obj);
-                var this_scale = intersects[0].object.parent.scale;
-                var this_position = intersects[0].object.parent.position;
-                var g = individual(intersects[0].object.geometry, i)
+                let this_scale = intersects[0].object.parent.scale;
+                let this_position = intersects[0].object.parent.position;
+                let g = individual(intersects[0].object.geometry, i)
                 selected_obj = new THREE.Mesh(g);
                 selected_obj.material.transparent = true;
                 selected_obj.material.opacity = 0;
@@ -2045,7 +1889,7 @@ function select_material(cover_pointer, cover_camera) {
                 last_select_patch = []
                 last_select.push(intersects[0].object)
 
-                for (var x = 0; x < num; x++) {
+                for (let x = 0; x < num; x++) {
                     if (patch && intersects[0].object.name == patch.children[x].name) {
                         selected_patch = [patch.children[x]];
                         outlinePass_patch_select.selectedObjects = [patch.children[x]];
@@ -2059,19 +1903,19 @@ function select_material(cover_pointer, cover_camera) {
 }
 
 function select_material_patch(cover_pointer_patch, cover_camera_patch) {
-    if (progress_obj + progress_mtl != -2) {
+    if (objectLoadProgress + materialLoadProgress != -2) {
         select_recovery();
         return;
     }
     raycaster.setFromCamera(cover_pointer_patch, cover_camera_patch);
-    var intersects = raycaster.intersectObject(patch, true);
+    let intersects = raycaster.intersectObject(patch, true);
     if (intersects.length > 0) {
         if (intersects[0].object.parent instanceof THREE.Group) {
-            var i = 0;
+            let i = 0;
             for (i = 0; i < intersects[0].object.parent.children.length; i++) {
                 if (intersects[0].object.parent.children[i].name == intersects[0].object.name) { break; }
             }
-            var j = i % 2 == 0 ? i + 1 : i - 1
+            let j = i % 2 == 0 ? i + 1 : i - 1
             if (last_select_patch.length != 1 || (last_select_patch[0] != intersects[0].object)) {
                 select_recovery()
                 find_new = true;
@@ -2099,16 +1943,16 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                     if (obj.type === "Mesh") {
                         if (obj.name == intersects[0].object.parent.name) {
                             selected = [obj, i]
-                            var this_scale = obj.parent.scale;
-                            var this_position = obj.parent.position;
-                            var g = individual(obj.geometry, i)
+                            let this_scale = obj.parent.scale;
+                            let this_position = obj.parent.position;
+                            let g = individual(obj.geometry, i)
                             selected_obj = new THREE.Mesh(g);
                             selected_obj.material.transparent = true;
                             selected_obj.material.opacity = 0;
                             selected_obj.scale.set(this_scale.x, this_scale.y, this_scale.z);
                             selected_obj.position.set(this_position.x, this_position.y, this_position.z);
                             scene.add(selected_obj)
-                            var g_sym = individual(obj.geometry, j)
+                            let g_sym = individual(obj.geometry, j)
                             selected_obj_sym = new THREE.Mesh(g_sym);
                             selected_obj_sym.material.transparent = true;
                             selected_obj_sym.material.opacity = 0;
@@ -2141,9 +1985,9 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
                             }
                         })
                         scene.remove(selected_obj);
-                        var this_scale = obj.parent.scale;
-                        var this_position = obj.parent.position;
-                        var g = individual(obj.geometry, i)
+                        let this_scale = obj.parent.scale;
+                        let this_position = obj.parent.position;
+                        let g = individual(obj.geometry, i)
                         selected_obj = new THREE.Mesh(g);
                         selected_obj.material.transparent = true;
                         selected_obj.material.opacity = 0;
@@ -2160,7 +2004,7 @@ function select_material_patch(cover_pointer_patch, cover_camera_patch) {
 
 
 function select_cut(cover_pointer, cover_camera, event) {
-    if (progress_obj + progress_mtl != -2) {
+    if (objectLoadProgress + materialLoadProgress != -2) {
         select_recovery();
         return;
     }
@@ -2170,9 +2014,9 @@ function select_cut(cover_pointer, cover_camera, event) {
         || event.clientY < obj.offsetTop
         || event.clientY > (obj.offsetTop + obj.clientHeight))
         raycaster.setFromCamera(cover_pointer, cover_camera);
-    var intersects = raycaster.intersectObject(garment, true);
+    let intersects = raycaster.intersectObject(garment, true);
     if (intersects.length > 0) {
-        var num = patch ? patch.children.length : 0;
+        let num = patch ? patch.children.length : 0;
 
         if (last_select.length != 1 || last_select[0] != intersects[0].object) {
             cut_obj = [intersects[0].object];
@@ -2181,7 +2025,7 @@ function select_cut(cover_pointer, cover_camera, event) {
             last_select_patch = []
             last_select.push(intersects[0].object)
 
-            for (var x = 0; x < num; x++) {
+            for (let x = 0; x < num; x++) {
                 if (patch && intersects[0].object.name == patch.children[x].name) {
                     outlinePass_patch_select.selectedObjects = [patch.children[x]];
                     break;
@@ -2194,7 +2038,7 @@ function select_cut(cover_pointer, cover_camera, event) {
 }
 
 function hide_others(garment, cut_obj) {
-    gui_options.focus = true;
+    uiOptions.focus = true;
     if (Array.isArray(cut_obj[0].material)) {
         for (let i in cut_obj[0].material) {
             cut_obj[0].material[i] = cut_obj[0].material[i].clone()
@@ -2234,7 +2078,7 @@ function rearrange_geo(geo, position, scale) {
     let old_position = geo.getAttribute('position').array;
     let num = geo.getAttribute('position').count;
     let new_position = new Float32Array(num * 3);
-    for (var i = 0; i < num; i++) {
+    for (let i = 0; i < num; i++) {
         let index = i * 3
 
         new_position[index] = (old_position[index] + position.x) * scale.x
@@ -2247,28 +2091,27 @@ function rearrange_geo(geo, position, scale) {
 
 function individual(bufGeom, ig, scale = 0.00035) {
     try {
-        var groups = bufGeom.groups;
-        var origVerts = bufGeom.getAttribute('position').array;
-        var origNormals = bufGeom.getAttribute('normal').array;
-        var origUVs = bufGeom.getAttribute('uv').array;
+        let groups = bufGeom.groups;
+        let origVerts = bufGeom.getAttribute('position').array;
+        let origNormals = bufGeom.getAttribute('normal').array;
+        let origUVs = bufGeom.getAttribute('uv').array;
 
-        if (groups.length > 0) { var group = groups[ig]; }
-        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
+        const group = groups.length > ig ? groups[ig] : { start: 0, count: bufGeom.getAttribute('position').count };
 
-        var destNumVerts = group.count;
+        let destNumVerts = group.count;
 
-        var newBufGeom = new THREE.BufferGeometry();
-        var newPositions = new Float32Array(destNumVerts * 3);
-        var newNormals = new Float32Array(destNumVerts * 3);
-        var newUVs = new Float32Array(destNumVerts * 2);
+        let newBufGeom = new THREE.BufferGeometry();
+        let newPositions = new Float32Array(destNumVerts * 3);
+        let newNormals = new Float32Array(destNumVerts * 3);
+        let newUVs = new Float32Array(destNumVerts * 2);
 
-        for (var iv = 0; iv < destNumVerts; iv++) {
+        for (let iv = 0; iv < destNumVerts; iv++) {
 
-            var indexOrig = 3 * (group.start + iv);
-            var indexDest = 3 * iv;
+            let indexOrig = 3 * (group.start + iv);
+            let indexDest = 3 * iv;
 
-            var indexOrigUV = 2 * (group.start + iv);
-            var indexDestUV = 2 * iv;
+            let indexOrigUV = 2 * (group.start + iv);
+            let indexDestUV = 2 * iv;
             newPositions[indexDest] = origVerts[indexOrig] + origNormals[indexOrig] * scale;
             newPositions[indexDest + 1] = origVerts[indexOrig + 1] + origNormals[indexOrig + 1] * scale;
             newPositions[indexDest + 2] = origVerts[indexOrig + 2] + origNormals[indexOrig + 2] * scale;
@@ -2288,27 +2131,26 @@ function individual(bufGeom, ig, scale = 0.00035) {
         return newBufGeom;
     }
     catch (e) {
-        var groups = bufGeom.groups;
-        var origVerts = bufGeom.getAttribute('position').array;
-        var origNormals = bufGeom.getAttribute('normal').array;
+        let groups = bufGeom.groups;
+        let origVerts = bufGeom.getAttribute('position').array;
+        let origNormals = bufGeom.getAttribute('normal').array;
 
-        if (groups.length > 0) { var group = groups[ig]; }
-        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
+        const group = groups.length > ig ? groups[ig] : { start: 0, count: bufGeom.getAttribute('position').count };
 
-        var destNumVerts = group.count;
+        let destNumVerts = group.count;
 
-        var newBufGeom = new THREE.BufferGeometry();
-        var newPositions = new Float32Array(destNumVerts * 3);
-        var newNormals = new Float32Array(destNumVerts * 3);
-        var newUVs = new Float32Array(destNumVerts * 2);
+        let newBufGeom = new THREE.BufferGeometry();
+        let newPositions = new Float32Array(destNumVerts * 3);
+        let newNormals = new Float32Array(destNumVerts * 3);
+        let newUVs = new Float32Array(destNumVerts * 2);
 
-        for (var iv = 0; iv < destNumVerts; iv++) {
+        for (let iv = 0; iv < destNumVerts; iv++) {
 
-            var indexOrig = 3 * (group.start + iv);
-            var indexDest = 3 * iv;
+            let indexOrig = 3 * (group.start + iv);
+            let indexDest = 3 * iv;
 
-            var indexOrigUV = 2 * (group.start + iv);
-            var indexDestUV = 2 * iv;
+            let indexOrigUV = 2 * (group.start + iv);
+            let indexDestUV = 2 * iv;
             newPositions[indexDest] = origVerts[indexOrig] + origNormals[indexOrig] * scale;
             newPositions[indexDest + 1] = origVerts[indexOrig + 1] + origNormals[indexOrig + 1] * scale;
             newPositions[indexDest + 2] = origVerts[indexOrig + 2] + origNormals[indexOrig + 2] * scale;
@@ -2332,24 +2174,23 @@ function individual(bufGeom, ig, scale = 0.00035) {
 
 function individual_garmentToPatch(bufGeom, ig, uv) {
     try {
-        var groups = bufGeom.groups;
-        var origUVs = uv;
+        let groups = bufGeom.groups;
+        let origUVs = uv;
 
-        if (groups.length > 0) { var group = groups[ig]; }
-        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
+        const group = groups.length > ig ? groups[ig] : { start: 0, count: bufGeom.getAttribute('position').count };
 
-        var destNumVerts = group.count;
+        let destNumVerts = group.count;
 
-        var newBufGeom = new THREE.BufferGeometry();
-        var newPositions = new Float32Array(destNumVerts * 3);
-        var newUVs = new Float32Array(destNumVerts * 2);
+        let newBufGeom = new THREE.BufferGeometry();
+        let newPositions = new Float32Array(destNumVerts * 3);
+        let newUVs = new Float32Array(destNumVerts * 2);
 
-        for (var iv = 0; iv < destNumVerts; iv++) {
+        for (let iv = 0; iv < destNumVerts; iv++) {
 
-            var indexDest = 3 * iv;
+            let indexDest = 3 * iv;
 
-            var indexOrigUV = 2 * (group.start + iv);
-            var indexDestUV = 2 * iv;
+            let indexOrigUV = 2 * (group.start + iv);
+            let indexDestUV = 2 * iv;
             newPositions[indexDest] = origUVs[indexOrigUV];
             newPositions[indexDest + 1] = origUVs[indexOrigUV + 1];
             newPositions[indexDest + 2] = 0;
@@ -2365,23 +2206,22 @@ function individual_garmentToPatch(bufGeom, ig, uv) {
         return newBufGeom;
     }
     catch (e) {
-        var groups = bufGeom.groups;
+        let groups = bufGeom.groups;
 
-        if (groups.length > 0) { var group = groups[ig]; }
-        else { var group = { start: 0, count: bufGeom.getAttribute('position').count } }
+        const group = groups.length > ig ? groups[ig] : { start: 0, count: bufGeom.getAttribute('position').count };
 
-        var destNumVerts = group.count;
+        let destNumVerts = group.count;
 
-        var newBufGeom = new THREE.BufferGeometry();
-        var newPositions = new Float32Array(destNumVerts * 3);
-        var newUVs = new Float32Array(destNumVerts * 2);
+        let newBufGeom = new THREE.BufferGeometry();
+        let newPositions = new Float32Array(destNumVerts * 3);
+        let newUVs = new Float32Array(destNumVerts * 2);
 
-        for (var iv = 0; iv < destNumVerts; iv++) {
+        for (let iv = 0; iv < destNumVerts; iv++) {
 
-            var indexDest = 3 * iv;
+            let indexDest = 3 * iv;
 
-            var indexOrigUV = 2 * (group.start + iv);
-            var indexDestUV = 2 * iv;
+            let indexOrigUV = 2 * (group.start + iv);
+            let indexDestUV = 2 * iv;
             newPositions[indexDest] = 0;
             newPositions[indexDest + 1] = 0;
             newPositions[indexDest + 2] = 0;
@@ -2479,31 +2319,31 @@ function produce_geo(position, cut_geometry, line = false) {
             material.push(default_m);
             material.push(default_m);
         }
-        gui_options.clear()
+        uiOptions.clear()
         geo = smoothNormals(geo)
 
         let isWireframe = false;
         let isStress = false;
-        if (gui_options.Wireframe) {
+        if (uiOptions.Wireframe) {
             isWireframe = true;
-            gui_options.Wireframe = false;
+            uiOptions.Wireframe = false;
             Wireframe(false, false);
         }
-        if (gui_options.Stress) {
+        if (uiOptions.Stress) {
             isStress = true;
-            gui_options.Stress = false;
+            uiOptions.Stress = false;
             Stress(false, false);
         }
         let geo_mat = [geo, material];
         cut_obj[0].geometry = geo_mat[0]
         cut_obj[0].material = geo_mat[1]
-        obj_vertices_count += geo_mat[0].getAttribute("position").count;
-        $("#vertice_num").html("<p>Vertices: " + obj_vertices_count + "</p>")
+        totalVerticesCount += geo_mat[0].getAttribute("position").count;
+        $("#vertice_num").html("<p>Vertices: " + totalVerticesCount + "</p>")
         reload_patch(cut_obj[0]);
         Material_Update_Param(true);
         select_recovery();
         cover_recovery();
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+        Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env]);
         hide_loading();
         passed_time = 0;
         clearInterval(loading_time);
@@ -2513,17 +2353,17 @@ function produce_geo(position, cut_geometry, line = false) {
                 original.push(child.clone())
             }
         })
-        for (var i = 0; i < original.length; i++) {
+        for (let i = 0; i < original.length; i++) {
             if (original[i].geometry.groups.length > 0) {
                 original[i].material = original[i].material.slice(0)
             }
         }
         if (isWireframe) {
-            gui_options.Wireframe = true;
+            uiOptions.Wireframe = true;
             Wireframe(true, true);
         }
         if (isStress) {
-            gui_options.Stress = true;
+            uiOptions.Stress = true;
             Stress(true, true);
         }
         worker.terminate();
@@ -2532,9 +2372,9 @@ function produce_geo(position, cut_geometry, line = false) {
 }
 
 function clone_attribute(geo, geo_json) {
-    var len = geo_json.attributes.position.count;
-    var newPositions = new Float32Array(len * 3);
-    var newUVs = new Float32Array(len * 2);
+    let len = geo_json.attributes.position.count;
+    let newPositions = new Float32Array(len * 3);
+    let newUVs = new Float32Array(len * 2);
     for (let i = 0; i < len; i++) {
         newPositions[i * 3] = geo_json.attributes.position.array[i * 3]
         newPositions[i * 3 + 1] = geo_json.attributes.position.array[i * 3 + 1]
@@ -2574,7 +2414,7 @@ function init_produce_geo(position, child) {
             material.push(default_m);
             material.push(default_m);
         }
-        gui_options.clear()
+        uiOptions.clear()
         geo = smoothNormals(geo)
 
         let geo_mat = [geo, material];
@@ -2582,7 +2422,7 @@ function init_produce_geo(position, child) {
         child.material = geo_mat[1]
         original.push(child.clone())
         child.geometry.computeBoundingBox();
-        obj_vertices_count += child.geometry.attributes.position.count;
+        totalVerticesCount += child.geometry.attributes.position.count;
         ready.push(1);
         worker.terminate();
     }
@@ -2634,8 +2474,8 @@ function Display(show_env, patch_env, light) {
             }
         } else {
             scene_patch.background = null;
-            cameralight_patch.intensity = environment_light.None[0]
-            env_light_patch.intensity = environment_light.None[1]
+            cameralight_patch.intensity = environmentLightPresets.None[0]
+            env_light_patch.intensity = environmentLightPresets.None[1]
             if (patch !== undefined) {
                 patch.traverse(function (child) {
                     if (child.material !== undefined) {
@@ -2655,9 +2495,9 @@ function Display(show_env, patch_env, light) {
     }
     else {
         scene.background = new THREE.Color(0x181818);
-        cameralight.intensity = environment_light.None[0]
-        directional_light.intensity = environment_light.None[0]
-        env_light.intensity = environment_light.None[1]
+        cameralight.intensity = environmentLightPresets.None[0]
+        directional_light.intensity = environmentLightPresets.None[0]
+        env_light.intensity = environmentLightPresets.None[1]
         if (garment !== undefined) {
             garment.traverse(function (child) {
                 if (child.material !== undefined) {
@@ -2674,8 +2514,8 @@ function Display(show_env, patch_env, light) {
             })
         }
         scene_patch.background = null;
-        cameralight_patch.intensity = environment_light.None[0]
-        env_light_patch.intensity = environment_light.None[1]
+        cameralight_patch.intensity = environmentLightPresets.None[0]
+        env_light_patch.intensity = environmentLightPresets.None[1]
         if (patch !== undefined) {
             patch.traverse(function (child) {
                 if (child.material !== undefined) {
@@ -2701,12 +2541,12 @@ function obj_loader(url_obj, scale) {
         if (xhr.lengthComputable) {
             let percentComplete = (xhr.loaded / xhr.total) * 100;
             console.log(Math.round(percentComplete, 2) + "% downloaded(obj)");
-            progress_obj = Math.round(percentComplete, 2);
+            objectLoadProgress = Math.round(percentComplete, 2);
         }
     };
     vertices = 0;
     let newobj = obj3D.clone();
-    progress_mtl = 100
+    materialLoadProgress = 100
     let objLoader = new OBJLoader();
     objLoader.load(
         url_obj,
@@ -2740,7 +2580,7 @@ function obj_loader(url_obj, scale) {
                 $("#small_info").html("This may take around " + Math.ceil(vertices / 300) + "s(" + passed_time + "s) to process the model.<br>This may be longer for the first time.");
             }, 1000)
             let scale_value = Math.max(x_max - x_min, y_max - y_min, z_max - z_min);
-            obj_size = 1
+            modelSize = 1
             let geo_position = new THREE.Vector3(-(x_min + x_max) / 2, -y_min, -(z_min + z_max) / 2);
             let geo_scale = new THREE.Vector3(scale / scale_value, scale / scale_value, scale / scale_value);
             load_num = 0
@@ -2761,8 +2601,8 @@ function obj_loader(url_obj, scale) {
 
 
 function array_default_material_clone(array, clone) {
-    var result = []
-    for (var i = 0; i < array.length; i++) {
+    let result = []
+    for (let i = 0; i < array.length; i++) {
         if (array[i].envMap !== undefined) { array[i].envMap = null }
         if (clone) result.push(array[i].clone())
         else result.push(array[i])
@@ -2773,7 +2613,7 @@ function array_default_material_clone(array, clone) {
 
 function patch_loader(garment) {
     let num = garment.children[0].children.length;
-    var max_radius = 0;
+    let max_radius = 0;
     let newobj = obj3D.clone();
     let highest = { layer: 0, y: 0, last_layer_y: 0 };
     for (let x = 0; x < num; x++) {
@@ -2824,7 +2664,7 @@ function patch_loader(garment) {
 function reload_patch(new_mesh) {
     let patch_geo = new_mesh.geometry.clone();
     let patch_mtl = Array.isArray(new_mesh.material) ? array_default_material_clone(new_mesh.material, true) : new_mesh.material.clone();
-    var max_radius = 0;
+    let max_radius = 0;
     let geo_uv = patch_geo.getAttribute('uv').array
     if (patch_geo.groups && patch_geo.groups.length > 0) {
         let group_3d = new THREE.Group();
@@ -2881,190 +2721,190 @@ function GUI_init() {
     document.getElementById('gui_container_gui').insertBefore(gui.domElement, document.getElementById('gui_container_gui').childNodes[0]);
 
     folder_basic = gui.addFolder("Basic")
-    folder_basic.add(gui_options, 'Mode', ["Cutting Model", "Customizing Material"]).name("Mode").onChange(() => Change_Mode());
-    folder_basic.add(gui_options, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(gui_options.light));
-    folder_basic.add(gui_options, 'Reset_Camera').name("Reset Camera");
+    folder_basic.add(uiOptions, 'Mode', ["Cutting Model", "Customizing Material"]).name("Mode").onChange(() => Change_Mode());
+    folder_basic.add(uiOptions, 'light', ["Camera Light", "Directional Light"]).onChange(() => Change_Light(uiOptions.light));
+    folder_basic.add(uiOptions, 'Reset_Camera').name("Reset Camera");
     cut_component = folder_basic.addFolder("Cutting Control");
-    cut_component.add(gui_options, 'Unselect');
-    cut_component.add(gui_options, 'focus').name("Focus Mode").onChange(() => {
-        if (gui_options.focus && cut_obj.length === 1) {
+    cut_component.add(uiOptions, 'Unselect');
+    cut_component.add(uiOptions, 'focus').name("Focus Mode").onChange(() => {
+        if (uiOptions.focus && cut_obj.length === 1) {
             hide_others(garment, cut_obj);
-            if (gui_options.Stress) {
+            if (uiOptions.Stress) {
                 Stress(false, true)
             }
-            if (gui_options.Wireframe) {
+            if (uiOptions.Wireframe) {
                 Wireframe(false, true)
             }
         }
         else {
             show_all(garment);
-            gui_options.focus = false;
-            if (gui_options.Stress) {
+            uiOptions.focus = false;
+            if (uiOptions.Stress) {
                 Stress(false, true)
             }
-            if (gui_options.Wireframe) {
+            if (uiOptions.Wireframe) {
                 Wireframe(false, true)
             }
         }
     });
-    cut_component.add(gui_options, 'Straight').name("Straight Line");
-    cut_component.add(gui_options, 'clear').name("Clear Lines");
-    cut_component.add(gui_options, 'back').name("Go Back");
-    cut_component.add(gui_options, 'process_geo').name("PROCESS");
+    cut_component.add(uiOptions, 'Straight').name("Straight Line");
+    cut_component.add(uiOptions, 'clear').name("Clear Lines");
+    cut_component.add(uiOptions, 'back').name("Go Back");
+    cut_component.add(uiOptions, 'process_geo').name("PROCESS");
     cut_component.open();
     cut_component.hide();
     folder_basic.open()
 
     folder_env = gui.addFolder("Environment")
-    folder_env.add(gui_options, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]))
-    folder_env.add(gui_options, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]));
+    folder_env.add(uiOptions, "env", ["None", "Sky", "Alley", "LivingRoom", "BedRoom", "PlayingRoom", 'Street', 'Town', "Park", "Snow", "Bridge", "Restaurant"]).name("Background").onChange(() => Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env]))
+    folder_env.add(uiOptions, 'Enable_Patch_Background').name("Patch Background").onChange(() => Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env]));
     folder_env.add(controls, 'autoRotate').name("Auto Rotate");
-    folder_env.add(gui_options, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
-    folder_env.add(gui_options, 'Wireframe').onChange(() => Wireframe(true, true, true)).name('Show Wireframe');
-    folder_env.add(gui_options, 'Stress').onChange(() => Stress(true, true, true)).name('Show Stress');
+    folder_env.add(uiOptions, 'Overall_Reflectivity', 0, 1, 0.01).onChange(() => Reflectivity()).name('Reflectivity');
+    folder_env.add(uiOptions, 'Wireframe').onChange(() => Wireframe(true, true, true)).name('Show Wireframe');
+    folder_env.add(uiOptions, 'Stress').onChange(() => Stress(true, true, true)).name('Show Stress');
     folder_sen = folder_env.addFolder("Stress Sensitivity")
-    folder_sen.add(gui_options, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false, false)).name('Stress Sensitivity');
+    folder_sen.add(uiOptions, 'Stress_Sensitivity', 1, 5, 0.1).onChange(() => Stress(false, false)).name('Stress Sensitivity');
     folder_sen.open();
     folder_sen.hide();
     // other options: "BathRoom", 'Church', "Gallery", "Square"
     folder_env.open()
 
     material_folder = gui.addFolder("Material")
-    // material_folder.add(Material, "reset").name('Material Recovery')
-    // material_folder.add(Material, "save").name('Save Material')
-    material_folder.add(Material, "material", [...Object.keys(Materials)]).onChange(() => Change_material());
-    //material_folder.add(Material, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //material_folder.add(Material, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
-    //material_folder.add(Material, "visible").onChange(() => Material_Update_Param())
+    // material_folder.add(materialSettings, "reset").name('materialSettings Recovery')
+    // material_folder.add(materialSettings, "save").name('Save materialSettings')
+    material_folder.add(materialSettings, "material", [...Object.keys(materialPresets)]).onChange(() => Change_material());
+    //material_folder.add(materialSettings, "alphaTest", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //material_folder.add(materialSettings, "side", ["FrontSide", "BackSide", "DoubleSide"]).onChange(() => Material_Update_Param())
+    //material_folder.add(materialSettings, "visible").onChange(() => Material_Update_Param())
     material_folder.open()
     material_folder.hide()
 
-    Material_Type_Folder.MeshBasicMaterial = material_folder.addFolder("Basic Material")
-    Material_Type_Folder.MeshBasicMaterial.addColor(Materials.MeshBasicMaterial, "color").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
-    Material_Type_Folder.MeshBasicMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshBasicMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshBasicMaterial.add(Materials.MeshBasicMaterial, "wireframe").onChange(() => Material_Update_Param())
-    basic_texture = Material_Type_Folder.MeshBasicMaterial.addFolder("Texture")
-    basic_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
-    // basic_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    basic_texture.add(TextureParams, "reset_position").name("Reset Position")
-    basic_texture.add(TextureParams, "remove").name("Remove Texture")
+    materialTypeFolders.MeshBasicMaterial = material_folder.addFolder("Basic Material")
+    materialTypeFolders.MeshBasicMaterial.addColor(materialPresets.MeshBasicMaterial, "color").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshBasicMaterial.add(materialPresets.MeshBasicMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    materialTypeFolders.MeshBasicMaterial.add(materialSettings, "transparent").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshBasicMaterial.add(materialSettings, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshBasicMaterial.add(materialPresets.MeshBasicMaterial, "wireframe").onChange(() => Material_Update_Param())
+    basic_texture = materialTypeFolders.MeshBasicMaterial.addFolder("Texture")
+    basic_texture.add(textureParams, "current", ['map', 'alphaMap', 'specularMap']).name("map").onChange(() => Texture_to_GUI())
+    // basic_texture.add(textureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    basic_texture.add(textureParams, "reset_position").name("Reset Position")
+    basic_texture.add(textureParams, "remove").name("Remove Texture")
     basic_texture.open()
-    Material_Type_Folder.MeshBasicMaterial.open()
+    materialTypeFolders.MeshBasicMaterial.open()
 
 
-    Material_Type_Folder.MeshLambertMaterial = material_folder.addFolder("Lambert Material")
-    Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "color").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshLambertMaterial.addColor(Materials.MeshLambertMaterial, "emissive").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
-    Material_Type_Folder.MeshLambertMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshLambertMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "wireframe").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshLambertMaterial.add(Materials.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    lambert_texture = Material_Type_Folder.MeshLambertMaterial.addFolder("Texture")
-    lambert_texture.add(TextureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //lambert_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    lambert_texture.add(TextureParams, "reset_position").name("Reset Position")
-    lambert_texture.add(TextureParams, "remove").name("Remove Texture")
+    materialTypeFolders.MeshLambertMaterial = material_folder.addFolder("Lambert Material")
+    materialTypeFolders.MeshLambertMaterial.addColor(materialPresets.MeshLambertMaterial, "color").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshLambertMaterial.addColor(materialPresets.MeshLambertMaterial, "emissive").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshLambertMaterial.add(materialPresets.MeshLambertMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    materialTypeFolders.MeshLambertMaterial.add(materialSettings, "transparent").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshLambertMaterial.add(materialSettings, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshLambertMaterial.add(materialPresets.MeshLambertMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshLambertMaterial.add(materialPresets.MeshLambertMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    lambert_texture = materialTypeFolders.MeshLambertMaterial.addFolder("Texture")
+    lambert_texture.add(textureParams, "current", ['map', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
+    //lambert_texture.add(textureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    lambert_texture.add(textureParams, "reset_position").name("Reset Position")
+    lambert_texture.add(textureParams, "remove").name("Remove Texture")
     lambert_texture.open()
-    Material_Type_Folder.MeshLambertMaterial.open()
+    materialTypeFolders.MeshLambertMaterial.open()
 
 
-    Material_Type_Folder.MeshPhongMaterial = material_folder.addFolder("Phong Material")
-    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "color").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "specular").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhongMaterial.addColor(Materials.MeshPhongMaterial, "emissive").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
-    Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "shininess", 0, 200, 1).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "flatShading").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhongMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhongMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "wireframe").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhongMaterial.add(Materials.MeshPhongMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    phong_texture = Material_Type_Folder.MeshPhongMaterial.addFolder("Texture")
-    phong_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //phong_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    phong_texture.add(TextureParams, "reset_position").name("Reset Position")
-    phong_texture.add(TextureParams, "remove").name("Remove Texture")
+    materialTypeFolders.MeshPhongMaterial = material_folder.addFolder("Phong Material")
+    materialTypeFolders.MeshPhongMaterial.addColor(materialPresets.MeshPhongMaterial, "color").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhongMaterial.addColor(materialPresets.MeshPhongMaterial, "specular").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhongMaterial.addColor(materialPresets.MeshPhongMaterial, "emissive").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial, "shininess", 0, 200, 1).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial, "flatShading").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhongMaterial.add(materialSettings, "transparent").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhongMaterial.add(materialSettings, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhongMaterial.add(materialPresets.MeshPhongMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    phong_texture = materialTypeFolders.MeshPhongMaterial.addFolder("Texture")
+    phong_texture.add(textureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', 'specularMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
+    //phong_texture.add(textureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    phong_texture.add(textureParams, "reset_position").name("Reset Position")
+    phong_texture.add(textureParams, "remove").name("Remove Texture")
     phong_texture.open()
-    Material_Type_Folder.MeshPhongMaterial.open()
+    materialTypeFolders.MeshPhongMaterial.open()
 
 
-    Material_Type_Folder.MeshToonMaterial = material_folder.addFolder("Toon Material")
-    Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "color").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshToonMaterial.addColor(Materials.MeshToonMaterial, "emissive").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshToonMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshToonMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "wireframe").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshToonMaterial.add(Materials.MeshToonMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    toon_texture = Material_Type_Folder.MeshToonMaterial.addFolder("Texture")
-    toon_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //toon_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    toon_texture.add(TextureParams, "reset_position").name("Reset Position")
-    toon_texture.add(TextureParams, "remove").name("Remove Texture")
+    materialTypeFolders.MeshToonMaterial = material_folder.addFolder("Toon Material")
+    materialTypeFolders.MeshToonMaterial.addColor(materialPresets.MeshToonMaterial, "color").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshToonMaterial.addColor(materialPresets.MeshToonMaterial, "emissive").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshToonMaterial.add(materialSettings, "transparent").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshToonMaterial.add(materialSettings, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshToonMaterial.add(materialPresets.MeshToonMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshToonMaterial.add(materialPresets.MeshToonMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshToonMaterial.add(materialPresets.MeshToonMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshToonMaterial.add(materialPresets.MeshToonMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshToonMaterial.add(materialPresets.MeshToonMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    toon_texture = materialTypeFolders.MeshToonMaterial.addFolder("Texture")
+    toon_texture.add(textureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
+    //toon_texture.add(textureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    toon_texture.add(textureParams, "reset_position").name("Reset Position")
+    toon_texture.add(textureParams, "remove").name("Remove Texture")
     toon_texture.open()
-    Material_Type_Folder.MeshToonMaterial.open()
+    materialTypeFolders.MeshToonMaterial.open()
 
 
-    Material_Type_Folder.MeshStandardMaterial = material_folder.addFolder("Standard Material")
-    Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "color").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshStandardMaterial.addColor(Materials.MeshStandardMaterial, "emissive").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "flatShading").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshStandardMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshStandardMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "wireframe").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshStandardMaterial.add(Materials.MeshStandardMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    standard_texture = Material_Type_Folder.MeshStandardMaterial.addFolder("Texture")
-    standard_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //standard_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    standard_texture.add(TextureParams, "reset_position").name("Reset Position")
-    standard_texture.add(TextureParams, "remove").name("Remove Texture")
+    materialTypeFolders.MeshStandardMaterial = material_folder.addFolder("Standard Material")
+    materialTypeFolders.MeshStandardMaterial.addColor(materialPresets.MeshStandardMaterial, "color").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshStandardMaterial.addColor(materialPresets.MeshStandardMaterial, "emissive").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial, "flatShading").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshStandardMaterial.add(materialSettings, "transparent").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshStandardMaterial.add(materialSettings, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshStandardMaterial.add(materialPresets.MeshStandardMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    standard_texture = materialTypeFolders.MeshStandardMaterial.addFolder("Texture")
+    standard_texture.add(textureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
+    //standard_texture.add(textureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    standard_texture.add(textureParams, "reset_position").name("Reset Position")
+    standard_texture.add(textureParams, "remove").name("Remove Texture")
     standard_texture.open()
-    Material_Type_Folder.MeshStandardMaterial.open()
+    materialTypeFolders.MeshStandardMaterial.open()
 
 
-    Material_Type_Folder.MeshPhysicalMaterial = material_folder.addFolder("Physical Material")
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "color").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "emissive").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.addColor(Materials.MeshPhysicalMaterial, "sheenTint").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "clearcoatRoughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "transmission", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "thickness", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Material, "transparent").onChange(() => Material_Update_Param())
-    Material_Type_Folder.MeshPhysicalMaterial.add(Material, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
-    //Material_Type_Folder.MeshPhysicalMaterial.add(Materials.MeshPhysicalMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
-    physical_texture = Material_Type_Folder.MeshPhysicalMaterial.addFolder("Texture")
-    physical_texture.add(TextureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
-    //physical_texture.add(TextureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
-    physical_texture.add(TextureParams, "reset_position").name("Reset Position")
-    physical_texture.add(TextureParams, "remove").name("Remove Texture")
+    materialTypeFolders.MeshPhysicalMaterial = material_folder.addFolder("Physical Material")
+    materialTypeFolders.MeshPhysicalMaterial.addColor(materialPresets.MeshPhysicalMaterial, "color").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.addColor(materialPresets.MeshPhysicalMaterial, "emissive").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.addColor(materialPresets.MeshPhysicalMaterial, "sheenTint").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "metalness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "roughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "reflectivity", 0, 1, 0.01).onChange(() => Material_Update_Param(true))
+    materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "clearcoat", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "clearcoatRoughness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "transmission", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "thickness", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialSettings, "transparent").onChange(() => Material_Update_Param())
+    materialTypeFolders.MeshPhysicalMaterial.add(materialSettings, "opacity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "flatShading").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "wireframe").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "emissiveIntensity", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial.normalScale, "x", 0, 1, 0.01).name("normalScale.x").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial.normalScale, "y", 0, 1, 0.01).name("normalScale.y").onChange(() => Material_Update_Param())
+    //materialTypeFolders.MeshPhysicalMaterial.add(materialPresets.MeshPhysicalMaterial, "bumpScale", 0, 1, 0.01).onChange(() => Material_Update_Param())
+    physical_texture = materialTypeFolders.MeshPhysicalMaterial.addFolder("Texture")
+    physical_texture.add(textureParams, "current", ['map', 'normalMap', 'bumpMap', 'alphaMap', "emissiveMap"]).name("map").onChange(() => Texture_to_GUI())
+    //physical_texture.add(textureParams, "wrap", ["clamp", "repeat", "mirror"]).onChange(() => GUI_to_Texture())
+    physical_texture.add(textureParams, "reset_position").name("Reset Position")
+    physical_texture.add(textureParams, "remove").name("Remove Texture")
     physical_texture.open()
-    Material_Type_Folder.MeshPhysicalMaterial.open()
+    materialTypeFolders.MeshPhysicalMaterial.open()
 
 
     Change_Mode()
-    gui_options.Overall_Reflectivity = NaN
+    uiOptions.Overall_Reflectivity = NaN
 
 }
 
@@ -3086,17 +2926,17 @@ function Change_Light(light) {
 
 
 function Reflectivity() {
-    if (gui_options.Overall_Reflectivity === NaN) return;
+    if (uiOptions.Overall_Reflectivity === NaN) return;
     garment.traverse(function (child) {
         if (child.type === "Mesh") {
             if (Array.isArray(child.material)) {
                 for (let m = 0; m < child.material.length; m++) {
                     child.material[m] = child.material[m].clone()
-                    if (child.material[m].reflectivity !== undefined) child.material[m].reflectivity = gui_options.Overall_Reflectivity
+                    if (child.material[m].reflectivity !== undefined) child.material[m].reflectivity = uiOptions.Overall_Reflectivity
                 }
             } else {
                 child.material = child.material.clone()
-                if (child.material.reflectivity !== undefined) child.material.reflectivity = gui_options.Overall_Reflectivity
+                if (child.material.reflectivity !== undefined) child.material.reflectivity = uiOptions.Overall_Reflectivity
             }
         }
     })
@@ -3105,51 +2945,48 @@ function Reflectivity() {
             if (Array.isArray(child.material)) {
                 for (let m = 0; m < child.material.length; m++) {
                     child.material[m] = child.material[m].clone()
-                    if (child.material[m].reflectivity !== undefined) child.material[m].reflectivity = gui_options.Overall_Reflectivity
+                    if (child.material[m].reflectivity !== undefined) child.material[m].reflectivity = uiOptions.Overall_Reflectivity
                 }
             } else {
                 child.material = child.material.clone()
-                if (child.material.reflectivity !== undefined) child.material.reflectivity = gui_options.Overall_Reflectivity
+                if (child.material.reflectivity !== undefined) child.material.reflectivity = uiOptions.Overall_Reflectivity
             }
         }
     })
 
-    Materials.MeshBasicMaterial.reflectivity = gui_options.Overall_Reflectivity
-    Materials.MeshLambertMaterial.reflectivity = gui_options.Overall_Reflectivity
-    Materials.MeshPhongMaterial.reflectivity = gui_options.Overall_Reflectivity
-    Materials.MeshPhysicalMaterial.reflectivity = gui_options.Overall_Reflectivity
+    materialPresets.MeshBasicMaterial.reflectivity = uiOptions.Overall_Reflectivity
+    materialPresets.MeshLambertMaterial.reflectivity = uiOptions.Overall_Reflectivity
+    materialPresets.MeshPhongMaterial.reflectivity = uiOptions.Overall_Reflectivity
+    materialPresets.MeshPhysicalMaterial.reflectivity = uiOptions.Overall_Reflectivity
 
     if (selected.length == 2 || selected.length == 1) {
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+        Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env])
     }
 }
 
 
 function Texture_to_GUI() {
-    $("#CustomTexture").text($("#CustomTexture").text().split("(")[0] + "(" + TextureParams.current + ")")
+    $("#CustomTexture").text($("#CustomTexture").text().split("(")[0] + "(" + textureParams.current + ")")
     let obj_material
     if (selected.length == 2) { obj_material = selected[0].material[selected[1]] }
     else if (selected.length == 1) { obj_material = selected[0].material }
     else {
-        url = ""
-        let liStr = "";
-        $('.list-drag').html(liStr);
+        customTextureUrl = ""
+        clearTexturePreview();
         $(".tip").show();
         return
     }
 
-    let current = TextureParams.current
+    let current = textureParams.current
     if (!obj_material[current]) {
-        url = ""
-        let liStr = "";
-        $('.list-drag').html(liStr);
+        customTextureUrl = ""
+        clearTexturePreview();
         $(".tip").show();
         return;
     }
-    TextureParams.wrap = obj_material[current].wrapS === THREE.ClampToEdgeWrapping ? "clamp" : obj_material[current].wrapS === THREE.MirroredRepeatWrapping ? "mirror" : "repeat"
-    url = obj_material[current].image.src
-    let liStr = `<img src="${url}"/>`;
-    $('.list-drag').html(liStr);
+    textureParams.wrap = obj_material[current].wrapS === THREE.ClampToEdgeWrapping ? "clamp" : obj_material[current].wrapS === THREE.MirroredRepeatWrapping ? "mirror" : "repeat"
+    customTextureUrl = obj_material[current].image.src
+    showTexturePreview(customTextureUrl);
     $(".tip").hide();
     GUI_to_Texture()
 
@@ -3160,10 +2997,10 @@ function GUI_to_Texture() {
     if (selected.length == 2) { obj_material = selected[0].material[selected[1]].clone() }
     else if (selected.length == 1) { obj_material = selected[0].material.clone() }
     else return
-    let current = TextureParams.current
-    if (url) {
-        obj_material[current] = textureloader.load(url)
-        obj_material[current].wrapS = obj_material[current].wrapT = TextureParams.wrap === "clamp" ? THREE.ClampToEdgeWrapping : TextureParams.wrap === "mirror" ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping
+    let current = textureParams.current
+    if (customTextureUrl) {
+        obj_material[current] = textureLoader.load(customTextureUrl)
+        obj_material[current].wrapS = obj_material[current].wrapT = textureParams.wrap === "clamp" ? THREE.ClampToEdgeWrapping : textureParams.wrap === "mirror" ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping
     } else {
         obj_material[current] = null
     }
@@ -3178,91 +3015,91 @@ function GUI_to_Texture() {
         selected[0].material = obj_material
         selected_patch[0].material = obj_material.clone()
     }
-    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env])
+    Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env])
 }
 
 function Obj_to_GUI(obj_material) {
     obj_material = obj_material.clone();
-    Material.opacity = obj_material.opacity
-    Material.transparent = obj_material.transparent
-    Material.alphaTest = obj_material.alphaTest
-    Material.side = obj_material.side === THREE.FrontSide ? "FrontSide" : obj_material.side === THREE.BackSide ? "BackSide" : "DoubleSide"
-    Material.visible = obj_material.visible
-    TextureParams.current = "map"
+    materialSettings.opacity = obj_material.opacity
+    materialSettings.transparent = obj_material.transparent
+    materialSettings.alphaTest = obj_material.alphaTest
+    materialSettings.side = obj_material.side === THREE.FrontSide ? "FrontSide" : obj_material.side === THREE.BackSide ? "BackSide" : "DoubleSide"
+    materialSettings.visible = obj_material.visible
+    textureParams.current = "map"
     Texture_to_GUI()
 
-    switch (Material.material) {
+    switch (materialSettings.material) {
         case "MeshBasicMaterial":
-            Materials.MeshBasicMaterial.color = obj_material.color.getHex()
-            Materials.MeshBasicMaterial.reflectivity = obj_material.reflectivity
-            Materials.MeshBasicMaterial.wireframe = obj_material.wireframe
+            materialPresets.MeshBasicMaterial.color = obj_material.color.getHex()
+            materialPresets.MeshBasicMaterial.reflectivity = obj_material.reflectivity
+            materialPresets.MeshBasicMaterial.wireframe = obj_material.wireframe
             break;
 
         case "MeshLambertMaterial":
-            Materials.MeshLambertMaterial.color = obj_material.color.getHex()
-            Materials.MeshLambertMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshLambertMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshLambertMaterial.reflectivity = obj_material.reflectivity
-            Materials.MeshLambertMaterial.wireframe = obj_material.wireframe
+            materialPresets.MeshLambertMaterial.color = obj_material.color.getHex()
+            materialPresets.MeshLambertMaterial.emissive = obj_material.emissive.getHex()
+            materialPresets.MeshLambertMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            materialPresets.MeshLambertMaterial.reflectivity = obj_material.reflectivity
+            materialPresets.MeshLambertMaterial.wireframe = obj_material.wireframe
             break;
 
         case "MeshPhongMaterial":
-            Materials.MeshPhongMaterial.color = obj_material.color.getHex()
-            Materials.MeshPhongMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshPhongMaterial.specular = obj_material.specular.getHex()
-            Materials.MeshPhongMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshPhongMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshPhongMaterial.flatShading = obj_material.flatShading
-            Materials.MeshPhongMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
-            Materials.MeshPhongMaterial.reflectivity = obj_material.reflectivity
-            Materials.MeshPhongMaterial.shininess = obj_material.shininess
-            Materials.MeshPhongMaterial.wireframe = obj_material.wireframe
+            materialPresets.MeshPhongMaterial.color = obj_material.color.getHex()
+            materialPresets.MeshPhongMaterial.emissive = obj_material.emissive.getHex()
+            materialPresets.MeshPhongMaterial.specular = obj_material.specular.getHex()
+            materialPresets.MeshPhongMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            materialPresets.MeshPhongMaterial.bumpScale = obj_material.bumpScale
+            materialPresets.MeshPhongMaterial.flatShading = obj_material.flatShading
+            materialPresets.MeshPhongMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
+            materialPresets.MeshPhongMaterial.reflectivity = obj_material.reflectivity
+            materialPresets.MeshPhongMaterial.shininess = obj_material.shininess
+            materialPresets.MeshPhongMaterial.wireframe = obj_material.wireframe
             break;
 
         case "MeshToonMaterial":
-            Materials.MeshToonMaterial.color = obj_material.color.getHex()
-            Materials.MeshToonMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshToonMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshToonMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshToonMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
-            Materials.MeshToonMaterial.wireframe = obj_material.wireframe
+            materialPresets.MeshToonMaterial.color = obj_material.color.getHex()
+            materialPresets.MeshToonMaterial.emissive = obj_material.emissive.getHex()
+            materialPresets.MeshToonMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            materialPresets.MeshToonMaterial.bumpScale = obj_material.bumpScale
+            materialPresets.MeshToonMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
+            materialPresets.MeshToonMaterial.wireframe = obj_material.wireframe
             break;
 
         case "MeshStandardMaterial":
-            Materials.MeshStandardMaterial.color = obj_material.color.getHex()
-            Materials.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshStandardMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshStandardMaterial.flatShading = obj_material.flatShading
-            Materials.MeshStandardMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
-            Materials.MeshStandardMaterial.metalness = obj_material.metalness
-            Materials.MeshStandardMaterial.roughness = obj_material.roughness
-            Materials.MeshStandardMaterial.wireframe = obj_material.wireframe
+            materialPresets.MeshStandardMaterial.color = obj_material.color.getHex()
+            materialPresets.MeshStandardMaterial.emissive = obj_material.emissive.getHex()
+            materialPresets.MeshStandardMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            materialPresets.MeshStandardMaterial.bumpScale = obj_material.bumpScale
+            materialPresets.MeshStandardMaterial.flatShading = obj_material.flatShading
+            materialPresets.MeshStandardMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
+            materialPresets.MeshStandardMaterial.metalness = obj_material.metalness
+            materialPresets.MeshStandardMaterial.roughness = obj_material.roughness
+            materialPresets.MeshStandardMaterial.wireframe = obj_material.wireframe
             break;
 
         case "MeshPhysicalMaterial":
-            Materials.MeshPhysicalMaterial.color = obj_material.color.getHex()
-            Materials.MeshPhysicalMaterial.sheenTint = obj_material.sheenTint.getHex()
-            Materials.MeshPhysicalMaterial.emissive = obj_material.emissive.getHex()
-            Materials.MeshPhysicalMaterial.emissiveIntensity = obj_material.emissiveIntensity
-            Materials.MeshPhysicalMaterial.bumpScale = obj_material.bumpScale
-            Materials.MeshPhysicalMaterial.flatShading = obj_material.flatShading
-            Materials.MeshPhysicalMaterial.clearcoat = obj_material.clearcoat
-            Materials.MeshPhysicalMaterial.clearcoatRoughness = obj_material.clearcoatRoughness
-            Materials.MeshPhysicalMaterial.reflectivity = obj_material.reflectivity
-            Materials.MeshPhysicalMaterial.transmission = obj_material.transmission
-            Materials.MeshPhysicalMaterial.thickness = obj_material.thickness
-            Materials.MeshPhysicalMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
-            Materials.MeshPhysicalMaterial.metalness = obj_material.metalness
-            Materials.MeshPhysicalMaterial.roughness = obj_material.roughness
-            Materials.MeshPhysicalMaterial.wireframe = obj_material.wireframe
+            materialPresets.MeshPhysicalMaterial.color = obj_material.color.getHex()
+            materialPresets.MeshPhysicalMaterial.sheenTint = obj_material.sheenTint.getHex()
+            materialPresets.MeshPhysicalMaterial.emissive = obj_material.emissive.getHex()
+            materialPresets.MeshPhysicalMaterial.emissiveIntensity = obj_material.emissiveIntensity
+            materialPresets.MeshPhysicalMaterial.bumpScale = obj_material.bumpScale
+            materialPresets.MeshPhysicalMaterial.flatShading = obj_material.flatShading
+            materialPresets.MeshPhysicalMaterial.clearcoat = obj_material.clearcoat
+            materialPresets.MeshPhysicalMaterial.clearcoatRoughness = obj_material.clearcoatRoughness
+            materialPresets.MeshPhysicalMaterial.reflectivity = obj_material.reflectivity
+            materialPresets.MeshPhysicalMaterial.transmission = obj_material.transmission
+            materialPresets.MeshPhysicalMaterial.thickness = obj_material.thickness
+            materialPresets.MeshPhysicalMaterial.normalScale.set(obj_material.normalScale.x, obj_material.normalScale.y)
+            materialPresets.MeshPhysicalMaterial.metalness = obj_material.metalness
+            materialPresets.MeshPhysicalMaterial.roughness = obj_material.roughness
+            materialPresets.MeshPhysicalMaterial.wireframe = obj_material.wireframe
             break;
     }
 }
 
 function Material_Update(reflectivity_change = false) {
     if (reflectivity_change) {
-        gui_options.Overall_Reflectivity = NaN
+        uiOptions.Overall_Reflectivity = NaN
     }
     if (selected.length == 2) {
         material_folder.show()
@@ -3277,27 +3114,27 @@ function Material_Update(reflectivity_change = false) {
 }
 
 function Wireframe(save = true, reload_edge = true, onchange = false) {
-    if (gui_options.Wireframe && gui_options.Stress && onchange) {
-        gui_options.Stress = false;
+    if (uiOptions.Wireframe && uiOptions.Stress && onchange) {
+        uiOptions.Stress = false;
         Stress(true, true)
         save = false
     }
-    else if (gui_options.Stress) {
-        gui_options.Wireframe = false;
+    else if (uiOptions.Stress) {
+        uiOptions.Wireframe = false;
         return;
     }
     show_all(garment)
     if (reload_edge) {
         edge.clear();
     }
-    if (gui_options.Wireframe && save) {
-        Material.saveAll();
+    if (uiOptions.Wireframe && save) {
+        materialSettings.saveAll();
     }
     garment.traverse(function (child) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
-                    if (reload_edge && gui_options.Wireframe && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
+                    if (reload_edge && uiOptions.Wireframe && (!uiOptions.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
                         let g = individual(child.geometry, i, 0.00035)
                         let edge_g = new THREE.EdgesGeometry(g, 90)
                         let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
@@ -3307,22 +3144,22 @@ function Wireframe(save = true, reload_edge = true, onchange = false) {
                         line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
                         edge.add(line)
                     }
-                    if (gui_options.Wireframe) {
+                    if (uiOptions.Wireframe) {
                         child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     }
-                    child.material[i].wireframe = gui_options.Wireframe
+                    child.material[i].wireframe = uiOptions.Wireframe
                 }
             }
             else {
-                if (reload_edge && gui_options.Wireframe && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
+                if (reload_edge && uiOptions.Wireframe && (!uiOptions.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
                     let edge_g = new THREE.EdgesGeometry(child.geometry.clone(), 90)
                     let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x00ff00 }))
                     edge.add(line)
                 }
-                if (gui_options.Wireframe) {
+                if (uiOptions.Wireframe) {
                     child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                 }
-                child.material.wireframe = gui_options.Wireframe
+                child.material.wireframe = uiOptions.Wireframe
             }
         }
     })
@@ -3330,35 +3167,35 @@ function Wireframe(save = true, reload_edge = true, onchange = false) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
-                    if (gui_options.Wireframe) {
+                    if (uiOptions.Wireframe) {
                         child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     }
-                    child.material[i].wireframe = gui_options.Wireframe
+                    child.material[i].wireframe = uiOptions.Wireframe
                 }
             }
             else {
-                if (gui_options.Wireframe) {
+                if (uiOptions.Wireframe) {
                     child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                 }
-                child.material.wireframe = gui_options.Wireframe
+                child.material.wireframe = uiOptions.Wireframe
             }
         }
     })
-    if (!gui_options.Wireframe) {
-        Material.resetAll();
+    if (!uiOptions.Wireframe) {
+        materialSettings.resetAll();
     }
-    if (gui_options.focus) { hide_others(garment, cut_obj) }
-    if (save) Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+    if (uiOptions.focus) { hide_others(garment, cut_obj) }
+    if (save) Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env]);
 }
 
 function Stress(save = true, reload_edge = true, onchange = false) {
-    if (gui_options.Wireframe && gui_options.Stress && onchange) {
-        gui_options.Wireframe = false;
+    if (uiOptions.Wireframe && uiOptions.Stress && onchange) {
+        uiOptions.Wireframe = false;
         Wireframe(true, true)
         save = false
     }
-    else if (gui_options.Wireframe) {
-        gui_options.Stress = false;
+    else if (uiOptions.Wireframe) {
+        uiOptions.Stress = false;
         folder_sen.hide();
         return;
     }
@@ -3366,7 +3203,7 @@ function Stress(save = true, reload_edge = true, onchange = false) {
     if (reload_edge) {
         edge.clear();
     }
-    if (gui_options.Stress) { folder_sen.show(); }
+    if (uiOptions.Stress) { folder_sen.show(); }
     else { folder_sen.hide(); }
     garment.traverse((child) => {
         if (child.type === "Mesh") {
@@ -3390,7 +3227,7 @@ function Stress(save = true, reload_edge = true, onchange = false) {
                             let pos_patch_C = new THREE.Vector3(pos_patch.getX(i - start + 2), pos_patch.getY(i - start + 2), pos_patch.getZ(i - start + 2));
                             let area = pos_B.sub(pos_A).cross(pos_C.sub(pos_A)).length();
                             let area_patch = pos_patch_B.sub(pos_patch_A).cross(pos_patch_C.sub(pos_patch_A)).length();
-                            let h = (area_patch - area) / area_patch * gui_options.Stress_Sensitivity + 1 / 3
+                            let h = (area_patch - area) / area_patch * uiOptions.Stress_Sensitivity + 1 / 3
                             color_h[i] = h;
                             color_h[i + 1] = h;
                             color_h[i + 2] = h;
@@ -3441,14 +3278,14 @@ function Stress(save = true, reload_edge = true, onchange = false) {
             });
         }
     });
-    if (gui_options.Stress && save) {
-        Material.saveAll();
+    if (uiOptions.Stress && save) {
+        materialSettings.saveAll();
     }
     garment.traverse(function (child) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
-                    if (reload_edge && gui_options.Stress && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
+                    if (reload_edge && uiOptions.Stress && (!uiOptions.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
                         let g = individual(child.geometry, i, 0.00035)
                         let edge_g = new THREE.EdgesGeometry(g, 90)
                         let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
@@ -3458,26 +3295,26 @@ function Stress(save = true, reload_edge = true, onchange = false) {
                         line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
                         edge.add(line)
                     }
-                    if (gui_options.Stress) {
+                    if (uiOptions.Stress) {
                         child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                         child.material[i].side = THREE.DoubleSide
                         child.material[i].needsUpdate = true;
                     }
-                    child.material[i].vertexColors = gui_options.Stress
+                    child.material[i].vertexColors = uiOptions.Stress
                 }
             }
             else {
-                if (reload_edge && gui_options.Stress && (!gui_options.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
+                if (reload_edge && uiOptions.Stress && (!uiOptions.focus || (cut_obj.length > 0 && cut_obj[0].name === child.name))) {
                     let edge_g = new THREE.EdgesGeometry(child.geometry.clone(), 90)
                     let line = new THREE.LineSegments(edge_g, new THREE.LineBasicMaterial({ color: 0x000000 }))
                     edge.add(line)
                 }
-                if (gui_options.Stress) {
+                if (uiOptions.Stress) {
                     child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     child.material.side = THREE.DoubleSide
                     child.material.needsUpdate = true;
                 }
-                child.material.vertexColors = gui_options.Stress
+                child.material.vertexColors = uiOptions.Stress
             }
         }
     })
@@ -3485,37 +3322,37 @@ function Stress(save = true, reload_edge = true, onchange = false) {
         if (child.type === "Mesh" && child.material) {
             if (Array.isArray(child.material)) {
                 for (let i = 0; i < child.material.length; i++) {
-                    if (gui_options.Stress) {
+                    if (uiOptions.Stress) {
                         child.material[i] = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                         child.material[i].side = THREE.DoubleSide
                         child.material[i].needsUpdate = true;
                     }
-                    child.material[i].vertexColors = gui_options.Stress
+                    child.material[i].vertexColors = uiOptions.Stress
                 }
             }
             else {
-                if (gui_options.Stress) {
+                if (uiOptions.Stress) {
                     child.material = new THREE.MeshPhongMaterial({ reflectivity: 0.1 });
                     child.material.side = THREE.DoubleSide
                     child.material.needsUpdate = true;
                 }
-                child.material.vertexColors = gui_options.Stress
+                child.material.vertexColors = uiOptions.Stress
             }
         }
     })
-    if (!gui_options.Stress) {
-        Material.resetAll();
+    if (!uiOptions.Stress) {
+        materialSettings.resetAll();
     }
-    if (gui_options.focus) { hide_others(garment, cut_obj) }
+    if (uiOptions.focus) { hide_others(garment, cut_obj) }
     if (save) {
-        Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+        Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env]);
     }
 }
 
 
 function Material_Update_Param(reflectivity_change = false) {
     if (reflectivity_change) {
-        gui_options.Overall_Reflectivity = NaN
+        uiOptions.Overall_Reflectivity = NaN
     }
     if (selected.length == 2) {
         material_folder.show()
@@ -3536,85 +3373,85 @@ function Material_Update_Param(reflectivity_change = false) {
 
 function GUI_to_Obj_Param(obj_material) {
     obj_material = obj_material.clone()
-    if (Material.material === "MeshPhysicalMaterial" && Materials.MeshPhysicalMaterial.transmission > 0 && Material.opacity < 1) {
-        Material.opacity = 1;
+    if (materialSettings.material === "MeshPhysicalMaterial" && materialPresets.MeshPhysicalMaterial.transmission > 0 && materialSettings.opacity < 1) {
+        materialSettings.opacity = 1;
         $("#alert_transmission").html('<div id="transmission_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Enable transmission will disable opacity! To adjustment opacity, please set transmission to 0!&nbsp;&nbsp;</div>');
         setTimeout(function () { $("#transmission_alert").fadeOut(500); }, 3000)
         setTimeout(function () { $("#alert_transmission").html("") }, 3500)
     }
 
-    obj_material.opacity = Material.opacity
-    obj_material.transparent = Material.transparent
-    obj_material.alphaTest = Material.alphaTest
-    obj_material.side = Material.side === "FrontSide" ? THREE.FrontSide : Material.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
-    obj_material.visible = Material.visible
+    obj_material.opacity = materialSettings.opacity
+    obj_material.transparent = materialSettings.transparent
+    obj_material.alphaTest = materialSettings.alphaTest
+    obj_material.side = materialSettings.side === "FrontSide" ? THREE.FrontSide : materialSettings.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
+    obj_material.visible = materialSettings.visible
 
-    switch (Material.material) {
+    switch (materialSettings.material) {
         case "MeshBasicMaterial":
-            obj_material.color.setHex(Materials.MeshBasicMaterial.color)
-            obj_material.reflectivity = Materials.MeshBasicMaterial.reflectivity
-            obj_material.wireframe = Materials.MeshBasicMaterial.wireframe
+            obj_material.color.setHex(materialPresets.MeshBasicMaterial.color)
+            obj_material.reflectivity = materialPresets.MeshBasicMaterial.reflectivity
+            obj_material.wireframe = materialPresets.MeshBasicMaterial.wireframe
             break;
 
         case "MeshLambertMaterial":
-            obj_material.color.setHex(Materials.MeshLambertMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshLambertMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshLambertMaterial.emissiveIntensity
-            obj_material.reflectivity = Materials.MeshLambertMaterial.reflectivity
-            obj_material.wireframe = Materials.MeshLambertMaterial.wireframe
+            obj_material.color.setHex(materialPresets.MeshLambertMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshLambertMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshLambertMaterial.emissiveIntensity
+            obj_material.reflectivity = materialPresets.MeshLambertMaterial.reflectivity
+            obj_material.wireframe = materialPresets.MeshLambertMaterial.wireframe
             break;
 
         case "MeshPhongMaterial":
-            obj_material.color.setHex(Materials.MeshPhongMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshPhongMaterial.emissive)
-            obj_material.specular.setHex(Materials.MeshPhongMaterial.specular)
-            obj_material.emissiveIntensity = Materials.MeshPhongMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshPhongMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshPhongMaterial.flatShading
-            obj_material.normalScale.set(Materials.MeshPhongMaterial.normalScale.x, Materials.MeshPhongMaterial.normalScale.y)
-            obj_material.reflectivity = Materials.MeshPhongMaterial.reflectivity
-            obj_material.shininess = Materials.MeshPhongMaterial.shininess
-            obj_material.wireframe = Materials.MeshPhongMaterial.wireframe
+            obj_material.color.setHex(materialPresets.MeshPhongMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshPhongMaterial.emissive)
+            obj_material.specular.setHex(materialPresets.MeshPhongMaterial.specular)
+            obj_material.emissiveIntensity = materialPresets.MeshPhongMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshPhongMaterial.bumpScale
+            obj_material.flatShading = materialPresets.MeshPhongMaterial.flatShading
+            obj_material.normalScale.set(materialPresets.MeshPhongMaterial.normalScale.x, materialPresets.MeshPhongMaterial.normalScale.y)
+            obj_material.reflectivity = materialPresets.MeshPhongMaterial.reflectivity
+            obj_material.shininess = materialPresets.MeshPhongMaterial.shininess
+            obj_material.wireframe = materialPresets.MeshPhongMaterial.wireframe
             break;
 
         case "MeshToonMaterial":
-            obj_material.color.setHex(Materials.MeshToonMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshToonMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshToonMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshToonMaterial.bumpScale
-            obj_material.normalScale.set(Materials.MeshToonMaterial.normalScale.x, Materials.MeshToonMaterial.normalScale.y)
-            obj_material.wireframe = Materials.MeshToonMaterial.wireframe
+            obj_material.color.setHex(materialPresets.MeshToonMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshToonMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshToonMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshToonMaterial.bumpScale
+            obj_material.normalScale.set(materialPresets.MeshToonMaterial.normalScale.x, materialPresets.MeshToonMaterial.normalScale.y)
+            obj_material.wireframe = materialPresets.MeshToonMaterial.wireframe
             break;
 
         case "MeshStandardMaterial":
-            obj_material.color.setHex(Materials.MeshStandardMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshStandardMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshStandardMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshStandardMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshStandardMaterial.flatShading
-            obj_material.normalScale.set(Materials.MeshStandardMaterial.normalScale.x, Materials.MeshStandardMaterial.normalScale.y)
-            obj_material.metalness = Materials.MeshStandardMaterial.metalness
-            obj_material.roughness = Materials.MeshStandardMaterial.roughness
-            obj_material.wireframe = Materials.MeshStandardMaterial.wireframe
+            obj_material.color.setHex(materialPresets.MeshStandardMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshStandardMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshStandardMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshStandardMaterial.bumpScale
+            obj_material.flatShading = materialPresets.MeshStandardMaterial.flatShading
+            obj_material.normalScale.set(materialPresets.MeshStandardMaterial.normalScale.x, materialPresets.MeshStandardMaterial.normalScale.y)
+            obj_material.metalness = materialPresets.MeshStandardMaterial.metalness
+            obj_material.roughness = materialPresets.MeshStandardMaterial.roughness
+            obj_material.wireframe = materialPresets.MeshStandardMaterial.wireframe
             break;
 
         case "MeshPhysicalMaterial":
-            obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
-            else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
-            obj_material.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshPhysicalMaterial.flatShading
-            obj_material.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
-            obj_material.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
-            obj_material.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
-            obj_material.transmission = Materials.MeshPhysicalMaterial.transmission
-            obj_material.thickness = Materials.MeshPhysicalMaterial.thickness
-            obj_material.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
-            obj_material.metalness = Materials.MeshPhysicalMaterial.metalness
-            obj_material.roughness = Materials.MeshPhysicalMaterial.roughness
-            obj_material.wireframe = Materials.MeshPhysicalMaterial.wireframe
+            obj_material.color.setHex(materialPresets.MeshPhysicalMaterial.color)
+            if (obj_material.sheenTint) obj_material.sheenTint.setHex(materialPresets.MeshPhysicalMaterial.sheenTint)
+            else obj_material.sheenTint = new THREE.Color(materialPresets.MeshPhysicalMaterial.sheenTint)
+            obj_material.emissive.setHex(materialPresets.MeshPhysicalMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshPhysicalMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshPhysicalMaterial.bumpScale
+            obj_material.flatShading = materialPresets.MeshPhysicalMaterial.flatShading
+            obj_material.clearcoat = materialPresets.MeshPhysicalMaterial.clearcoat
+            obj_material.clearcoatRoughness = materialPresets.MeshPhysicalMaterial.clearcoatRoughness
+            obj_material.reflectivity = materialPresets.MeshPhysicalMaterial.reflectivity
+            obj_material.transmission = materialPresets.MeshPhysicalMaterial.transmission
+            obj_material.thickness = materialPresets.MeshPhysicalMaterial.thickness
+            obj_material.normalScale.set(materialPresets.MeshPhysicalMaterial.normalScale.x, materialPresets.MeshPhysicalMaterial.normalScale.y)
+            obj_material.metalness = materialPresets.MeshPhysicalMaterial.metalness
+            obj_material.roughness = materialPresets.MeshPhysicalMaterial.roughness
+            obj_material.wireframe = materialPresets.MeshPhysicalMaterial.wireframe
             break;
     }
     return obj_material;
@@ -3624,85 +3461,85 @@ function GUI_to_Obj_Param(obj_material) {
 
 function GUI_to_Obj(obj_material_original) {
     let obj_material = obj_material_original.clone()
-    obj_material.opacity = Material.opacity
-    obj_material.transparent = Material.transparent
-    obj_material.alphaTest = Material.alphaTest
-    obj_material.side = Material.side === "FrontSide" ? THREE.FrontSide : Material.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
-    obj_material.visible = Material.visible
+    obj_material.opacity = materialSettings.opacity
+    obj_material.transparent = materialSettings.transparent
+    obj_material.alphaTest = materialSettings.alphaTest
+    obj_material.side = materialSettings.side === "FrontSide" ? THREE.FrontSide : materialSettings.side === "BackSide" ? THREE.BackSide : THREE.DoubleSide
+    obj_material.visible = materialSettings.visible
 
 
-    switch (Material.material) {
+    switch (materialSettings.material) {
         case "MeshBasicMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }) }
-            obj_material.color.setHex(Materials.MeshBasicMaterial.color)
-            obj_material.reflectivity = Materials.MeshBasicMaterial.reflectivity
-            obj_material.wireframe = Materials.MeshBasicMaterial.wireframe
+            if (obj_material.type != materialSettings.material) { obj_material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }) }
+            obj_material.color.setHex(materialPresets.MeshBasicMaterial.color)
+            obj_material.reflectivity = materialPresets.MeshBasicMaterial.reflectivity
+            obj_material.wireframe = materialPresets.MeshBasicMaterial.wireframe
             break;
 
         case "MeshLambertMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }) }
-            obj_material.color.setHex(Materials.MeshLambertMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshLambertMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshLambertMaterial.emissiveIntensity
-            obj_material.reflectivity = Materials.MeshLambertMaterial.reflectivity
-            obj_material.wireframe = Materials.MeshLambertMaterial.wireframe
+            if (obj_material.type != materialSettings.material) { obj_material = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }) }
+            obj_material.color.setHex(materialPresets.MeshLambertMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshLambertMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshLambertMaterial.emissiveIntensity
+            obj_material.reflectivity = materialPresets.MeshLambertMaterial.reflectivity
+            obj_material.wireframe = materialPresets.MeshLambertMaterial.wireframe
             break;
 
         case "MeshPhongMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhongMaterial({ side: THREE.DoubleSide }) }
-            obj_material.color.setHex(Materials.MeshPhongMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshPhongMaterial.emissive)
-            obj_material.specular.setHex(Materials.MeshPhongMaterial.specular)
-            obj_material.emissiveIntensity = Materials.MeshPhongMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshPhongMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshPhongMaterial.flatShading
-            obj_material.normalScale.set(Materials.MeshPhongMaterial.normalScale.x, Materials.MeshPhongMaterial.normalScale.y)
-            obj_material.reflectivity = Materials.MeshPhongMaterial.reflectivity
-            obj_material.shininess = Materials.MeshPhongMaterial.shininess
-            obj_material.wireframe = Materials.MeshPhongMaterial.wireframe
+            if (obj_material.type != materialSettings.material) { obj_material = new THREE.MeshPhongMaterial({ side: THREE.DoubleSide }) }
+            obj_material.color.setHex(materialPresets.MeshPhongMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshPhongMaterial.emissive)
+            obj_material.specular.setHex(materialPresets.MeshPhongMaterial.specular)
+            obj_material.emissiveIntensity = materialPresets.MeshPhongMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshPhongMaterial.bumpScale
+            obj_material.flatShading = materialPresets.MeshPhongMaterial.flatShading
+            obj_material.normalScale.set(materialPresets.MeshPhongMaterial.normalScale.x, materialPresets.MeshPhongMaterial.normalScale.y)
+            obj_material.reflectivity = materialPresets.MeshPhongMaterial.reflectivity
+            obj_material.shininess = materialPresets.MeshPhongMaterial.shininess
+            obj_material.wireframe = materialPresets.MeshPhongMaterial.wireframe
             break;
 
         case "MeshToonMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshToonMaterial({ side: THREE.DoubleSide }) }
-            obj_material.color.setHex(Materials.MeshToonMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshToonMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshToonMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshToonMaterial.bumpScale
-            obj_material.normalScale.set(Materials.MeshToonMaterial.normalScale.x, Materials.MeshToonMaterial.normalScale.y)
-            obj_material.wireframe = Materials.MeshToonMaterial.wireframe
+            if (obj_material.type != materialSettings.material) { obj_material = new THREE.MeshToonMaterial({ side: THREE.DoubleSide }) }
+            obj_material.color.setHex(materialPresets.MeshToonMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshToonMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshToonMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshToonMaterial.bumpScale
+            obj_material.normalScale.set(materialPresets.MeshToonMaterial.normalScale.x, materialPresets.MeshToonMaterial.normalScale.y)
+            obj_material.wireframe = materialPresets.MeshToonMaterial.wireframe
             break;
 
         case "MeshStandardMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide }) }
-            obj_material.color.setHex(Materials.MeshStandardMaterial.color)
-            obj_material.emissive.setHex(Materials.MeshStandardMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshStandardMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshStandardMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshStandardMaterial.flatShading
-            obj_material.normalScale.set(Materials.MeshStandardMaterial.normalScale.x, Materials.MeshStandardMaterial.normalScale.y)
-            obj_material.metalness = Materials.MeshStandardMaterial.metalness
-            obj_material.roughness = Materials.MeshStandardMaterial.roughness
-            obj_material.wireframe = Materials.MeshStandardMaterial.wireframe
+            if (obj_material.type != materialSettings.material) { obj_material = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide }) }
+            obj_material.color.setHex(materialPresets.MeshStandardMaterial.color)
+            obj_material.emissive.setHex(materialPresets.MeshStandardMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshStandardMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshStandardMaterial.bumpScale
+            obj_material.flatShading = materialPresets.MeshStandardMaterial.flatShading
+            obj_material.normalScale.set(materialPresets.MeshStandardMaterial.normalScale.x, materialPresets.MeshStandardMaterial.normalScale.y)
+            obj_material.metalness = materialPresets.MeshStandardMaterial.metalness
+            obj_material.roughness = materialPresets.MeshStandardMaterial.roughness
+            obj_material.wireframe = materialPresets.MeshStandardMaterial.wireframe
             break;
 
         case "MeshPhysicalMaterial":
-            if (obj_material.type != Material.material) { obj_material = new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide }) }
-            obj_material.color.setHex(Materials.MeshPhysicalMaterial.color)
-            if (obj_material.sheenTint) obj_material.sheenTint.setHex(Materials.MeshPhysicalMaterial.sheenTint)
-            else obj_material.sheenTint = new THREE.Color(Materials.MeshPhysicalMaterial.sheenTint)
-            obj_material.emissive.setHex(Materials.MeshPhysicalMaterial.emissive)
-            obj_material.emissiveIntensity = Materials.MeshPhysicalMaterial.emissiveIntensity
-            obj_material.bumpScale = Materials.MeshPhysicalMaterial.bumpScale
-            obj_material.flatShading = Materials.MeshPhysicalMaterial.flatShading
-            obj_material.clearcoat = Materials.MeshPhysicalMaterial.clearcoat
-            obj_material.clearcoatRoughness = Materials.MeshPhysicalMaterial.clearcoatRoughness
-            obj_material.reflectivity = Materials.MeshPhysicalMaterial.reflectivity
-            obj_material.transmission = Materials.MeshPhysicalMaterial.transmission
-            obj_material.thickness = Materials.MeshPhysicalMaterial.thickness
-            obj_material.normalScale.set(Materials.MeshPhysicalMaterial.normalScale.x, Materials.MeshPhysicalMaterial.normalScale.y)
-            obj_material.metalness = Materials.MeshPhysicalMaterial.metalness
-            obj_material.roughness = Materials.MeshPhysicalMaterial.roughness
-            obj_material.wireframe = Materials.MeshPhysicalMaterial.wireframe
+            if (obj_material.type != materialSettings.material) { obj_material = new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide }) }
+            obj_material.color.setHex(materialPresets.MeshPhysicalMaterial.color)
+            if (obj_material.sheenTint) obj_material.sheenTint.setHex(materialPresets.MeshPhysicalMaterial.sheenTint)
+            else obj_material.sheenTint = new THREE.Color(materialPresets.MeshPhysicalMaterial.sheenTint)
+            obj_material.emissive.setHex(materialPresets.MeshPhysicalMaterial.emissive)
+            obj_material.emissiveIntensity = materialPresets.MeshPhysicalMaterial.emissiveIntensity
+            obj_material.bumpScale = materialPresets.MeshPhysicalMaterial.bumpScale
+            obj_material.flatShading = materialPresets.MeshPhysicalMaterial.flatShading
+            obj_material.clearcoat = materialPresets.MeshPhysicalMaterial.clearcoat
+            obj_material.clearcoatRoughness = materialPresets.MeshPhysicalMaterial.clearcoatRoughness
+            obj_material.reflectivity = materialPresets.MeshPhysicalMaterial.reflectivity
+            obj_material.transmission = materialPresets.MeshPhysicalMaterial.transmission
+            obj_material.thickness = materialPresets.MeshPhysicalMaterial.thickness
+            obj_material.normalScale.set(materialPresets.MeshPhysicalMaterial.normalScale.x, materialPresets.MeshPhysicalMaterial.normalScale.y)
+            obj_material.metalness = materialPresets.MeshPhysicalMaterial.metalness
+            obj_material.roughness = materialPresets.MeshPhysicalMaterial.roughness
+            obj_material.wireframe = materialPresets.MeshPhysicalMaterial.wireframe
             break;
     }
     if (selected.length == 2) {
@@ -3723,9 +3560,9 @@ function load_material() {
     if (selected.length == 2) {
         selected[0].material[selected[1]] = selected[0].material[selected[1]].clone()
         selected_patch[0].material = selected_patch[0].material.clone()
-        Material.material = selected[0].material[selected[1]].type;
-        for (var eachtype of Object.keys(Material_Type_Folder)) { if (Material.material != eachtype) Material_Type_Folder[eachtype].hide() }
-        Material_Type_Folder[Material.material].show()
+        materialSettings.material = selected[0].material[selected[1]].type;
+        for (let eachtype of Object.keys(materialTypeFolders)) { if (materialSettings.material != eachtype) materialTypeFolders[eachtype].hide() }
+        materialTypeFolders[materialSettings.material].show()
         material_folder.show()
         Obj_to_GUI(selected[0].material[selected[1]])
 
@@ -3733,9 +3570,9 @@ function load_material() {
     else if (selected.length == 1) {
         selected[0].material = selected[0].material.clone()
         selected_patch[0].material = selected_patch[0].material.clone()
-        Material.material = selected[0].material.type;
-        for (var eachtype of Object.keys(Material_Type_Folder)) { if (Material.material != eachtype) Material_Type_Folder[eachtype].hide() }
-        Material_Type_Folder[Material.material].show()
+        materialSettings.material = selected[0].material.type;
+        for (let eachtype of Object.keys(materialTypeFolders)) { if (materialSettings.material != eachtype) materialTypeFolders[eachtype].hide() }
+        materialTypeFolders[materialSettings.material].show()
         material_folder.show()
         Obj_to_GUI(selected[0].material)
 
@@ -3747,26 +3584,26 @@ function load_material() {
 function Change_Mode() {
     cover_recovery()
     select_recovery()
-    if (gui_options.Mode == "Cutting Model") {
+    if (uiOptions.Mode == "Cutting Model") {
         $("#alert_cut").hide();
         $("#alert_cut").fadeIn();
         $("#alert_cut").html('<div id="cut_alert" class="alert alert-info fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>After drawing a line for cutting, we will remove its materials!&nbsp;&nbsp;</div>');
-        gui_options.cut = true;
+        uiOptions.cut = true;
         cut_component.show();
         cut_component.open();
         setTimeout(function () { $("#cut_alert").fadeOut(500); }, 3000)
         setTimeout(function () { $("#alert_cut").html("") }, 3500)
     }
-    else if (gui_options.Mode == "Customizing Material") {
+    else if (uiOptions.Mode == "Customizing Material") {
         cut_component.hide();
-        gui_options.cut = false;
+        uiOptions.cut = false;
     }
 }
 
 function Change_material() {
-    for (var eachtype of Object.keys(Material_Type_Folder)) { if (Material.material != eachtype) Material_Type_Folder[eachtype].hide() }
-    Material_Type_Folder[Material.material].show()
-    TextureParams.current = "map"
+    for (let eachtype of Object.keys(materialTypeFolders)) { if (materialSettings.material != eachtype) materialTypeFolders[eachtype].hide() }
+    materialTypeFolders[materialSettings.material].show()
+    textureParams.current = "map"
     Texture_to_GUI()
     Material_Update()
 }
@@ -3786,12 +3623,12 @@ function texture_click() {
     $('#fileDrag').click();
 }
 $('#fileDrag').change((event) => {
-    var files = event.target.files;
+    let files = event.target.files;
     appendFile(files);
 })
 
 
-var dragbox = document.querySelector('.dragFile');
+let dragbox = document.querySelector('.dragFile');
 dragbox.addEventListener('dragover', function (e) {
     e.stopPropagation()
     e.preventDefault();
@@ -3799,22 +3636,21 @@ dragbox.addEventListener('dragover', function (e) {
 dragbox.addEventListener('drop', function (e) {
     e.stopPropagation()
     e.preventDefault();
-    var files = e.dataTransfer.files;
+    let files = e.dataTransfer.files;
     appendFile(files)
 }, false);
 
 function appendFile(files) {
-    for (var file of files) {
-        var fileType = file.type.substr(file.type.lastIndexOf("/")).toUpperCase();
+    for (let file of files) {
+        let fileType = file.type.substr(file.type.lastIndexOf("/")).toUpperCase();
         if (fileType != "/PNG" && fileType != "/JPG" && fileType != "/JPEG") {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>JPG</b>, <b>PNG</b> or <b>JPEG</b> image files are acceptable!&nbsp;&nbsp;</div>');
             setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
             setTimeout(function () { $("#alert_img").html("") }, 3500)
             return
         }
-        url = window.URL.createObjectURL(file);
-        let liStr = `<img src="${url}"/>`;
-        $('.list-drag').html(liStr);
+        customTextureUrl = window.URL.createObjectURL(file);
+        showTexturePreview(customTextureUrl);
         $(".tip").hide();
         GUI_to_Texture()
         document.getElementById("fileDrag").value = "";
@@ -3823,11 +3659,11 @@ function appendFile(files) {
 
 document.querySelector('.startbtn').addEventListener('click', () => {
     try {
-        garments_obj = "./obj/Parafashion.json";
+        garmentSourcePath = "./obj/Parafashion.json";
         document.getElementById("objDrag").value = "";
         $(".dragObj").fadeOut();
         $(".startbtn").fadeOut();
-        continue_start(garments_obj, true);
+        continue_start(garmentSourcePath, true);
     }
     catch (e) {
         alert("Invalid JSON file!" + str(e));
@@ -3849,9 +3685,9 @@ function exportPatchesPNG() {
 
     renderer_patch.render(scene_patch, camera_patch);
     renderer_patch.domElement.toBlob(function (blob) {
-        var a = document.createElement('a');
-        var url = URL.createObjectURL(blob);
-        a.href = url;
+        let a = document.createElement('a');
+        let customTextureUrl = URL.createObjectURL(blob);
+        a.href = customTextureUrl;
         a.download = 'Patches.png';
         a.click();
     }, 'image/png', 1.0);
@@ -3860,15 +3696,15 @@ function exportPatchesPNG() {
 }
 
 function exportPatchesOBJ() {
-    var exporter = new OBJExporter();
-    var patch_obj = exporter.parse(patch);
-    var blob = new Blob([patch_obj], { type: "text/plain;charset=utf-8" });
+    let exporter = new OBJExporter();
+    let patch_obj = exporter.parse(patch);
+    let blob = new Blob([patch_obj], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "Patches.obj");
 }
 function exportPatchesPLY() {
-    var exporter = new PLYExporter();
-    var patch_ply = exporter.parse(patch);
-    var blob = new Blob([patch_ply], { type: "text/plain;charset=utf-8" });
+    let exporter = new PLYExporter();
+    let patch_ply = exporter.parse(patch);
+    let blob = new Blob([patch_ply], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "Patches.ply");
 }
 
@@ -3882,24 +3718,24 @@ document.querySelector('#exportOBJ').addEventListener('click', () => {
 
 document.querySelector('#exportPLY').addEventListener('click', () => {
     let isWireframe = false;
-    if (gui_options.Wireframe) {
+    if (uiOptions.Wireframe) {
         isWireframe = true;
-        gui_options.Wireframe = false;
+        uiOptions.Wireframe = false;
         Wireframe(false, true);
     }
     let isStress = false;
-    if (!gui_options.Stress) {
+    if (!uiOptions.Stress) {
         isStress = true;
-        gui_options.Stress = false;
+        uiOptions.Stress = false;
         Stress(true, true);
     }
     exportPatchesPLY()
     if (isStress) {
-        gui_options.Stress = false;
+        uiOptions.Stress = false;
         Stress(false, true);
     }
     if (isWireframe) {
-        gui_options.Wireframe = true;
+        uiOptions.Wireframe = true;
         Wireframe(true, true);
     }
 })
@@ -3907,55 +3743,55 @@ document.querySelector('#exportPLY').addEventListener('click', () => {
 document.querySelector('.savebtn').addEventListener('click', () => {
     let isStress = false;
     let isWireframe = false;
-    if (gui_options.Wireframe) {
+    if (uiOptions.Wireframe) {
         isWireframe = true;
-        gui_options.Wireframe = false;
+        uiOptions.Wireframe = false;
         Wireframe(false, true);
     }
-    if (gui_options.Stress) {
+    if (uiOptions.Stress) {
         isStress = true;
-        gui_options.Stress = false;
+        uiOptions.Stress = false;
         Stress(false, true);
     }
-    Display(environment["None"], gui_options.Enable_Patch_Background, environment_light["None"]);
+    Display(environmentMaps["None"], uiOptions.Enable_Patch_Background, environmentLightPresets["None"]);
     let garment_patch = new THREE.Object3D();
     garment_patch.add(garment.clone(), patch.clone());
     let garment_patch_json = JSON.stringify(garment_patch.toJSON());
-    var blob = new Blob([garment_patch_json], { type: "text/plain;charset=utf-8" });
+    let blob = new Blob([garment_patch_json], { type: "text/plain;charset=utf-8" });
     saveAs(blob, "Parafashion.json");
     if (isWireframe) {
-        gui_options.Wireframe = true;
+        uiOptions.Wireframe = true;
         Wireframe(true, true);
     }
     if (isStress) {
-        gui_options.Stress = true;
+        uiOptions.Stress = true;
         Stress(true, true);
     }
-    Display(environment[gui_options.env], gui_options.Enable_Patch_Background, environment_light[gui_options.env]);
+    Display(environmentMaps[uiOptions.env], uiOptions.Enable_Patch_Background, environmentLightPresets[uiOptions.env]);
 })
 
-var dragboxObj = document.querySelector('.dragObj');
+let dragboxObj = document.querySelector('.dragObj');
 dragboxObj.addEventListener('click', () => { $('#objDrag').click(); })
 $('#objDrag').change((event) => {
-    var files = event.target.files;
+    let files = event.target.files;
     appendObj(files);
 })
 dragboxObj.addEventListener('dragover', function (e) {
     e.stopPropagation()
     e.preventDefault();
-    var files = e.dataTransfer.files;
+    let files = e.dataTransfer.files;
     appendObj(files)
 }, false);
 dragboxObj.addEventListener('drop', function (e) {
     e.stopPropagation()
     e.preventDefault();
-    var files = e.dataTransfer.files;
+    let files = e.dataTransfer.files;
     appendObj(files)
 }, false);
 
 function appendObj(files) {
-    for (var file of files) {
-        var fileType = file.name.substr(file.name.lastIndexOf(".")).toUpperCase();
+    for (let file of files) {
+        let fileType = file.name.substr(file.name.lastIndexOf(".")).toUpperCase();
         if (fileType != ".OBJ" && fileType != ".JSON") {
             $("#alert_img").html('<div id="img_alert" class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert">&times;</a><strong><b>Notice!&nbsp;</b></strong>Only <b>OBJ</b> or <b>JSON</b> files are acceptable!&nbsp;&nbsp;</div>');
             setTimeout(function () { $("#img_alert").fadeOut(500); }, 3000)
@@ -3963,7 +3799,7 @@ function appendObj(files) {
             return
         }
         if (fileType == ".OBJ") {
-            garments_obj = window.URL.createObjectURL(file);
+            garmentSourcePath = window.URL.createObjectURL(file);
             document.getElementById("objDrag").value = "";
             $(".dragObj").fadeOut();
             $(".startbtn").fadeOut();
@@ -3971,11 +3807,11 @@ function appendObj(files) {
         }
         if (fileType == ".JSON") {
             try {
-                garments_obj = window.URL.createObjectURL(file);
+                garmentSourcePath = window.URL.createObjectURL(file);
                 document.getElementById("objDrag").value = "";
                 $(".dragObj").fadeOut();
                 $(".startbtn").fadeOut();
-                continue_start(garments_obj);
+                continue_start(garmentSourcePath);
             }
             catch (e) {
                 alert("Invalid JSON file!" + str(e));
@@ -3984,3 +3820,6 @@ function appendObj(files) {
         }
     }
 }
+
+
+
