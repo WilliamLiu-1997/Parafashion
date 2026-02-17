@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
+import { saveAs } from "file-saver";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
 import { PLYExporter } from 'three/examples/jsm/exporters/PLYExporter.js';
@@ -420,7 +421,7 @@ function continue_start(garmentSourcePath, no_load = false) {
             }
         },
         function (err) {
-            alert("Invalid JSON file!" + str(err));
+            alert("Invalid JSON file!" + String(err));
             window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
         }
     );
@@ -3666,7 +3667,7 @@ document.querySelector('.startbtn').addEventListener('click', () => {
         continue_start(garmentSourcePath, true);
     }
     catch (e) {
-        alert("Invalid JSON file!" + str(e));
+        alert("Invalid JSON file!" + String(e));
         window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
     }
 })
@@ -3814,7 +3815,7 @@ function appendObj(files) {
                 continue_start(garmentSourcePath);
             }
             catch (e) {
-                alert("Invalid JSON file!" + str(e));
+                alert("Invalid JSON file!" + String(e));
                 window.location.replace("./index.html?go=" + Math.floor(Date.now() / 1000));
             }
         }

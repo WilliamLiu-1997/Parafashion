@@ -5,7 +5,7 @@
   "main": "scenes.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/copy-static.mjs",
     "preview": "vite preview"
   },
   "repository": {
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/WilliamLiu-1997/Parafashion#readme",
   "dependencies": {
+    "file-saver": "^2.0.5",
     "three": "^0.132.0"
   },
   "devDependencies": {
