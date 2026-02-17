@@ -1,14 +1,14 @@
-import * as THREE from './three.js/build/three.module.js';
+import * as THREE from 'three';
 import { GUI } from './js/dat.gui.module.js';
 import { CameraControls } from './js/CameraControls.js';
 import { TransformControls } from "./js/TransformControls.js";
-import { OBJLoader } from "./three.js/examples/jsm/loaders/OBJLoader.js";
-import { OBJExporter } from './three.js/examples/jsm/exporters/OBJExporter.js';
-import { PLYExporter } from './three.js/examples/jsm/exporters/PLYExporter.js';
-import { EffectComposer } from './three.js/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from './three.js/examples/jsm/postprocessing/RenderPass.js';
-import { OutlinePass } from './three.js/examples/jsm/postprocessing/OutlinePass.js';
-import { mergeVertices } from './three.js/examples/jsm/utils/BufferGeometryUtils.js';
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { OBJExporter } from 'three/examples/jsm/exporters/OBJExporter.js';
+import { PLYExporter } from 'three/examples/jsm/exporters/PLYExporter.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 var continue_start_flag = false;
 let camera, cameralight, controls, scene, renderer, garment, gui, env_light;
@@ -111,7 +111,7 @@ let outlinePass_params_select = {
 
 
 var format = '.jpg';
-var path1 = "./three.js/examples/textures/cube/Park2/";
+var path1 = "./images/three-textures/cube/Park2/";
 var urls1 = [
     path1 + 'posx' + format, path1 + 'negx' + format,
     path1 + 'posy' + format, path1 + 'negy' + format,
@@ -131,7 +131,7 @@ env3.mapping = THREE.EquirectangularReflectionMapping;
 var env3_refre = textureloader.load('./images/7.jpg');
 env3_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var path4 = "./three.js/examples/textures/cube/skyboxsun25deg/";
+var path4 = "./images/three-textures/cube/skyboxsun25deg/";
 var urls4 = [
     path4 + 'px' + format, path4 + 'nx' + format,
     path4 + 'py' + format, path4 + 'ny' + format,
@@ -141,7 +141,7 @@ var env4 = new THREE.CubeTextureLoader().load(urls4);
 var env4_refre = new THREE.CubeTextureLoader().load(urls4);
 env4_refre.mapping = THREE.CubeRefractionMapping;
 
-var path5 = "./three.js/examples/textures/cube/Bridge2/";
+var path5 = "./images/three-textures/cube/Bridge2/";
 var urls5 = [
     path5 + 'posx' + format, path5 + 'negx' + format,
     path5 + 'posy' + format, path5 + 'negy' + format,
@@ -161,7 +161,7 @@ env7.mapping = THREE.EquirectangularReflectionMapping;
 var env7_refre = textureloader.load('./images/9.jpg');
 env7_refre.mapping = THREE.EquirectangularRefractionMapping;
 
-var path8 = "./three.js/examples/textures/cube/Park3Med/";
+var path8 = "./images/three-textures/cube/Park3Med/";
 var urls8 = [
     path8 + 'px' + format, path8 + 'nx' + format,
     path8 + 'py' + format, path8 + 'ny' + format,
@@ -674,15 +674,20 @@ function init() {
 
 
 function init_patch() {
+    const patch_width = Math.floor($("#container_patch").width());
+    const patch_height = Math.floor(window.innerHeight * 0.78);
+    const safe_patch_width = Math.max(patch_width, 1);
+    const safe_patch_height = Math.max(patch_height, 1);
+
     scene_patch = new THREE.Scene();
     renderer_patch = new THREE.WebGLRenderer({ alpha: true, antialias: true, logarithmicDepthBuffer: true });
 
     renderer_patch.setPixelRatio(pixelRatio);
-    renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
+    renderer_patch.setSize(safe_patch_width, safe_patch_height);
     document.getElementById("container_patch").appendChild(renderer_patch.domElement);
     camera_patch = new THREE.PerspectiveCamera(
         45,
-        $("#container_patch").width() / window.innerHeight / 0.78,
+        safe_patch_width / safe_patch_height,
         0.01,
         1000
     );
@@ -699,7 +704,7 @@ function init_patch() {
     var renderPass_patch = new RenderPass(scene_patch, camera_patch);
     composer_patch.addPass(renderPass_patch);
 
-    outlinePass_patch = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.78), scene_patch, camera_patch);
+    outlinePass_patch = new OutlinePass(new THREE.Vector2(safe_patch_width, safe_patch_height), scene_patch, camera_patch);
     composer_patch.addPass(outlinePass_patch);
     outlinePass_patch.edgeStrength = outlinePass_params_cover.edgeStrength * 2;
     outlinePass_patch.edgeThickness = outlinePass_params_cover.edgeThickness * 1.5;
@@ -708,7 +713,7 @@ function init_patch() {
     outlinePass_patch.visibleEdgeColor.set(outlinePass_params_cover.visibleEdgeColor);
     outlinePass_patch.hiddenEdgeColor.set(outlinePass_params_cover.hiddenEdgeColor);
 
-    outlinePass_patch_select = new OutlinePass(new THREE.Vector2($("#container_patch").width(), window.innerHeight * 0.78), scene_patch, camera_patch);
+    outlinePass_patch_select = new OutlinePass(new THREE.Vector2(safe_patch_width, safe_patch_height), scene_patch, camera_patch);
     composer_patch.addPass(outlinePass_patch_select);
     outlinePass_patch_select.edgeStrength = outlinePass_params_select.edgeStrength * 2;
     outlinePass_patch_select.edgeThickness = outlinePass_params_select.edgeThickness * 1.5;
@@ -718,7 +723,7 @@ function init_patch() {
     outlinePass_patch_select.hiddenEdgeColor.set(outlinePass_params_select.hiddenEdgeColor);
 
     composer_patch.setPixelRatio(pixelRatio);
-    composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
+    composer_patch.setSize(safe_patch_width, safe_patch_height);
 
     controls_patch = new CameraControls(camera_patch, renderer_patch.domElement);
 
@@ -894,8 +899,12 @@ function render() {
     controls.update();
     composer.render();
     if (render_patch_flag) {
-        controls_patch.update();
-        composer_patch.render();
+        const patch_width = $("#container_patch").width();
+        const patch_height = window.innerHeight * 0.78;
+        if (patch_width > 0 && patch_height > 0) {
+            controls_patch.update();
+            composer_patch.render();
+        }
     }
 }
 
@@ -918,12 +927,16 @@ function onWindowResize() {
     renderer_transform.setPixelRatio(pixelRatio);
 
     if (render_patch_flag) {
-        camera_patch.aspect = $("#container_patch").width() / window.innerHeight / 0.78;
-        camera_patch.updateProjectionMatrix();
-        renderer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
-        renderer_patch.setPixelRatio(pixelRatio);
-        composer_patch.setSize($("#container_patch").width(), window.innerHeight * 0.78);
-        composer_patch.setPixelRatio(pixelRatio);
+        const patch_width = Math.floor($("#container_patch").width());
+        const patch_height = Math.floor(window.innerHeight * 0.78);
+        if (patch_width > 0 && patch_height > 0) {
+            camera_patch.aspect = patch_width / patch_height;
+            camera_patch.updateProjectionMatrix();
+            renderer_patch.setSize(patch_width, patch_height);
+            renderer_patch.setPixelRatio(pixelRatio);
+            composer_patch.setSize(patch_width, patch_height);
+            composer_patch.setPixelRatio(pixelRatio);
+        }
     }
 }
 
